@@ -90,6 +90,54 @@ a {
   gap: 4px;
 }
 
+/* Transport controls */
+.transport {
+  display: flex;
+  gap: 8px;
+}
+
+.transport-btn {
+  padding: 8px 20px;
+  border-radius: 20px;
+  border: none;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition:
+    transform 0.15s ease,
+    box-shadow 0.15s ease,
+    opacity 0.15s ease;
+}
+
+.play-btn {
+  background: linear-gradient(135deg, #00c853, #00e676);
+  color: white;
+}
+
+.play-btn:hover:not(.disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 200, 83, 0.4);
+}
+
+.stop-btn {
+  background: linear-gradient(135deg, #ff5252, #ff1744);
+  color: white;
+}
+
+.stop-btn:hover:not(.disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(255, 82, 82, 0.4);
+}
+
+.transport-btn.disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.transport-btn:active:not(.disabled) {
+  transform: translateY(0);
+}
+
 .reset-btn {
   margin-left: auto;
   padding: 8px 16px;
@@ -100,7 +148,9 @@ a {
   font-size: 14px;
   font-weight: 600;
   cursor: pointer;
-  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  transition:
+    transform 0.15s ease,
+    box-shadow 0.15s ease;
 }
 
 .reset-btn:hover {
@@ -196,6 +246,16 @@ a {
 
 .cell.beat-start {
   border-left: 2px solid var(--beat-line);
+}
+
+.cell.playhead {
+  background: rgba(0, 200, 83, 0.2);
+}
+
+@media (prefers-color-scheme: dark) {
+  .cell.playhead {
+    background: rgba(0, 230, 118, 0.25);
+  }
 }
 
 /* Bubble note styles */

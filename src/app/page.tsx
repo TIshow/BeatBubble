@@ -12,6 +12,7 @@ import {
 import { totalSteps } from "@/core/utils";
 import { colorForDrum, colorForNote } from "@/ui/color";
 import { buildNoteRows, findMelodyNoteAt, getNotePosition } from "@/ui/grid";
+import { AudioEngine } from "@/audio/engine";
 
 const DRUM_ROWS: DrumId[] = ["hihat", "snare", "kick"];
 
@@ -22,12 +23,41 @@ export default function Home() {
     startStep: number;
     initialDuration: number;
   } | null>(null);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [playheadStep, setPlayheadStep] = useState<number | null>(null);
 
   const gridRef = useRef<HTMLDivElement>(null);
+  const engineRef = useRef<AudioEngine | null>(null);
 
   const noteRows = buildNoteRows(song);
   const steps = totalSteps(song);
   const stepsArray = Array.from({ length: steps }, (_, i) => i);
+
+  const handlePlay = async () => {
+    if (isPlaying) return;
+
+    if (!engineRef.current) {
+      engineRef.current = new AudioEngine();
+    }
+
+    try {
+      await engineRef.current.init();
+      setIsPlaying(true);
+      engineRef.current.play(song, (step) => {
+        setPlayheadStep(step);
+      });
+    } catch (error) {
+      console.error("Failed to start audio:", error);
+    }
+  };
+
+  const handleStop = () => {
+    if (engineRef.current) {
+      engineRef.current.stop();
+    }
+    setIsPlaying(false);
+    setPlayheadStep(null);
+  };
 
   const handleMelodyCellClick = (noteName: NoteName, step: number) => {
     if (dragState) return;
@@ -79,6 +109,7 @@ export default function Home() {
   };
 
   const handleReset = () => {
+    handleStop();
     setSong(DEFAULT_SONG);
   };
 
@@ -89,11 +120,12 @@ export default function Home() {
   const renderMelodyCell = (noteName: NoteName, step: number) => {
     const note = findMelodyNoteAt(song, noteName, step);
     const isBeatStart = step % song.stepsPerBeat === 0;
+    const isPlayhead = playheadStep === step;
 
     return (
       <div
         key={step}
-        className={`cell ${isBeatStart ? "beat-start" : ""}`}
+        className={`cell ${isBeatStart ? "beat-start" : ""} ${isPlayhead ? "playhead" : ""}`}
         onClick={() => handleMelodyCellClick(noteName, step)}
         onMouseDown={(e) => handleMelodyMouseDown(e, noteName, step)}
       >
@@ -119,11 +151,12 @@ export default function Home() {
     const hasHit = isDrumHitAt(drumId, step);
     const isBeatStart = step % song.stepsPerBeat === 0;
     const color = colorForDrum(drumId);
+    const isPlayhead = playheadStep === step;
 
     return (
       <div
         key={step}
-        className={`cell ${isBeatStart ? "beat-start" : ""}`}
+        className={`cell ${isBeatStart ? "beat-start" : ""} ${isPlayhead ? "playhead" : ""}`}
         onClick={() => handleDrumCellClick(drumId, step)}
       >
         {hasHit && <div className="drum-bubble" style={{ backgroundColor: color }} />}
@@ -140,6 +173,22 @@ export default function Home() {
     >
       <header className="header">
         <h1>BeatBubble</h1>
+        <div className="transport">
+          <button
+            className={`transport-btn play-btn ${isPlaying ? "disabled" : ""}`}
+            onClick={handlePlay}
+            disabled={isPlaying}
+          >
+            Play
+          </button>
+          <button
+            className={`transport-btn stop-btn ${!isPlaying ? "disabled" : ""}`}
+            onClick={handleStop}
+            disabled={!isPlaying}
+          >
+            Stop
+          </button>
+        </div>
         <div className="header-info">
           <span>Tempo: {song.bpm} BPM</span>
           <span>Bars: {song.bars}</span>
