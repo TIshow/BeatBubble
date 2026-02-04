@@ -200,15 +200,25 @@ export default function Home() {
 
       <main className="main">
         <div className="grid-container">
-          <div className="labels">
+          <div className="labels grid">
             {noteRows.map((noteName) => (
-              <div key={noteName} className="note-label">
-                {noteName}
+              <div key={noteName} className="label-row">
+                <div
+                  className="label-cell"
+                  style={{ backgroundColor: colorForNote(noteName) }}
+                >
+                  {noteName}
+                </div>
               </div>
             ))}
             {DRUM_ROWS.map((drumId) => (
-              <div key={drumId} className="drum-label">
-                {drumId}
+              <div key={drumId} className="label-row">
+                <div
+                  className="label-cell"
+                  style={{ backgroundColor: colorForDrum(drumId) }}
+                >
+                  {drumId}
+                </div>
               </div>
             ))}
           </div>
