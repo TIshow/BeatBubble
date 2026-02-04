@@ -218,7 +218,6 @@ a {
 
 .grid-row {
   display: flex;
-  height: var(--cell-size);
 }
 
 .grid-row:not(:last-child) {
@@ -229,10 +228,20 @@ a {
 .cell {
   width: var(--cell-size);
   height: var(--cell-size);
-  border-right: 1px solid var(--grid-line);
+  flex-shrink: 0;
   position: relative;
   cursor: pointer;
   transition: background 0.1s ease;
+}
+
+.cell::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 1px;
+  background: var(--grid-line);
 }
 
 .cell:hover {
@@ -245,8 +254,15 @@ a {
   }
 }
 
-.cell.beat-start {
-  border-left: 2px solid var(--beat-line);
+.cell.beat-start::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  width: 2px;
+  background: var(--beat-line);
+  z-index: 1;
 }
 
 .cell.playhead {
@@ -264,8 +280,8 @@ a {
   position: absolute;
   top: 3px;
   bottom: 3px;
-  left: 2px;
-  right: 2px;
+  left: 3px;
+  right: 3px;
   border-radius: 8px;
   transition:
     transform 0.1s ease,
@@ -295,25 +311,23 @@ a {
 .bubble.start {
   border-top-left-radius: 12px;
   border-bottom-left-radius: 12px;
-  left: 3px;
+  right: 0;
 }
 
 .bubble.end {
   border-top-right-radius: 12px;
   border-bottom-right-radius: 12px;
-  right: 3px;
+  left: 0;
 }
 
 .bubble.single {
   border-radius: 12px;
-  left: 3px;
-  right: 3px;
 }
 
 .bubble.middle {
   border-radius: 0;
-  left: 0;
-  right: 0;
+  left: -1px;
+  right: -1px;
 }
 
 .bubble.start-highlight::after {
