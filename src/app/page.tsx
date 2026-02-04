@@ -199,12 +199,16 @@ export default function Home() {
       </header>
 
       <main className="main">
-        <div className="section-label">Melody</div>
         <div className="grid-container">
-          <div className="note-labels">
+          <div className="labels">
             {noteRows.map((noteName) => (
               <div key={noteName} className="note-label">
                 {noteName}
+              </div>
+            ))}
+            {DRUM_ROWS.map((drumId) => (
+              <div key={drumId} className="drum-label">
+                {drumId}
               </div>
             ))}
           </div>
@@ -214,19 +218,6 @@ export default function Home() {
                 {stepsArray.map((step) => renderMelodyCell(noteName, step))}
               </div>
             ))}
-          </div>
-        </div>
-
-        <div className="section-label">Drums</div>
-        <div className="grid-container">
-          <div className="drum-labels">
-            {DRUM_ROWS.map((drumId) => (
-              <div key={drumId} className="drum-label">
-                {drumId}
-              </div>
-            ))}
-          </div>
-          <div className="grid">
             {DRUM_ROWS.map((drumId) => (
               <div key={drumId} className="grid-row">
                 {stepsArray.map((step) => renderDrumCell(drumId, step))}

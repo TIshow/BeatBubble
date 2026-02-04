@@ -170,26 +170,15 @@ a {
   overflow-x: auto;
 }
 
-.section-label {
-  font-size: 12px;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  color: var(--foreground);
-  opacity: 0.5;
-  margin-bottom: 8px;
-}
-
 /* Grid container */
 .grid-container {
   display: flex;
-  margin-bottom: 24px;
   overflow-x: auto;
   overflow-y: hidden;
   padding-bottom: 8px;
 }
 
-.note-labels {
+.labels {
   display: flex;
   flex-direction: column;
   flex-shrink: 0;
@@ -351,17 +340,6 @@ a {
 }
 
 /* Drum styles */
-.drum-labels {
-  display: flex;
-  flex-direction: column;
-  flex-shrink: 0;
-  padding-right: 8px;
-  position: sticky;
-  left: 0;
-  background: var(--background);
-  z-index: 2;
-}
-
 .drum-label {
   height: var(--cell-size);
   display: flex;
