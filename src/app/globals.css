@@ -23,7 +23,6 @@
 html,
 body {
   max-width: 100vw;
-  overflow-x: hidden;
 }
 
 body {
@@ -56,6 +55,7 @@ a {
   min-height: 100vh;
   display: flex;
   flex-direction: column;
+  overflow-x: hidden;
 }
 
 .header {
@@ -184,12 +184,20 @@ a {
 .grid-container {
   display: flex;
   margin-bottom: 24px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding-bottom: 8px;
 }
 
 .note-labels {
   display: flex;
   flex-direction: column;
+  flex-shrink: 0;
   padding-right: 8px;
+  position: sticky;
+  left: 0;
+  background: var(--background);
+  z-index: 2;
 }
 
 .note-label {
@@ -208,9 +216,9 @@ a {
 .grid {
   display: flex;
   flex-direction: column;
+  flex-shrink: 0;
   background: var(--grid-bg);
   border-radius: 12px;
-  overflow: hidden;
   box-shadow:
     0 4px 16px rgba(0, 0, 0, 0.08),
     0 1px 4px rgba(0, 0, 0, 0.04);
@@ -346,7 +354,12 @@ a {
 .drum-labels {
   display: flex;
   flex-direction: column;
+  flex-shrink: 0;
   padding-right: 8px;
+  position: sticky;
+  left: 0;
+  background: var(--background);
+  z-index: 2;
 }
 
 .drum-label {
