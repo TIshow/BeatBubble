@@ -36,14 +36,11 @@ export default function Home() {
   const handlePlay = async () => {
     if (isPlaying) return;
 
-    if (!engineRef.current) {
-      engineRef.current = new AudioEngine();
-    }
-
     try {
-      await engineRef.current.init();
+      const engine = getEngine();
+      await engine.init();
       setIsPlaying(true);
-      engineRef.current.play(song, (step) => {
+      engine.play(song, (step) => {
         setPlayheadStep(step);
       });
     } catch (error) {
@@ -59,6 +56,13 @@ export default function Home() {
     setPlayheadStep(null);
   };
 
+  const getEngine = () => {
+    if (!engineRef.current) {
+      engineRef.current = new AudioEngine();
+    }
+    return engineRef.current;
+  };
+
   const handleMelodyCellClick = (noteName: NoteName, step: number) => {
     if (dragState) return;
 
@@ -69,6 +73,7 @@ export default function Home() {
       setSong((prev) =>
         addMelodyNote(prev, { startStep: step, durationSteps: 1, note: noteName })
       );
+      getEngine().playNotePreview(noteName);
     }
   };
 
@@ -105,7 +110,11 @@ export default function Home() {
   };
 
   const handleDrumCellClick = (drumId: DrumId, step: number) => {
+    const wasHit = isDrumHitAt(drumId, step);
     setSong((prev) => toggleDrumHit(prev, { step, drumId }));
+    if (!wasHit) {
+      getEngine().playDrumPreview(drumId);
+    }
   };
 
   const handleReset = () => {

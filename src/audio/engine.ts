@@ -238,4 +238,16 @@ export class AudioEngine {
   getState(): TransportState {
     return this.state;
   }
+
+  async playNotePreview(noteName: string): Promise<void> {
+    await this.init();
+    if (!this.ctx) return;
+    this.playMelodyNote(noteName, this.ctx.currentTime, 0.3);
+  }
+
+  async playDrumPreview(drumId: DrumId): Promise<void> {
+    await this.init();
+    if (!this.ctx) return;
+    this.playDrum(drumId, this.ctx.currentTime);
+  }
 }
