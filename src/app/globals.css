@@ -77,18 +77,73 @@ a {
   background-clip: text;
 }
 
-.header-info {
+.header-controls {
   display: flex;
-  gap: 16px;
-  font-size: 14px;
-  color: var(--foreground);
-  opacity: 0.7;
+  gap: 20px;
 }
 
-.header-info span {
+.control-group {
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--foreground);
+}
+
+.control-label {
+  opacity: 0.7;
+  min-width: 45px;
+}
+
+.control-slider {
+  width: 100px;
+  height: 6px;
+  border-radius: 3px;
+  background: var(--grid-line);
+  outline: none;
+  cursor: pointer;
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+.control-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(102, 126, 234, 0.4);
+  transition: transform 0.1s ease;
+}
+
+.control-slider::-webkit-slider-thumb:hover {
+  transform: scale(1.1);
+}
+
+.control-slider::-moz-range-thumb {
+  width: 18px;
+  height: 18px;
+  border: none;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(102, 126, 234, 0.4);
+}
+
+.control-value {
+  min-width: 32px;
+  padding: 4px 8px;
+  background: var(--grid-bg);
+  border-radius: 6px;
+  font-weight: 600;
+  text-align: center;
+}
+
+.control-group.disabled {
+  opacity: 0.5;
+  pointer-events: none;
 }
 
 /* Transport controls */

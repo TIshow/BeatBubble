@@ -155,6 +155,13 @@ export default function Home() {
     setSong(DEFAULT_SONG);
   };
 
+  const handleBpmChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = parseInt(e.target.value, 10);
+    if (!isNaN(value)) {
+      setSong((prev) => ({ ...prev, bpm: value }));
+    }
+  };
+
   const isDrumHitAt = (drumId: DrumId, step: number): boolean => {
     return song.drums.hits.some((h) => h.drumId === drumId && h.step === step);
   };
@@ -230,9 +237,21 @@ export default function Home() {
             Stop
           </button>
         </div>
-        <div className="header-info">
-          <span>Tempo: {song.bpm} BPM</span>
-          <span>Bars: {song.bars}</span>
+        <div className="header-controls">
+          <div className={`control-group ${isPlaying ? "disabled" : ""}`}>
+            <span className="control-label">Tempo</span>
+            <input
+              type="range"
+              className="control-slider"
+              value={song.bpm}
+              onChange={handleBpmChange}
+              min={40}
+              max={200}
+              step={5}
+              disabled={isPlaying}
+            />
+            <span className="control-value">{song.bpm}</span>
+          </div>
         </div>
         <button className="reset-btn" onClick={handleReset}>
           Reset
