@@ -325,6 +325,7 @@ a {
   position: relative;
   cursor: pointer;
   transition: background 0.1s ease;
+  touch-action: none;
 }
 
 .cell::after {

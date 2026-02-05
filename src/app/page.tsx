@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 import type { DrumId, MelodyNote, NoteName, Song } from "@/core/types";
 import { DEFAULT_SONG } from "@/core/defaults";
 import {
@@ -14,31 +14,95 @@ import { totalSteps } from "@/core/utils";
 import { colorForDrum, colorForNote } from "@/ui/color";
 import { buildNoteRows, findMelodyNoteAt, getNotePosition } from "@/ui/grid";
 import { AudioEngine } from "@/audio/engine";
+import { useDragInteraction } from "@/hooks/useDragInteraction";
 
 const DRUM_ROWS: DrumId[] = ["hihat", "snare", "kick"];
 
-const DRAG_THRESHOLD = 5;
-
 export default function Home() {
   const [song, setSong] = useState<Song>(DEFAULT_SONG);
-  const [dragState, setDragState] = useState<{
-    mode: "creating" | "extending";
-    noteId: string;
-    noteName: NoteName;
-    startStep: number;
-    startX: number;
-  } | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [playheadStep, setPlayheadStep] = useState<number | null>(null);
 
   const gridRef = useRef<HTMLDivElement>(null);
+  const gridContainerRef = useRef<HTMLDivElement>(null);
   const engineRef = useRef<AudioEngine | null>(null);
   const songRef = useRef<Song>(song);
-  const hasDraggedRef = useRef(false);
 
   useEffect(() => {
     songRef.current = song;
   }, [song]);
+
+  const getEngine = useCallback(() => {
+    if (!engineRef.current) {
+      engineRef.current = new AudioEngine();
+    }
+    return engineRef.current;
+  }, []);
+
+  // Drag interaction callbacks
+  const handleNoteCreate = useCallback(
+    (noteName: NoteName, step: number): string | null => {
+      const newSong = addMelodyNote(song, {
+        startStep: step,
+        durationSteps: 1,
+        note: noteName,
+      });
+      const addedNote = newSong.melody.notes.find(
+        (n) => n.startStep === step && n.note === noteName
+      );
+      if (addedNote) {
+        setSong(newSong);
+        getEngine().playNotePreview(noteName);
+        return addedNote.id;
+      }
+      return null;
+    },
+    [song, getEngine]
+  );
+
+  const handleNoteRemove = useCallback((noteId: string) => {
+    setSong((prev) => removeMelodyNote(prev, noteId));
+  }, []);
+
+  const handleNoteDurationChange = useCallback(
+    (noteId: string, duration: number) => {
+      setSong((prev) => setMelodyNoteDuration(prev, noteId, duration));
+    },
+    []
+  );
+
+  const handleDrumToggle = useCallback(
+    (drumId: DrumId, step: number) => {
+      const wasHit = song.drums.hits.some(
+        (h) => h.drumId === drumId && h.step === step
+      );
+      setSong((prev) => toggleDrumHit(prev, { step, drumId }));
+      if (!wasHit) {
+        getEngine().playDrumPreview(drumId);
+      }
+    },
+    [song.drums.hits, getEngine]
+  );
+
+  const findNoteAt = useCallback(
+    (noteName: NoteName, step: number) => findMelodyNoteAt(song, noteName, step),
+    [song]
+  );
+
+  const {
+    isDragging,
+    getMelodyCellHandlers,
+    getDrumCellHandlers,
+    containerHandlers,
+  } = useDragInteraction({
+    gridRef,
+    gridContainerRef,
+    onNoteCreate: handleNoteCreate,
+    onNoteRemove: handleNoteRemove,
+    onNoteDurationChange: handleNoteDurationChange,
+    onDrumToggle: handleDrumToggle,
+    findNoteAt,
+  });
 
   const noteRows = buildNoteRows(song);
   const steps = totalSteps(song);
@@ -51,9 +115,12 @@ export default function Home() {
       const engine = getEngine();
       await engine.init();
       setIsPlaying(true);
-      engine.play(() => songRef.current, (step) => {
-        setPlayheadStep(step);
-      });
+      engine.play(
+        () => songRef.current,
+        (step) => {
+          setPlayheadStep(step);
+        }
+      );
     } catch (error) {
       console.error("Failed to start audio:", error);
     }
@@ -65,90 +132,6 @@ export default function Home() {
     }
     setIsPlaying(false);
     setPlayheadStep(null);
-  };
-
-  const getEngine = () => {
-    if (!engineRef.current) {
-      engineRef.current = new AudioEngine();
-    }
-    return engineRef.current;
-  };
-
-  const handleMelodyMouseDown = (
-    e: React.MouseEvent,
-    noteName: NoteName,
-    step: number
-  ) => {
-    e.preventDefault();
-    hasDraggedRef.current = false;
-    const existingNote = findMelodyNoteAt(song, noteName, step);
-
-    if (existingNote) {
-      if (step === existingNote.startStep) {
-        setDragState({
-          mode: "extending",
-          noteId: existingNote.id,
-          noteName,
-          startStep: existingNote.startStep,
-          startX: e.clientX,
-        });
-      } else {
-        setSong((prev) => removeMelodyNote(prev, existingNote.id));
-      }
-    } else {
-      const newSong = addMelodyNote(song, {
-        startStep: step,
-        durationSteps: 1,
-        note: noteName,
-      });
-      const addedNote = newSong.melody.notes.find(
-        (n) => n.startStep === step && n.note === noteName
-      );
-      if (addedNote) {
-        setSong(newSong);
-        setDragState({
-          mode: "creating",
-          noteId: addedNote.id,
-          noteName,
-          startStep: step,
-          startX: e.clientX,
-        });
-        getEngine().playNotePreview(noteName);
-      }
-    }
-  };
-
-  const handleMouseMove = (e: React.MouseEvent) => {
-    if (!dragState || !gridRef.current) return;
-
-    const deltaX = e.clientX - dragState.startX;
-    if (Math.abs(deltaX) < DRAG_THRESHOLD && !hasDraggedRef.current) return;
-
-    hasDraggedRef.current = true;
-
-    const gridRect = gridRef.current.getBoundingClientRect();
-    const cellWidth = 32;
-    const relativeX = e.clientX - gridRect.left;
-    const currentStep = Math.floor(relativeX / cellWidth);
-    const newDuration = Math.max(1, currentStep - dragState.startStep + 1);
-
-    setSong((prev) => setMelodyNoteDuration(prev, dragState.noteId, newDuration));
-  };
-
-  const handleMouseUp = () => {
-    if (dragState && dragState.mode === "extending" && !hasDraggedRef.current) {
-      setSong((prev) => removeMelodyNote(prev, dragState.noteId));
-    }
-    setDragState(null);
-    hasDraggedRef.current = false;
-  };
-
-  const handleDrumCellClick = (drumId: DrumId, step: number) => {
-    const wasHit = isDrumHitAt(drumId, step);
-    setSong((prev) => toggleDrumHit(prev, { step, drumId }));
-    if (!wasHit) {
-      getEngine().playDrumPreview(drumId);
-    }
   };
 
   const handleReset = () => {
@@ -170,20 +153,18 @@ export default function Home() {
     setSong((prev) => adjustPitchBound(prev, bound, direction));
   };
 
-  const isDrumHitAt = (drumId: DrumId, step: number): boolean => {
-    return song.drums.hits.some((h) => h.drumId === drumId && h.step === step);
-  };
-
   const renderMelodyCell = (noteName: NoteName, step: number) => {
     const note = findMelodyNoteAt(song, noteName, step);
     const isBeatStart = step % song.stepsPerBeat === 0;
     const isPlayhead = playheadStep === step;
+    const handlers = getMelodyCellHandlers(noteName, step);
 
     return (
       <div
         key={step}
         className={`cell ${isBeatStart ? "beat-start" : ""} ${isPlayhead ? "playhead" : ""}`}
-        onMouseDown={(e) => handleMelodyMouseDown(e, noteName, step)}
+        onMouseDown={handlers.onMouseDown}
+        onTouchStart={handlers.onTouchStart}
       >
         {note && renderBubble(note, step)}
       </div>
@@ -204,28 +185,37 @@ export default function Home() {
   };
 
   const renderDrumCell = (drumId: DrumId, step: number) => {
-    const hasHit = isDrumHitAt(drumId, step);
+    const hasHit = song.drums.hits.some(
+      (h) => h.drumId === drumId && h.step === step
+    );
     const isBeatStart = step % song.stepsPerBeat === 0;
     const color = colorForDrum(drumId);
     const isPlayhead = playheadStep === step;
+    const handlers = getDrumCellHandlers(drumId, step);
 
     return (
       <div
         key={step}
         className={`cell ${isBeatStart ? "beat-start" : ""} ${isPlayhead ? "playhead" : ""}`}
-        onClick={() => handleDrumCellClick(drumId, step)}
+        onClick={handlers.onClick}
+        onTouchStart={handlers.onTouchStart}
       >
-        {hasHit && <div className="drum-bubble" style={{ backgroundColor: color }} />}
+        {hasHit && (
+          <div className="drum-bubble" style={{ backgroundColor: color }} />
+        )}
       </div>
     );
   };
 
   return (
     <div
-      className={`app ${dragState ? "dragging" : ""}`}
-      onMouseMove={handleMouseMove}
-      onMouseUp={handleMouseUp}
-      onMouseLeave={handleMouseUp}
+      className={`app ${isDragging ? "dragging" : ""}`}
+      onMouseMove={containerHandlers.onMouseMove}
+      onMouseUp={containerHandlers.onMouseUp}
+      onMouseLeave={containerHandlers.onMouseLeave}
+      onTouchMove={containerHandlers.onTouchMove}
+      onTouchEnd={containerHandlers.onTouchEnd}
+      onTouchCancel={containerHandlers.onTouchCancel}
     >
       <header className="header">
         <h1>BeatBubble</h1>
@@ -299,7 +289,7 @@ export default function Home() {
       </header>
 
       <main className="main">
-        <div className="grid-container">
+        <div className="grid-container" ref={gridContainerRef}>
           <div className="labels grid">
             {noteRows.map((noteName) => (
               <div key={noteName} className="label-row">
