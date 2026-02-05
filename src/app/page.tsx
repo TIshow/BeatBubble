@@ -212,7 +212,7 @@ export default function Home() {
               </div>
             ))}
             {DRUM_ROWS.map((drumId) => (
-              <div key={drumId} className="label-row">
+              <div key={drumId} className="label-row drum-row">
                 <div
                   className="label-cell"
                   style={{ backgroundColor: colorForDrum(drumId) }}
@@ -229,7 +229,7 @@ export default function Home() {
               </div>
             ))}
             {DRUM_ROWS.map((drumId) => (
-              <div key={drumId} className="grid-row">
+              <div key={drumId} className="grid-row drum-row">
                 {stepsArray.map((step) => renderDrumCell(drumId, step))}
               </div>
             ))}

@@ -225,6 +225,16 @@ a {
   border-bottom: 1px solid var(--grid-line);
 }
 
+.drum-row {
+  background: rgba(0, 0, 0, 0.04);
+}
+
+@media (prefers-color-scheme: dark) {
+  .drum-row {
+    background: rgba(255, 255, 255, 0.04);
+  }
+}
+
 /* Cells */
 .cell {
   width: var(--cell-size);
