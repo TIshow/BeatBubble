@@ -250,37 +250,45 @@ export default function Home() {
             />
             <span className="control-value">{song.bpm}</span>
           </div>
-          <div className="control-group">
-            <span className="control-label">Low</span>
-            <button
-              className="pitch-btn"
-              onClick={() => handlePitchBoundChange("min", "down")}
-            >
-              −
-            </button>
-            <span className="control-value">{song.constraints.minNote}</span>
-            <button
-              className="pitch-btn"
-              onClick={() => handlePitchBoundChange("min", "up")}
-            >
-              +
-            </button>
-          </div>
-          <div className="control-group">
-            <span className="control-label">High</span>
-            <button
-              className="pitch-btn"
-              onClick={() => handlePitchBoundChange("max", "down")}
-            >
-              −
-            </button>
-            <span className="control-value">{song.constraints.maxNote}</span>
-            <button
-              className="pitch-btn"
-              onClick={() => handlePitchBoundChange("max", "up")}
-            >
-              +
-            </button>
+          <div className="control-group range-control">
+            <span className="control-label">Range</span>
+            <div className="range-chips">
+              <div className="range-chip">
+                <button
+                  className="range-chip-btn"
+                  onClick={() => handlePitchBoundChange("min", "down")}
+                  aria-label="Lower minimum note"
+                >
+                  ◀
+                </button>
+                <span className="range-chip-value">{song.constraints.minNote}</span>
+                <button
+                  className="range-chip-btn"
+                  onClick={() => handlePitchBoundChange("min", "up")}
+                  aria-label="Raise minimum note"
+                >
+                  ▶
+                </button>
+              </div>
+              <span className="range-separator">–</span>
+              <div className="range-chip">
+                <button
+                  className="range-chip-btn"
+                  onClick={() => handlePitchBoundChange("max", "down")}
+                  aria-label="Lower maximum note"
+                >
+                  ◀
+                </button>
+                <span className="range-chip-value">{song.constraints.maxNote}</span>
+                <button
+                  className="range-chip-btn"
+                  onClick={() => handlePitchBoundChange("max", "up")}
+                  aria-label="Raise maximum note"
+                >
+                  ▶
+                </button>
+              </div>
+            </div>
           </div>
         </div>
         <button className="reset-btn" onClick={handleReset}>
