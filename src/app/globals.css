@@ -146,6 +146,33 @@ a {
   pointer-events: none;
 }
 
+.pitch-btn {
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  border: none;
+  background: var(--grid-bg);
+  color: var(--foreground);
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition:
+    background 0.15s ease,
+    transform 0.1s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.pitch-btn:hover {
+  background: var(--grid-line);
+  transform: scale(1.05);
+}
+
+.pitch-btn:active {
+  transform: scale(0.95);
+}
+
 /* Transport controls */
 .transport {
   display: flex;

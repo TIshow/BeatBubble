@@ -51,3 +51,52 @@ export function noteNameToMidi(note: NoteName): number {
 export function compareNotes(a: NoteName, b: NoteName): number {
   return noteNameToMidi(a) - noteNameToMidi(b);
 }
+
+const MIDI_TO_NOTE: string[] = [
+  "C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B",
+];
+
+const WHITE_KEYS: number[] = [0, 2, 4, 5, 7, 9, 11]; // C, D, E, F, G, A, B
+
+export function midiToNoteName(midi: number): NoteName {
+  const octave = Math.floor(midi / 12) - 1;
+  const semitone = midi % 12;
+  return `${MIDI_TO_NOTE[semitone]}${octave}`;
+}
+
+export function isWhiteKey(midi: number): boolean {
+  return WHITE_KEYS.includes(midi % 12);
+}
+
+export function transposeNoteName(
+  note: NoteName,
+  semitones: number,
+  allowAccidentals: boolean = true
+): NoteName {
+  let midi = noteNameToMidi(note) + semitones;
+
+  if (!allowAccidentals) {
+    // Move to nearest white key in the direction of transposition
+    while (!isWhiteKey(midi)) {
+      midi += semitones > 0 ? 1 : -1;
+    }
+  }
+
+  return midiToNoteName(midi);
+}
+
+export function clampNoteName(
+  note: NoteName,
+  min: NoteName,
+  max: NoteName
+): NoteName {
+  const midi = noteNameToMidi(note);
+  const minMidi = noteNameToMidi(min);
+  const maxMidi = noteNameToMidi(max);
+  const clampedMidi = clamp(midi, minMidi, maxMidi);
+  return midiToNoteName(clampedMidi);
+}
+
+// Absolute bounds for pitch range
+export const PITCH_RANGE_MIN = "C2";
+export const PITCH_RANGE_MAX = "C7";

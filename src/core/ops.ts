@@ -1,6 +1,15 @@
 import type { DrumId, MelodyNote, NoteName, Song } from "./types";
 import { newId } from "./id";
-import { clamp, compareNotes, normalizeDuration, totalSteps } from "./utils";
+import {
+  clamp,
+  compareNotes,
+  normalizeDuration,
+  noteNameToMidi,
+  PITCH_RANGE_MAX,
+  PITCH_RANGE_MIN,
+  totalSteps,
+  transposeNoteName,
+} from "./utils";
 
 function isNoteInRange(
   note: NoteName,
@@ -142,6 +151,65 @@ export function toggleDrumHit(
     drums: {
       ...song.drums,
       hits: [...song.drums.hits, { id: newId(), step, drumId }],
+    },
+  };
+}
+
+export function adjustPitchBound(
+  song: Song,
+  bound: "min" | "max",
+  direction: "up" | "down"
+): Song {
+  const { minNote, maxNote, allowAccidentals } = song.constraints;
+  const semitones = direction === "up" ? 1 : -1;
+
+  const minMidi = noteNameToMidi(PITCH_RANGE_MIN);
+  const maxMidi = noteNameToMidi(PITCH_RANGE_MAX);
+
+  let newMinNote = minNote;
+  let newMaxNote = maxNote;
+
+  if (bound === "min") {
+    const transposed = transposeNoteName(minNote, semitones, allowAccidentals);
+    const transposedMidi = noteNameToMidi(transposed);
+
+    // Guard: stay within absolute bounds and don't exceed maxNote
+    if (transposedMidi < minMidi || transposedMidi > maxMidi) {
+      return song;
+    }
+    if (compareNotes(transposed, maxNote) > 0) {
+      return song;
+    }
+    newMinNote = transposed;
+  } else {
+    const transposed = transposeNoteName(maxNote, semitones, allowAccidentals);
+    const transposedMidi = noteNameToMidi(transposed);
+
+    // Guard: stay within absolute bounds and don't go below minNote
+    if (transposedMidi < minMidi || transposedMidi > maxMidi) {
+      return song;
+    }
+    if (compareNotes(transposed, minNote) < 0) {
+      return song;
+    }
+    newMaxNote = transposed;
+  }
+
+  // Remove notes that are now out of range
+  const filteredNotes = song.melody.notes.filter((note) =>
+    isNoteInRange(note.note, newMinNote, newMaxNote)
+  );
+
+  return {
+    ...song,
+    constraints: {
+      ...song.constraints,
+      minNote: newMinNote,
+      maxNote: newMaxNote,
+    },
+    melody: {
+      ...song.melody,
+      notes: filteredNotes,
     },
   };
 }

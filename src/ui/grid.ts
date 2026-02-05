@@ -1,26 +1,6 @@
 import type { MelodyNote, NoteName, Song } from "@/core/types";
-import { noteNameToMidi } from "@/core/utils";
+import { midiToNoteName, noteNameToMidi } from "@/core/utils";
 import { isAccidental } from "./color";
-
-function midiToNoteName(midi: number): NoteName {
-  const octave = Math.floor(midi / 12) - 1;
-  const semitone = midi % 12;
-  const noteMap: Record<number, string> = {
-    0: "C",
-    1: "C#",
-    2: "D",
-    3: "D#",
-    4: "E",
-    5: "F",
-    6: "F#",
-    7: "G",
-    8: "G#",
-    9: "A",
-    10: "A#",
-    11: "B",
-  };
-  return `${noteMap[semitone]}${octave}`;
-}
 
 export function buildNoteRows(song: Song): NoteName[] {
   const { minNote, maxNote, allowAccidentals } = song.constraints;
