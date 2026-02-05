@@ -5,12 +5,18 @@ import type { DrumId, MelodyNote, NoteName } from "@/core/types";
 const DRAG_THRESHOLD = 5;
 const CELL_WIDTH = 32;
 
-interface DragState {
-  mode: "creating" | "extending";
-  noteId: string;
+// Pending interaction recorded on touch/mouse start (before we know if it's tap or drag)
+interface PendingInteraction {
+  clientX: number;
   noteName: NoteName;
+  step: number;
+  existingNote: MelodyNote | null;
+}
+
+// Active drag state (only set after threshold is crossed)
+interface DragState {
+  noteId: string;
   startStep: number;
-  startX: number;
 }
 
 interface UseDragInteractionOptions {
@@ -32,71 +38,101 @@ export function useDragInteraction({
   onDrumToggle,
   findNoteAt,
 }: UseDragInteractionOptions) {
-  const [dragState, setDragState] = useState<DragState | null>(null);
-  const hasDraggedRef = useRef(false);
+  // State for CSS (triggers re-render)
+  const [isDragging, setIsDragging] = useState(false);
+
+  // Refs for synchronous access (no stale closure issues)
+  const pendingRef = useRef<PendingInteraction | null>(null);
+  const dragRef = useRef<DragState | null>(null);
   const touchCountRef = useRef(0);
   const lastTouchXRef = useRef(0);
 
-  const startMelodyDrag = useCallback(
+  // Start potential interaction (tap or drag - we don't know yet)
+  const startInteraction = useCallback(
     (clientX: number, noteName: NoteName, step: number) => {
-      hasDraggedRef.current = false;
       const existingNote = findNoteAt(noteName, step);
+      pendingRef.current = { clientX, noteName, step, existingNote };
+      dragRef.current = null;
+    },
+    [findNoteAt]
+  );
 
-      if (existingNote) {
-        if (step === existingNote.startStep) {
-          setDragState({
-            mode: "extending",
-            noteId: existingNote.id,
-            noteName,
-            startStep: existingNote.startStep,
-            startX: clientX,
-          });
-        } else {
-          onNoteRemove(existingNote.id);
+  // Handle movement - may transition to drag mode
+  const handleMove = useCallback(
+    (clientX: number) => {
+      const pending = pendingRef.current;
+      if (!pending || !gridRef.current) return;
+
+      const deltaX = clientX - pending.clientX;
+
+      // Already in drag mode - update duration
+      if (dragRef.current) {
+        const gridRect = gridRef.current.getBoundingClientRect();
+        const relativeX = clientX - gridRect.left;
+        const currentStep = Math.floor(relativeX / CELL_WIDTH);
+        const newDuration = Math.max(1, currentStep - dragRef.current.startStep + 1);
+        onNoteDurationChange(dragRef.current.noteId, newDuration);
+        return;
+      }
+
+      // Check if we should enter drag mode
+      if (Math.abs(deltaX) >= DRAG_THRESHOLD) {
+        // Transition to drag mode
+        if (pending.existingNote && pending.step === pending.existingNote.startStep) {
+          // Extending existing note from its start
+          dragRef.current = {
+            noteId: pending.existingNote.id,
+            startStep: pending.existingNote.startStep,
+          };
+          setIsDragging(true);
+        } else if (!pending.existingNote) {
+          // Creating new note and dragging
+          const noteId = onNoteCreate(pending.noteName, pending.step);
+          if (noteId) {
+            dragRef.current = {
+              noteId,
+              startStep: pending.step,
+            };
+            setIsDragging(true);
+          }
         }
-      } else {
-        const noteId = onNoteCreate(noteName, step);
-        if (noteId) {
-          setDragState({
-            mode: "creating",
-            noteId,
-            noteName,
-            startStep: step,
-            startX: clientX,
-          });
-        }
+        // If clicking on middle/end of existing note, don't enter drag mode
       }
     },
-    [findNoteAt, onNoteCreate, onNoteRemove]
+    [gridRef, onNoteCreate, onNoteDurationChange]
   );
 
-  const updateDrag = useCallback(
-    (clientX: number) => {
-      if (!dragState || !gridRef.current) return;
+  // End interaction - finalize as tap or drag
+  const endInteraction = useCallback(() => {
+    const pending = pendingRef.current;
+    const drag = dragRef.current;
 
-      const deltaX = clientX - dragState.startX;
-      if (Math.abs(deltaX) < DRAG_THRESHOLD && !hasDraggedRef.current) return;
-
-      hasDraggedRef.current = true;
-
-      const gridRect = gridRef.current.getBoundingClientRect();
-      const relativeX = clientX - gridRect.left;
-      const currentStep = Math.floor(relativeX / CELL_WIDTH);
-      const newDuration = Math.max(1, currentStep - dragState.startStep + 1);
-
-      onNoteDurationChange(dragState.noteId, newDuration);
-    },
-    [dragState, gridRef, onNoteDurationChange]
-  );
-
-  const endDrag = useCallback(() => {
-    if (dragState && dragState.mode === "extending" && !hasDraggedRef.current) {
-      onNoteRemove(dragState.noteId);
+    if (pending && !drag) {
+      // No drag occurred - this is a tap
+      if (pending.existingNote) {
+        // Tap on existing note - delete it
+        onNoteRemove(pending.existingNote.id);
+      } else {
+        // Tap on empty cell - create short note
+        onNoteCreate(pending.noteName, pending.step);
+      }
     }
-    setDragState(null);
-    hasDraggedRef.current = false;
-  }, [dragState, onNoteRemove]);
+    // If drag occurred, note is already created/extended - nothing more to do
 
+    // Reset state
+    pendingRef.current = null;
+    dragRef.current = null;
+    setIsDragging(false);
+  }, [onNoteCreate, onNoteRemove]);
+
+  // Cancel interaction without finalizing
+  const cancelInteraction = useCallback(() => {
+    pendingRef.current = null;
+    dragRef.current = null;
+    setIsDragging(false);
+  }, []);
+
+  // Multi-touch scroll helpers
   const initMultiTouchScroll = useCallback((clientX: number) => {
     lastTouchXRef.current = clientX;
   }, []);
@@ -116,22 +152,20 @@ export function useDragInteraction({
     (noteName: NoteName, step: number) => ({
       onMouseDown: (e: React.MouseEvent) => {
         e.preventDefault();
-        startMelodyDrag(e.clientX, noteName, step);
+        startInteraction(e.clientX, noteName, step);
       },
       onTouchStart: (e: React.TouchEvent) => {
         e.preventDefault();
         touchCountRef.current = e.touches.length;
         if (e.touches.length === 1) {
-          startMelodyDrag(e.touches[0].clientX, noteName, step);
+          startInteraction(e.touches[0].clientX, noteName, step);
         } else if (e.touches.length >= 2) {
-          if (dragState) {
-            endDrag();
-          }
+          cancelInteraction();
           initMultiTouchScroll(e.touches[0].clientX);
         }
       },
     }),
-    [startMelodyDrag, dragState, endDrag, initMultiTouchScroll]
+    [startInteraction, cancelInteraction, initMultiTouchScroll]
   );
 
   // Drum cell handlers
@@ -156,37 +190,37 @@ export function useDragInteraction({
   // Container handlers
   const containerHandlers = {
     onMouseMove: (e: React.MouseEvent) => {
-      updateDrag(e.clientX);
+      handleMove(e.clientX);
     },
     onMouseUp: () => {
-      endDrag();
+      endInteraction();
     },
     onMouseLeave: () => {
-      endDrag();
+      cancelInteraction();
     },
     onTouchMove: (e: React.TouchEvent) => {
-      if (e.touches.length === 1 && dragState) {
-        updateDrag(e.touches[0].clientX);
+      if (e.touches.length === 1 && pendingRef.current) {
+        handleMove(e.touches[0].clientX);
       } else if (e.touches.length >= 2) {
         handleMultiTouchScroll(e.touches[0].clientX);
       }
     },
     onTouchEnd: (e: React.TouchEvent) => {
       if (touchCountRef.current === 1) {
-        endDrag();
+        endInteraction();
       }
       touchCountRef.current = e.touches.length;
     },
     onTouchCancel: (e: React.TouchEvent) => {
       if (touchCountRef.current === 1) {
-        endDrag();
+        cancelInteraction();
       }
       touchCountRef.current = e.touches.length;
     },
   };
 
   return {
-    isDragging: dragState !== null,
+    isDragging,
     getMelodyCellHandlers,
     getDrumCellHandlers,
     containerHandlers,
