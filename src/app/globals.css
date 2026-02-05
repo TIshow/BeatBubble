@@ -60,39 +60,176 @@ a {
 
 .header {
   background: var(--header-bg);
-  padding: 16px 24px;
+  padding: 12px 16px;
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
-  gap: 24px;
+  gap: 12px;
   border-bottom: 1px solid var(--grid-line);
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
 }
 
 .header h1 {
-  font-size: 24px;
+  font-size: 20px;
   font-weight: 700;
   background: linear-gradient(135deg, #ff6b6b, #feca57, #48dbfb, #ff9ff3);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
+  flex-shrink: 0;
 }
 
 .header-controls {
   display: flex;
-  gap: 20px;
+  flex-wrap: wrap;
+  gap: 12px;
+  flex: 1;
+  justify-content: flex-start;
 }
 
 .control-group {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
   font-size: 13px;
   color: var(--foreground);
 }
 
 .control-label {
   opacity: 0.7;
-  min-width: 45px;
+  min-width: 40px;
+  font-size: 12px;
+}
+
+/* Desktop: single row layout */
+@media (min-width: 900px) {
+  .header {
+    padding: 16px 24px;
+    gap: 24px;
+    flex-wrap: nowrap;
+  }
+
+  .header h1 {
+    font-size: 24px;
+  }
+
+  .header-controls {
+    gap: 20px;
+  }
+
+  .control-label {
+    min-width: 45px;
+    font-size: 13px;
+  }
+}
+
+/* Tablet: two row layout */
+@media (max-width: 899px) and (min-width: 600px) {
+  .header {
+    padding: 12px 16px;
+  }
+
+  .header-controls {
+    order: 3;
+    width: 100%;
+    justify-content: flex-start;
+    padding-top: 8px;
+    border-top: 1px solid var(--grid-line);
+    margin-top: 4px;
+  }
+
+  .pitch-btn {
+    width: 32px;
+    height: 32px;
+  }
+
+  .control-slider::-webkit-slider-thumb {
+    width: 22px;
+    height: 22px;
+  }
+
+  .control-slider::-moz-range-thumb {
+    width: 22px;
+    height: 22px;
+  }
+}
+
+/* Mobile: compact stacked layout */
+@media (max-width: 599px) {
+  .header {
+    padding: 10px 12px;
+    gap: 8px;
+  }
+
+  .header h1 {
+    font-size: 18px;
+    width: 100%;
+  }
+
+  .transport {
+    order: 2;
+  }
+
+  .reset-btn {
+    order: 3;
+    margin-left: 0;
+    padding: 8px 12px;
+    font-size: 13px;
+  }
+
+  .header-controls {
+    order: 4;
+    width: 100%;
+    padding-top: 10px;
+    border-top: 1px solid var(--grid-line);
+    margin-top: 4px;
+    gap: 8px;
+  }
+
+  .control-group {
+    gap: 4px;
+  }
+
+  .control-label {
+    min-width: 36px;
+    font-size: 11px;
+  }
+
+  .control-slider {
+    width: 70px;
+  }
+
+  .control-value {
+    min-width: 28px;
+    padding: 3px 6px;
+    font-size: 12px;
+  }
+
+  .transport-btn {
+    padding: 10px 16px;
+    font-size: 13px;
+    min-height: 44px;
+  }
+
+  .pitch-btn {
+    width: 36px;
+    height: 36px;
+    font-size: 18px;
+  }
+
+  .control-slider {
+    height: 8px;
+  }
+
+  .control-slider::-webkit-slider-thumb {
+    width: 24px;
+    height: 24px;
+  }
+
+  .control-slider::-moz-range-thumb {
+    width: 24px;
+    height: 24px;
+  }
 }
 
 .control-slider {
