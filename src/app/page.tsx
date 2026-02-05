@@ -16,12 +16,16 @@ import { AudioEngine } from "@/audio/engine";
 
 const DRUM_ROWS: DrumId[] = ["hihat", "snare", "kick"];
 
+const DRAG_THRESHOLD = 5;
+
 export default function Home() {
   const [song, setSong] = useState<Song>(DEFAULT_SONG);
   const [dragState, setDragState] = useState<{
+    mode: "creating" | "extending";
     noteId: string;
+    noteName: NoteName;
     startStep: number;
-    initialDuration: number;
+    startX: number;
   } | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [playheadStep, setPlayheadStep] = useState<number | null>(null);
@@ -29,6 +33,7 @@ export default function Home() {
   const gridRef = useRef<HTMLDivElement>(null);
   const engineRef = useRef<AudioEngine | null>(null);
   const songRef = useRef<Song>(song);
+  const hasDraggedRef = useRef(false);
 
   useEffect(() => {
     songRef.current = song;
@@ -68,38 +73,57 @@ export default function Home() {
     return engineRef.current;
   };
 
-  const handleMelodyCellClick = (noteName: NoteName, step: number) => {
-    if (dragState) return;
-
-    const existingNote = findMelodyNoteAt(song, noteName, step);
-    if (existingNote) {
-      setSong((prev) => removeMelodyNote(prev, existingNote.id));
-    } else {
-      setSong((prev) =>
-        addMelodyNote(prev, { startStep: step, durationSteps: 1, note: noteName })
-      );
-      getEngine().playNotePreview(noteName);
-    }
-  };
-
   const handleMelodyMouseDown = (
     e: React.MouseEvent,
     noteName: NoteName,
     step: number
   ) => {
+    e.preventDefault();
+    hasDraggedRef.current = false;
     const existingNote = findMelodyNoteAt(song, noteName, step);
-    if (existingNote && step === existingNote.startStep) {
-      e.preventDefault();
-      setDragState({
-        noteId: existingNote.id,
-        startStep: existingNote.startStep,
-        initialDuration: existingNote.durationSteps,
+
+    if (existingNote) {
+      if (step === existingNote.startStep) {
+        setDragState({
+          mode: "extending",
+          noteId: existingNote.id,
+          noteName,
+          startStep: existingNote.startStep,
+          startX: e.clientX,
+        });
+      } else {
+        setSong((prev) => removeMelodyNote(prev, existingNote.id));
+      }
+    } else {
+      const newSong = addMelodyNote(song, {
+        startStep: step,
+        durationSteps: 1,
+        note: noteName,
       });
+      const addedNote = newSong.melody.notes.find(
+        (n) => n.startStep === step && n.note === noteName
+      );
+      if (addedNote) {
+        setSong(newSong);
+        setDragState({
+          mode: "creating",
+          noteId: addedNote.id,
+          noteName,
+          startStep: step,
+          startX: e.clientX,
+        });
+        getEngine().playNotePreview(noteName);
+      }
     }
   };
 
   const handleMouseMove = (e: React.MouseEvent) => {
     if (!dragState || !gridRef.current) return;
+
+    const deltaX = e.clientX - dragState.startX;
+    if (Math.abs(deltaX) < DRAG_THRESHOLD && !hasDraggedRef.current) return;
+
+    hasDraggedRef.current = true;
 
     const gridRect = gridRef.current.getBoundingClientRect();
     const cellWidth = 32;
@@ -111,7 +135,11 @@ export default function Home() {
   };
 
   const handleMouseUp = () => {
+    if (dragState && dragState.mode === "extending" && !hasDraggedRef.current) {
+      setSong((prev) => removeMelodyNote(prev, dragState.noteId));
+    }
     setDragState(null);
+    hasDraggedRef.current = false;
   };
 
   const handleDrumCellClick = (drumId: DrumId, step: number) => {
@@ -140,7 +168,6 @@ export default function Home() {
       <div
         key={step}
         className={`cell ${isBeatStart ? "beat-start" : ""} ${isPlayhead ? "playhead" : ""}`}
-        onClick={() => handleMelodyCellClick(noteName, step)}
         onMouseDown={(e) => handleMelodyMouseDown(e, noteName, step)}
       >
         {note && renderBubble(note, step)}
