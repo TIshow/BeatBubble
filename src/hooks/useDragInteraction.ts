@@ -179,7 +179,12 @@ export function useDragInteraction({
   // Drum cell handlers
   const getDrumCellHandlers = useCallback(
     (drumId: DrumId, step: number) => ({
-      onClick: () => {
+      onMouseDown: (e: React.MouseEvent) => {
+        e.preventDefault();
+        // Ignore synthetic mouse events after touch
+        if (Date.now() - lastInteractionEndRef.current < 300) {
+          return;
+        }
         onDrumToggle(drumId, step);
       },
       onTouchStart: (e: React.TouchEvent) => {
@@ -187,6 +192,7 @@ export function useDragInteraction({
         touchCountRef.current = e.touches.length;
         if (e.touches.length === 1) {
           onDrumToggle(drumId, step);
+          lastInteractionEndRef.current = Date.now();
         } else if (e.touches.length >= 2) {
           initMultiTouchScroll(e.touches[0].clientX);
         }

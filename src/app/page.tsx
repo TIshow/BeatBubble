@@ -197,7 +197,7 @@ export default function Home() {
       <div
         key={step}
         className={`cell ${isBeatStart ? "beat-start" : ""} ${isPlayhead ? "playhead" : ""}`}
-        onClick={handlers.onClick}
+        onMouseDown={handlers.onMouseDown}
         onTouchStart={handlers.onTouchStart}
       >
         {hasHit && (
