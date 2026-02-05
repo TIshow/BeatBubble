@@ -46,10 +46,17 @@ export function useDragInteraction({
   const dragRef = useRef<DragState | null>(null);
   const touchCountRef = useRef(0);
   const lastTouchXRef = useRef(0);
+  // Timestamp to prevent synthetic mouse events after touch
+  const lastInteractionEndRef = useRef(0);
 
   // Start potential interaction (tap or drag - we don't know yet)
   const startInteraction = useCallback(
-    (clientX: number, noteName: NoteName, step: number) => {
+    (clientX: number, noteName: NoteName, step: number, isTouch: boolean) => {
+      // Ignore synthetic mouse events that fire shortly after touch events
+      if (!isTouch && Date.now() - lastInteractionEndRef.current < 300) {
+        return;
+      }
+
       const existingNote = findNoteAt(noteName, step);
       pendingRef.current = { clientX, noteName, step, existingNote };
       dragRef.current = null;
@@ -123,6 +130,7 @@ export function useDragInteraction({
     pendingRef.current = null;
     dragRef.current = null;
     setIsDragging(false);
+    lastInteractionEndRef.current = Date.now();
   }, [onNoteCreate, onNoteRemove]);
 
   // Cancel interaction without finalizing
@@ -152,13 +160,13 @@ export function useDragInteraction({
     (noteName: NoteName, step: number) => ({
       onMouseDown: (e: React.MouseEvent) => {
         e.preventDefault();
-        startInteraction(e.clientX, noteName, step);
+        startInteraction(e.clientX, noteName, step, false);
       },
       onTouchStart: (e: React.TouchEvent) => {
         e.preventDefault();
         touchCountRef.current = e.touches.length;
         if (e.touches.length === 1) {
-          startInteraction(e.touches[0].clientX, noteName, step);
+          startInteraction(e.touches[0].clientX, noteName, step, true);
         } else if (e.touches.length >= 2) {
           cancelInteraction();
           initMultiTouchScroll(e.touches[0].clientX);
