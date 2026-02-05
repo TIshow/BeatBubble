@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { DrumId, MelodyNote, NoteName, Song } from "@/core/types";
 import { DEFAULT_SONG } from "@/core/defaults";
 import {
@@ -28,6 +28,11 @@ export default function Home() {
 
   const gridRef = useRef<HTMLDivElement>(null);
   const engineRef = useRef<AudioEngine | null>(null);
+  const songRef = useRef<Song>(song);
+
+  useEffect(() => {
+    songRef.current = song;
+  }, [song]);
 
   const noteRows = buildNoteRows(song);
   const steps = totalSteps(song);
@@ -40,7 +45,7 @@ export default function Home() {
       const engine = getEngine();
       await engine.init();
       setIsPlaying(true);
-      engine.play(song, (step) => {
+      engine.play(() => songRef.current, (step) => {
         setPlayheadStep(step);
       });
     } catch (error) {

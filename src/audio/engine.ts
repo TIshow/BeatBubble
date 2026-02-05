@@ -46,7 +46,7 @@ export class AudioEngine {
     return buffer;
   }
 
-  play(song: Song, onStep?: (step: number) => void): void {
+  play(getSong: () => Song, onStep?: (step: number) => void): void {
     if (this.state === "playing") return;
     if (!this.ctx || !this.masterGain) {
       console.error("AudioEngine not initialized. Call init() first.");
@@ -57,15 +57,18 @@ export class AudioEngine {
     this.currentStep = 0;
     this.nextNoteTime = this.ctx.currentTime + 0.05;
 
-    const secondsPerBeat = 60 / song.bpm;
-    const secondsPerStep = secondsPerBeat / song.stepsPerBeat;
-    const total = totalSteps(song);
+    const initialSong = getSong();
+    const secondsPerBeat = 60 / initialSong.bpm;
+    const secondsPerStep = secondsPerBeat / initialSong.stepsPerBeat;
+    const total = totalSteps(initialSong);
 
     const scheduler = () => {
       if (!this.ctx || this.state !== "playing") return;
 
+      const currentSong = getSong();
+
       while (this.nextNoteTime < this.ctx.currentTime + this.LOOKAHEAD) {
-        this.scheduleStep(song, this.currentStep, this.nextNoteTime, secondsPerStep);
+        this.scheduleStep(currentSong, this.currentStep, this.nextNoteTime, secondsPerStep);
 
         if (onStep) {
           const stepToReport = this.currentStep;
