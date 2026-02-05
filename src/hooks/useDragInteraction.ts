@@ -3,7 +3,7 @@ import type { RefObject } from "react";
 import type { DrumId, MelodyNote, NoteName } from "@/core/types";
 
 const DRAG_THRESHOLD = 5;
-const CELL_WIDTH = 32;
+const CELL_WIDTH = 40;
 
 // Pending interaction recorded on touch/mouse start (before we know if it's tap or drag)
 interface PendingInteraction {
