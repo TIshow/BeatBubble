@@ -25,10 +25,10 @@ const DRUM_NOTE_MAP: Record<string, DrumId> = {
 };
 
 function mapInstrument(instrument?: string): InstrumentId {
-  if (instrument === "pianica" || instrument === "piano" || instrument === "sine") {
-    return instrument;
-  }
-  return "pianica";
+  if (instrument === "synth") return "synth";
+  if (instrument === "marimba") return "marimba";
+  if (instrument === "flute") return "flute";
+  return "piano";
 }
 
 export function fromLegacyMusicData(musicData: LegacyMusicData): Song {
