@@ -10,6 +10,7 @@ export const DEFAULT_SONG: Song = {
     minNote: "C4",
     maxNote: "C5",
     allowAccidentals: false,
+    allowedNotes: null,
     tempoLocked: false,
     barsLocked: false,
     drumsEnabled: true,

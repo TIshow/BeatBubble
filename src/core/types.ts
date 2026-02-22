@@ -22,6 +22,7 @@ export type Constraints = {
   minNote: NoteName;
   maxNote: NoteName;
   allowAccidentals: boolean;
+  allowedNotes: NoteName[] | null;
   tempoLocked: boolean;
   barsLocked: boolean;
   drumsEnabled: boolean;
