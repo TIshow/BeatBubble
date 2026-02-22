@@ -18,6 +18,13 @@ import { useDragInteraction } from "@/hooks/useDragInteraction";
 
 const DRUM_ROWS: DrumId[] = ["hihat", "snare", "kick"];
 
+const INSTRUMENTS: { id: InstrumentId; label: string }[] = [
+  { id: "piano", label: "Piano" },
+  { id: "synth", label: "Synth" },
+  { id: "marimba", label: "Marimba" },
+  { id: "flute", label: "Flute" },
+];
+
 export default function Home() {
   const [song, setSong] = useState<Song>(DEFAULT_SONG);
   const [isPlaying, setIsPlaying] = useState(false);
@@ -156,13 +163,6 @@ export default function Home() {
   const handleInstrumentChange = (instrument: InstrumentId) => {
     setSong((prev) => ({ ...prev, instrument }));
   };
-
-  const INSTRUMENTS: { id: InstrumentId; label: string }[] = [
-    { id: "piano", label: "Piano" },
-    { id: "synth", label: "Synth" },
-    { id: "marimba", label: "Marimba" },
-    { id: "flute", label: "Flute" },
-  ];
 
   const renderMelodyCell = (noteName: NoteName, step: number) => {
     const note = findMelodyNoteAt(song, noteName, step);
