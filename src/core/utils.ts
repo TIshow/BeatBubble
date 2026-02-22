@@ -85,18 +85,6 @@ export function transposeNoteName(
   return midiToNoteName(midi);
 }
 
-export function clampNoteName(
-  note: NoteName,
-  min: NoteName,
-  max: NoteName
-): NoteName {
-  const midi = noteNameToMidi(note);
-  const minMidi = noteNameToMidi(min);
-  const maxMidi = noteNameToMidi(max);
-  const clampedMidi = clamp(midi, minMidi, maxMidi);
-  return midiToNoteName(clampedMidi);
-}
-
 // Absolute bounds for pitch range
 export const PITCH_RANGE_MIN = "C2";
 export const PITCH_RANGE_MAX = "C7";

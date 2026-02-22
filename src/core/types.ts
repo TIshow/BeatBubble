@@ -9,7 +9,6 @@ export type MelodyNote = {
   startStep: number;
   durationSteps: number;
   note: NoteName;
-  velocity?: number;
 };
 
 export type DrumHit = {
@@ -22,6 +21,7 @@ export type Constraints = {
   minNote: NoteName;
   maxNote: NoteName;
   allowAccidentals: boolean;
+  allowedNotes: NoteName[] | null;
   tempoLocked: boolean;
   barsLocked: boolean;
   drumsEnabled: boolean;

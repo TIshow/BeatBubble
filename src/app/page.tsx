@@ -6,13 +6,16 @@ import { DEFAULT_SONG } from "@/core/defaults";
 import {
   addMelodyNote,
   adjustPitchBound,
+  clearAllowedNotes,
   removeMelodyNote,
+  setAllowedNotes,
   setMelodyNoteDuration,
+  toggleAllowedNote,
   toggleDrumHit,
 } from "@/core/ops";
 import { totalSteps } from "@/core/utils";
 import { colorForDrum, colorForNote } from "@/ui/color";
-import { buildNoteRows, findMelodyNoteAt, getNotePosition } from "@/ui/grid";
+import { buildNoteRows, buildRangeNotes, findMelodyNoteAt, getNotePosition } from "@/ui/grid";
 import { AudioEngine } from "@/audio/engine";
 import { useDragInteraction } from "@/hooks/useDragInteraction";
 
@@ -30,6 +33,7 @@ export default function Home() {
   const [history, setHistory] = useState<Song[]>([]);
   const [isPlaying, setIsPlaying] = useState(false);
   const [playheadStep, setPlayheadStep] = useState<number | null>(null);
+  const [isNotePanelOpen, setIsNotePanelOpen] = useState(false);
 
   const gridRef = useRef<HTMLDivElement>(null);
   const gridContainerRef = useRef<HTMLDivElement>(null);
@@ -125,8 +129,10 @@ export default function Home() {
   });
 
   const noteRows = buildNoteRows(song);
+  const rangeNotes = buildRangeNotes(song);
   const steps = totalSteps(song);
   const stepsArray = Array.from({ length: steps }, (_, i) => i);
+  const { allowedNotes } = song.constraints;
 
   const handlePlay = async () => {
     if (isPlaying) return;
@@ -183,6 +189,25 @@ export default function Home() {
   const handleInstrumentChange = (instrument: InstrumentId) => {
     setSong((prev) => ({ ...prev, instrument }));
   };
+
+  const handleNoteChipClick = useCallback(
+    (noteName: NoteName) => {
+      const current = song.constraints.allowedNotes;
+      if (current === null) {
+        // Enter filter mode: start with all notes, deselect the clicked one
+        const withoutClicked = buildRangeNotes(song).filter((n) => n !== noteName);
+        if (withoutClicked.length === 0) return;
+        setSong((prev) => setAllowedNotes(prev, withoutClicked));
+      } else {
+        setSong((prev) => toggleAllowedNote(prev, noteName));
+      }
+    },
+    [song]
+  );
+
+  const handleClearAllowedNotes = useCallback(() => {
+    setSong((prev) => clearAllowedNotes(prev));
+  }, []);
 
   const renderMelodyCell = (noteName: NoteName, step: number) => {
     const note = findMelodyNoteAt(song, noteName, step);
@@ -335,6 +360,19 @@ export default function Home() {
               </div>
             </div>
           </div>
+          <div className="control-group">
+            <button
+              className={`notes-panel-btn ${allowedNotes !== null ? "active" : ""}`}
+              onClick={() => setIsNotePanelOpen((prev) => !prev)}
+            >
+              {allowedNotes !== null
+                ? `${allowedNotes.length} notes`
+                : "All notes"}
+              <span className="notes-panel-arrow">
+                {isNotePanelOpen ? "▲" : "▼"}
+              </span>
+            </button>
+          </div>
         </div>
         <button
           className="undo-btn"
@@ -348,6 +386,42 @@ export default function Home() {
         </button>
       </header>
 
+      {isNotePanelOpen && (
+        <div className="note-panel">
+          <div className="note-panel-header">
+            <div>
+              <span className="note-panel-title">Active notes</span>
+              {allowedNotes === null && (
+                <span className="note-panel-hint">Tap to exclude notes</span>
+              )}
+            </div>
+            {allowedNotes !== null && (
+              <button className="note-panel-reset" onClick={handleClearAllowedNotes}>
+                Show all
+              </button>
+            )}
+          </div>
+          <div className="note-panel-chips">
+            {rangeNotes.map((noteName) => {
+              const isActive = allowedNotes === null || allowedNotes.includes(noteName);
+              return (
+                <button
+                  key={noteName}
+                  className={`note-chip ${isActive ? "active" : ""}`}
+                  style={
+                    isActive
+                      ? { backgroundColor: colorForNote(noteName) }
+                      : { borderColor: colorForNote(noteName), color: colorForNote(noteName) }
+                  }
+                  onClick={() => handleNoteChipClick(noteName)}
+                >
+                  {noteName}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      )}
       <main className="main">
         <div className="grid-container" ref={gridContainerRef}>
           <div className="labels grid">

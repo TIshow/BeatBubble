@@ -1,7 +1,6 @@
 import type { DrumId, MelodyNote, NoteName, Song } from "./types";
 import { newId } from "./id";
 import {
-  clamp,
   compareNotes,
   normalizeDuration,
   noteNameToMidi,
@@ -33,9 +32,14 @@ export function addMelodyNote(
   params: { startStep: number; durationSteps: number; note: NoteName }
 ): Song {
   const { startStep, durationSteps, note } = params;
-  const { minNote, maxNote } = song.constraints;
+  const { minNote, maxNote, allowedNotes } = song.constraints;
 
-  if (!isNoteInRange(note, minNote, maxNote)) {
+  const isPlayable =
+    allowedNotes !== null
+      ? allowedNotes.includes(note)
+      : isNoteInRange(note, minNote, maxNote);
+
+  if (!isPlayable) {
     return song;
   }
 
@@ -90,32 +94,6 @@ export function setMelodyNoteDuration(
         if (n.id !== noteId) return n;
         const normalized = normalizeDuration(song, n.startStep, durationSteps);
         return { ...n, durationSteps: normalized };
-      }),
-    },
-  };
-}
-
-export function moveMelodyNote(
-  song: Song,
-  noteId: string,
-  newStartStep: number
-): Song {
-  const total = totalSteps(song);
-
-  return {
-    ...song,
-    melody: {
-      ...song.melody,
-      notes: song.melody.notes.map((n) => {
-        if (n.id !== noteId) return n;
-        const clampedStart = clamp(newStartStep, 0, total - 1);
-        const maxDuration = total - clampedStart;
-        const adjustedDuration = Math.min(n.durationSteps, maxDuration);
-        return {
-          ...n,
-          startStep: clampedStart,
-          durationSteps: Math.max(1, adjustedDuration),
-        };
       }),
     },
   };
@@ -195,10 +173,20 @@ export function adjustPitchBound(
     newMaxNote = transposed;
   }
 
-  // Remove notes that are now out of range
+  // Remove melody notes that are now out of range
   const filteredNotes = song.melody.notes.filter((note) =>
     isNoteInRange(note.note, newMinNote, newMaxNote)
   );
+
+  // Filter allowedNotes to remove notes outside the new range
+  let newAllowedNotes = song.constraints.allowedNotes;
+  if (newAllowedNotes !== null) {
+    const filtered = newAllowedNotes.filter((n) =>
+      isNoteInRange(n, newMinNote, newMaxNote)
+    );
+    // Keep current selection if filtering would leave 0 notes
+    newAllowedNotes = filtered.length > 0 ? filtered : newAllowedNotes;
+  }
 
   return {
     ...song,
@@ -206,10 +194,43 @@ export function adjustPitchBound(
       ...song.constraints,
       minNote: newMinNote,
       maxNote: newMaxNote,
+      allowedNotes: newAllowedNotes,
     },
     melody: {
       ...song.melody,
       notes: filteredNotes,
     },
+  };
+}
+
+export function toggleAllowedNote(song: Song, note: NoteName): Song {
+  const current = song.constraints.allowedNotes ?? [];
+  const isSelected = current.includes(note);
+
+  // Prevent removing the last note
+  if (isSelected && current.length <= 1) return song;
+
+  const newAllowed = isSelected
+    ? current.filter((n) => n !== note)
+    : [...current, note];
+
+  return {
+    ...song,
+    constraints: { ...song.constraints, allowedNotes: newAllowed },
+  };
+}
+
+export function setAllowedNotes(song: Song, notes: NoteName[]): Song {
+  if (notes.length === 0) return song;
+  return {
+    ...song,
+    constraints: { ...song.constraints, allowedNotes: notes },
+  };
+}
+
+export function clearAllowedNotes(song: Song): Song {
+  return {
+    ...song,
+    constraints: { ...song.constraints, allowedNotes: null },
   };
 }
