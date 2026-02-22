@@ -5,7 +5,7 @@ export const DEFAULT_SONG: Song = {
   bpm: 100,
   stepsPerBeat: 4,
   bars: 4,
-  instrument: "pianica",
+  instrument: "piano",
   constraints: {
     minNote: "C4",
     maxNote: "C5",

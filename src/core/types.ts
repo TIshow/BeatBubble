@@ -1,6 +1,6 @@
 export type NoteName = string;
 
-export type InstrumentId = "pianica" | "piano" | "sine";
+export type InstrumentId = "piano" | "synth" | "marimba" | "flute";
 
 export type DrumId = "kick" | "snare" | "hihat";
 
