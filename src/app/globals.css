@@ -272,6 +272,50 @@ a {
   pointer-events: none;
 }
 
+/* Instrument Selector */
+.instrument-selector {
+  display: flex;
+  background: var(--grid-bg);
+  border: 1px solid var(--grid-line);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.instrument-btn {
+  padding: 5px 10px;
+  border: none;
+  background: transparent;
+  color: var(--foreground);
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
+  opacity: 0.6;
+  white-space: nowrap;
+}
+
+.instrument-btn:not(:last-child) {
+  border-right: 1px solid var(--grid-line);
+}
+
+.instrument-btn:hover:not(.active) {
+  background: var(--grid-line);
+  opacity: 1;
+}
+
+.instrument-btn.active {
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  color: white;
+  opacity: 1;
+}
+
+@media (max-width: 599px) {
+  .instrument-btn {
+    padding: 6px 8px;
+    font-size: 11px;
+  }
+}
+
 /* Range Chip Controls */
 .range-control {
   gap: 8px;

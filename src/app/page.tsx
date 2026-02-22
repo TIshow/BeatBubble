@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState, useCallback } from "react";
-import type { DrumId, MelodyNote, NoteName, Song } from "@/core/types";
+import type { DrumId, InstrumentId, MelodyNote, NoteName, Song } from "@/core/types";
 import { DEFAULT_SONG } from "@/core/defaults";
 import {
   addMelodyNote,
@@ -17,6 +17,13 @@ import { AudioEngine } from "@/audio/engine";
 import { useDragInteraction } from "@/hooks/useDragInteraction";
 
 const DRUM_ROWS: DrumId[] = ["hihat", "snare", "kick"];
+
+const INSTRUMENTS: { id: InstrumentId; label: string }[] = [
+  { id: "piano", label: "Piano" },
+  { id: "synth", label: "Synth" },
+  { id: "marimba", label: "Marimba" },
+  { id: "flute", label: "Flute" },
+];
 
 export default function Home() {
   const [song, setSong] = useState<Song>(DEFAULT_SONG);
@@ -52,7 +59,7 @@ export default function Home() {
       );
       if (addedNote) {
         setSong(newSong);
-        getEngine().playNotePreview(noteName);
+        getEngine().playNotePreview(noteName, song.instrument);
         return addedNote.id;
       }
       return null;
@@ -153,6 +160,10 @@ export default function Home() {
     setSong((prev) => adjustPitchBound(prev, bound, direction));
   };
 
+  const handleInstrumentChange = (instrument: InstrumentId) => {
+    setSong((prev) => ({ ...prev, instrument }));
+  };
+
   const renderMelodyCell = (noteName: NoteName, step: number) => {
     const note = findMelodyNoteAt(song, noteName, step);
     const isBeatStart = step % song.stepsPerBeat === 0;
@@ -249,6 +260,20 @@ export default function Home() {
               disabled={isPlaying}
             />
             <span className="control-value">{song.bpm}</span>
+          </div>
+          <div className="control-group">
+            <span className="control-label">Sound</span>
+            <div className="instrument-selector">
+              {INSTRUMENTS.map(({ id, label }) => (
+                <button
+                  key={id}
+                  className={`instrument-btn ${song.instrument === id ? "active" : ""}`}
+                  onClick={() => handleInstrumentChange(id)}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
           </div>
           <div className="control-group range-control">
             <span className="control-label">Range</span>
