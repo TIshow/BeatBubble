@@ -25,6 +25,7 @@ interface UseDragInteractionOptions {
   onNoteCreate: (noteName: NoteName, step: number) => string | null;
   onNoteRemove: (noteId: string) => void;
   onNoteDurationChange: (noteId: string, duration: number) => void;
+  onDragStart?: () => void;
   onDrumToggle: (drumId: DrumId, step: number) => void;
   findNoteAt: (noteName: NoteName, step: number) => MelodyNote | null;
 }
@@ -35,6 +36,7 @@ export function useDragInteraction({
   onNoteCreate,
   onNoteRemove,
   onNoteDurationChange,
+  onDragStart,
   onDrumToggle,
   findNoteAt,
 }: UseDragInteractionOptions) {
@@ -87,6 +89,7 @@ export function useDragInteraction({
         // Transition to drag mode
         if (pending.existingNote && pending.step === pending.existingNote.startStep) {
           // Extending existing note from its start
+          onDragStart?.();
           dragRef.current = {
             noteId: pending.existingNote.id,
             startStep: pending.existingNote.startStep,
@@ -106,7 +109,7 @@ export function useDragInteraction({
         // If clicking on middle/end of existing note, don't enter drag mode
       }
     },
-    [gridRef, onNoteCreate, onNoteDurationChange]
+    [gridRef, onNoteCreate, onNoteDurationChange, onDragStart]
   );
 
   // End interaction - finalize as tap or drag

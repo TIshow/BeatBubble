@@ -27,6 +27,7 @@ const INSTRUMENTS: { id: InstrumentId; label: string }[] = [
 
 export default function Home() {
   const [song, setSong] = useState<Song>(DEFAULT_SONG);
+  const [history, setHistory] = useState<Song[]>([]);
   const [isPlaying, setIsPlaying] = useState(false);
   const [playheadStep, setPlayheadStep] = useState<number | null>(null);
 
@@ -38,6 +39,10 @@ export default function Home() {
   useEffect(() => {
     songRef.current = song;
   }, [song]);
+
+  const pushHistory = useCallback((snapshot: Song) => {
+    setHistory((h) => [...h.slice(-49), snapshot]);
+  }, []);
 
   const getEngine = useCallback(() => {
     if (!engineRef.current) {
@@ -58,18 +63,20 @@ export default function Home() {
         (n) => n.startStep === step && n.note === noteName
       );
       if (addedNote) {
+        pushHistory(song);
         setSong(newSong);
         getEngine().playNotePreview(noteName, song.instrument);
         return addedNote.id;
       }
       return null;
     },
-    [song, getEngine]
+    [song, getEngine, pushHistory]
   );
 
   const handleNoteRemove = useCallback((noteId: string) => {
+    pushHistory(song);
     setSong((prev) => removeMelodyNote(prev, noteId));
-  }, []);
+  }, [song, pushHistory]);
 
   const handleNoteDurationChange = useCallback(
     (noteId: string, duration: number) => {
@@ -83,18 +90,23 @@ export default function Home() {
       const wasHit = song.drums.hits.some(
         (h) => h.drumId === drumId && h.step === step
       );
+      pushHistory(song);
       setSong((prev) => toggleDrumHit(prev, { step, drumId }));
       if (!wasHit) {
         getEngine().playDrumPreview(drumId);
       }
     },
-    [song.drums.hits, getEngine]
+    [song, getEngine, pushHistory]
   );
 
   const findNoteAt = useCallback(
     (noteName: NoteName, step: number) => findMelodyNoteAt(song, noteName, step),
     [song]
   );
+
+  const handleDragStart = useCallback(() => {
+    pushHistory(songRef.current);
+  }, [pushHistory]);
 
   const {
     isDragging,
@@ -107,6 +119,7 @@ export default function Home() {
     onNoteCreate: handleNoteCreate,
     onNoteRemove: handleNoteRemove,
     onNoteDurationChange: handleNoteDurationChange,
+    onDragStart: handleDragStart,
     onDrumToggle: handleDrumToggle,
     findNoteAt,
   });
@@ -144,7 +157,14 @@ export default function Home() {
   const handleReset = () => {
     handleStop();
     setSong(DEFAULT_SONG);
+    setHistory([]);
   };
+
+  const handleUndo = useCallback(() => {
+    if (history.length === 0) return;
+    setSong(history[history.length - 1]);
+    setHistory((h) => h.slice(0, -1));
+  }, [history]);
 
   const handleBpmChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = parseInt(e.target.value, 10);
@@ -316,6 +336,13 @@ export default function Home() {
             </div>
           </div>
         </div>
+        <button
+          className="undo-btn"
+          onClick={handleUndo}
+          disabled={history.length === 0}
+        >
+          Undo
+        </button>
         <button className="reset-btn" onClick={handleReset}>
           Reset
         </button>
