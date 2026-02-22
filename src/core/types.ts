@@ -9,7 +9,6 @@ export type MelodyNote = {
   startStep: number;
   durationSteps: number;
   note: NoteName;
-  velocity?: number;
 };
 
 export type DrumHit = {

@@ -1,7 +1,6 @@
 import type { DrumId, MelodyNote, NoteName, Song } from "./types";
 import { newId } from "./id";
 import {
-  clamp,
   compareNotes,
   normalizeDuration,
   noteNameToMidi,
@@ -95,32 +94,6 @@ export function setMelodyNoteDuration(
         if (n.id !== noteId) return n;
         const normalized = normalizeDuration(song, n.startStep, durationSteps);
         return { ...n, durationSteps: normalized };
-      }),
-    },
-  };
-}
-
-export function moveMelodyNote(
-  song: Song,
-  noteId: string,
-  newStartStep: number
-): Song {
-  const total = totalSteps(song);
-
-  return {
-    ...song,
-    melody: {
-      ...song.melody,
-      notes: song.melody.notes.map((n) => {
-        if (n.id !== noteId) return n;
-        const clampedStart = clamp(newStartStep, 0, total - 1);
-        const maxDuration = total - clampedStart;
-        const adjustedDuration = Math.min(n.durationSteps, maxDuration);
-        return {
-          ...n,
-          startStep: clampedStart,
-          durationSteps: Math.max(1, adjustedDuration),
-        };
       }),
     },
   };
