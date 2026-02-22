@@ -442,8 +442,37 @@ a {
   transform: translateY(0);
 }
 
-.reset-btn {
+.undo-btn {
   margin-left: auto;
+  padding: 8px 16px;
+  border-radius: 20px;
+  border: none;
+  background: linear-gradient(135deg, #f7971e, #ffd200);
+  color: white;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition:
+    transform 0.15s ease,
+    box-shadow 0.15s ease,
+    opacity 0.15s ease;
+}
+
+.undo-btn:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(247, 151, 30, 0.4);
+}
+
+.undo-btn:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.undo-btn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.reset-btn {
   padding: 8px 16px;
   border-radius: 20px;
   border: none;
