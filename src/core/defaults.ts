@@ -1,5 +1,10 @@
 import type { Song } from "./types";
 
+export const BPM_MIN = 40;
+export const BPM_MAX = 200;
+export const BPM_STEP = 5;
+export const HISTORY_LIMIT = 50;
+
 export const DEFAULT_SONG: Song = {
   version: 1,
   bpm: 100,
