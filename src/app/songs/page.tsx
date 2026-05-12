@@ -3,7 +3,10 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { supabase } from "@/lib/supabase";
+import { useLocale } from "@/hooks/useLocale";
 import type { Song } from "@/core/types";
+import type { Locale } from "@/lib/i18n";
+import { translations } from "@/lib/i18n";
 
 type FeedSong = {
   id: string;
@@ -22,17 +25,19 @@ const CARD_GRADIENTS = [
   "linear-gradient(135deg, #feca57, #48dbfb)",
 ];
 
-function timeAgo(dateStr: string): string {
+function timeAgo(dateStr: string, locale: Locale): string {
+  const t = translations[locale];
   const sec = Math.floor((Date.now() - new Date(dateStr).getTime()) / 1000);
-  if (sec < 60) return "たったいま";
+  if (sec < 60) return t.justNow;
   const min = Math.floor(sec / 60);
-  if (min < 60) return `${min}分まえ`;
+  if (min < 60) return t.minutesAgo(min);
   const hr = Math.floor(min / 60);
-  if (hr < 24) return `${hr}時間まえ`;
-  return `${Math.floor(hr / 24)}日まえ`;
+  if (hr < 24) return t.hoursAgo(hr);
+  return t.daysAgo(Math.floor(hr / 24));
 }
 
 export default function SongsPage() {
+  const { locale, t, toggleLocale } = useLocale();
   const [songs, setSongs] = useState<FeedSong[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -52,16 +57,19 @@ export default function SongsPage() {
     <div className="songs-page">
       <header className="songs-header">
         <Link href="/" className="songs-back-btn">
-          ← つくる
+          {t.backToCreate}
         </Link>
-        <h1 className="songs-heading">みんなの曲</h1>
+        <h1 className="songs-heading">{t.pageTitle}</h1>
+        <button className="locale-toggle" onClick={toggleLocale}>
+          {t.switchLocale}
+        </button>
       </header>
 
       <main className="songs-main">
         {loading ? (
-          <p className="songs-status">よみこみちゅう...</p>
+          <p className="songs-status">{t.loading}</p>
         ) : songs.length === 0 ? (
-          <p className="songs-status">まだ曲がありません。さいしょに保存してみよう！</p>
+          <p className="songs-status">{t.noSongs}</p>
         ) : (
           <div className="songs-grid">
             {songs.map((song, i) => (
@@ -73,9 +81,9 @@ export default function SongsPage() {
                 <div className="song-card-body">
                   <p className="song-card-title">{song.title}</p>
                   <p className="song-card-author">{song.author}</p>
-                  <p className="song-card-time">{timeAgo(song.created_at)}</p>
+                  <p className="song-card-time">{timeAgo(song.created_at, locale)}</p>
                   <Link href={`/?load=${song.id}`} className="song-card-play">
-                    あそぶ
+                    {t.playBtn}
                   </Link>
                 </div>
               </div>

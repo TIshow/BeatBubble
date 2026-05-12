@@ -2,14 +2,18 @@
 
 import { useState } from "react";
 import type { Song } from "@/core/types";
+import type { Locale } from "@/lib/i18n";
+import { translations } from "@/lib/i18n";
 import { supabase } from "@/lib/supabase";
 
 interface Props {
   song: Song;
+  locale: Locale;
   onClose: () => void;
 }
 
-export function SaveModal({ song, onClose }: Props) {
+export function SaveModal({ song, locale, onClose }: Props) {
+  const t = translations[locale];
   const [title, setTitle] = useState("");
   const [author, setAuthor] = useState("");
   const [saving, setSaving] = useState(false);
@@ -32,11 +36,11 @@ export function SaveModal({ song, onClose }: Props) {
   return (
     <div className="modal-overlay" onClick={onClose}>
       <div className="modal" onClick={(e) => e.stopPropagation()}>
-        <h2 className="modal-title">Save Song</h2>
+        <h2 className="modal-title">{t.saveModalTitle}</h2>
         <div className="modal-fields">
           <input
             className="modal-input"
-            placeholder="Song title"
+            placeholder={t.titlePlaceholder}
             value={title}
             onChange={(e) => setTitle(e.target.value)}
             maxLength={60}
@@ -44,7 +48,7 @@ export function SaveModal({ song, onClose }: Props) {
           />
           <input
             className="modal-input"
-            placeholder="Your name"
+            placeholder={t.authorPlaceholder}
             value={author}
             onChange={(e) => setAuthor(e.target.value)}
             maxLength={40}
@@ -52,14 +56,14 @@ export function SaveModal({ song, onClose }: Props) {
         </div>
         <div className="modal-actions">
           <button className="modal-cancel" onClick={onClose}>
-            Cancel
+            {t.cancel}
           </button>
           <button
             className="modal-save"
             onClick={handleSave}
             disabled={saving || !title.trim() || !author.trim()}
           >
-            {saving ? "Saving..." : "Save"}
+            {saving ? t.saving : t.save}
           </button>
         </div>
       </div>

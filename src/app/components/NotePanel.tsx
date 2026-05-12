@@ -1,28 +1,33 @@
 "use client";
 
 import type { NoteName } from "@/core/types";
+import type { Locale } from "@/lib/i18n";
+import { translations } from "@/lib/i18n";
 import { colorForNote } from "@/ui/color";
 
 interface Props {
   rangeNotes: NoteName[];
   allowedNotes: NoteName[] | null;
+  locale: Locale;
   onNoteClick: (note: NoteName) => void;
   onClear: () => void;
 }
 
-export function NotePanel({ rangeNotes, allowedNotes, onNoteClick, onClear }: Props) {
+export function NotePanel({ rangeNotes, allowedNotes, locale, onNoteClick, onClear }: Props) {
+  const t = translations[locale];
+
   return (
     <div className="note-panel">
       <div className="note-panel-header">
         <div>
-          <span className="note-panel-title">Active notes</span>
+          <span className="note-panel-title">{t.activeNotes}</span>
           {allowedNotes === null && (
-            <span className="note-panel-hint">Tap to exclude notes</span>
+            <span className="note-panel-hint">{t.tapToExclude}</span>
           )}
         </div>
         {allowedNotes !== null && (
           <button className="note-panel-reset" onClick={onClear}>
-            Show all
+            {t.showAll}
           </button>
         )}
       </div>

@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState, useCallback } from "react";
 import Link from "next/link";
 import type { DrumId, InstrumentId, MelodyNote, NoteName, Song } from "@/core/types";
-import { DEFAULT_SONG } from "@/core/defaults";
+import { DEFAULT_SONG, BPM_MIN, BPM_MAX, BPM_STEP, HISTORY_LIMIT } from "@/core/defaults";
 import {
   addMelodyNote,
   adjustPitchBound,
@@ -19,10 +19,10 @@ import { colorForDrum, colorForNote } from "@/ui/color";
 import { buildNoteRows, buildRangeNotes, findMelodyNoteAt, getNotePosition } from "@/ui/grid";
 import { AudioEngine } from "@/audio/engine";
 import { useDragInteraction } from "@/hooks/useDragInteraction";
+import { useLocale } from "@/hooks/useLocale";
 import { supabase } from "@/lib/supabase";
 import { SaveModal } from "./components/SaveModal";
 import { NotePanel } from "./components/NotePanel";
-import { BPM_MIN, BPM_MAX, BPM_STEP, HISTORY_LIMIT } from "@/core/defaults";
 
 const DRUM_ROWS: DrumId[] = ["hihat", "snare", "kick"];
 
@@ -34,6 +34,7 @@ const INSTRUMENTS: { id: InstrumentId; label: string }[] = [
 ];
 
 export default function Home() {
+  const { locale, t, toggleLocale } = useLocale();
   const [song, setSong] = useState<Song>(DEFAULT_SONG);
   const [history, setHistory] = useState<Song[]>([]);
   const [isPlaying, setIsPlaying] = useState(false);
@@ -280,19 +281,19 @@ export default function Home() {
             onClick={handlePlay}
             disabled={isPlaying}
           >
-            Play
+            {t.play}
           </button>
           <button
             className={`transport-btn stop-btn ${!isPlaying ? "disabled" : ""}`}
             onClick={handleStop}
             disabled={!isPlaying}
           >
-            Stop
+            {t.stop}
           </button>
         </div>
         <div className="header-controls">
           <div className={`control-group ${isPlaying ? "disabled" : ""}`}>
-            <span className="control-label">Tempo</span>
+            <span className="control-label">{t.tempo}</span>
             <input
               type="range"
               className="control-slider"
@@ -306,7 +307,7 @@ export default function Home() {
             <span className="control-value">{song.bpm}</span>
           </div>
           <div className="control-group">
-            <span className="control-label">Sound</span>
+            <span className="control-label">{t.sound}</span>
             <div className="instrument-selector">
               {INSTRUMENTS.map(({ id, label }) => (
                 <button
@@ -320,7 +321,7 @@ export default function Home() {
             </div>
           </div>
           <div className="control-group range-control">
-            <span className="control-label">Range</span>
+            <span className="control-label">{t.range}</span>
             <div className="range-chips">
               <div className="range-chip">
                 <button
@@ -364,29 +365,33 @@ export default function Home() {
               className={`notes-panel-btn ${allowedNotes !== null ? "active" : ""}`}
               onClick={() => setIsNotePanelOpen((prev) => !prev)}
             >
-              {allowedNotes !== null ? `${allowedNotes.length} notes` : "All notes"}
+              {allowedNotes !== null ? t.nNotes(allowedNotes.length) : t.allNotes}
               <span className="notes-panel-arrow">{isNotePanelOpen ? "▲" : "▼"}</span>
             </button>
           </div>
         </div>
         <button className="undo-btn" onClick={handleUndo} disabled={history.length === 0}>
-          Undo
+          {t.undo}
         </button>
         <button className="reset-btn" onClick={handleReset}>
-          Reset
+          {t.reset}
         </button>
         <button className="save-btn" onClick={() => setIsSaveModalOpen(true)}>
-          Save
+          {t.save}
         </button>
         <Link href="/songs" className="songs-nav-link">
-          みんなの曲
+          {t.songsLink}
         </Link>
+        <button className="locale-toggle" onClick={toggleLocale}>
+          {t.switchLocale}
+        </button>
       </header>
 
       {isNotePanelOpen && (
         <NotePanel
           rangeNotes={rangeNotes}
           allowedNotes={allowedNotes}
+          locale={locale}
           onNoteClick={handleNoteChipClick}
           onClear={handleClearAllowedNotes}
         />
@@ -432,7 +437,11 @@ export default function Home() {
       </main>
 
       {isSaveModalOpen && (
-        <SaveModal song={song} onClose={() => setIsSaveModalOpen(false)} />
+        <SaveModal
+          song={song}
+          locale={locale}
+          onClose={() => setIsSaveModalOpen(false)}
+        />
       )}
     </div>
   );
