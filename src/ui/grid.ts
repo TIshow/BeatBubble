@@ -2,13 +2,11 @@ import type { MelodyNote, NoteName, Song } from "@/core/types";
 import { midiToNoteName, noteNameToMidi } from "@/core/utils";
 import { isAccidental } from "./color";
 
-// Always returns notes from the min–max range, ignoring allowedNotes.
-// Used to populate the note picker panel regardless of selection mode.
-export function buildRangeNotes(song: Song): NoteName[] {
-  const { minNote, maxNote, allowAccidentals } = song.constraints;
-  const minMidi = noteNameToMidi(minNote);
-  const maxMidi = noteNameToMidi(maxNote);
-
+function notesInMidiRange(
+  minMidi: number,
+  maxMidi: number,
+  allowAccidentals: boolean
+): NoteName[] {
   const notes: NoteName[] = [];
   for (let midi = maxMidi; midi >= minMidi; midi--) {
     const noteName = midiToNoteName(midi);
@@ -18,27 +16,29 @@ export function buildRangeNotes(song: Song): NoteName[] {
   return notes;
 }
 
+// Always returns notes from the min–max range, ignoring allowedNotes.
+// Used to populate the note picker panel regardless of selection mode.
+export function buildRangeNotes(song: Song): NoteName[] {
+  const { minNote, maxNote, allowAccidentals } = song.constraints;
+  return notesInMidiRange(
+    noteNameToMidi(minNote),
+    noteNameToMidi(maxNote),
+    allowAccidentals
+  );
+}
+
 export function buildNoteRows(song: Song): NoteName[] {
   const { minNote, maxNote, allowAccidentals, allowedNotes } = song.constraints;
 
   if (allowedNotes !== null) {
-    return [...allowedNotes].sort(
-      (a, b) => noteNameToMidi(b) - noteNameToMidi(a)
-    );
+    return [...allowedNotes].sort((a, b) => noteNameToMidi(b) - noteNameToMidi(a));
   }
 
-  const minMidi = noteNameToMidi(minNote);
-  const maxMidi = noteNameToMidi(maxNote);
-
-  const notes: NoteName[] = [];
-  for (let midi = maxMidi; midi >= minMidi; midi--) {
-    const noteName = midiToNoteName(midi);
-    if (!allowAccidentals && isAccidental(noteName)) {
-      continue;
-    }
-    notes.push(noteName);
-  }
-  return notes;
+  return notesInMidiRange(
+    noteNameToMidi(minNote),
+    noteNameToMidi(maxNote),
+    allowAccidentals
+  );
 }
 
 export function findMelodyNoteAt(
