@@ -653,6 +653,107 @@ a {
   transform: translateY(0);
 }
 
+/* Settings toggle + panel */
+.settings-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  border-radius: 20px;
+  border: 1px solid var(--grid-line);
+  background: var(--grid-bg);
+  color: var(--foreground);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition:
+    background 0.15s ease,
+    border-color 0.15s ease,
+    transform 0.15s ease;
+  white-space: nowrap;
+}
+
+.settings-btn:hover {
+  background: var(--grid-line);
+}
+
+.settings-btn.active {
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  color: white;
+  border-color: transparent;
+}
+
+.settings-icon {
+  font-size: 15px;
+}
+
+.settings-arrow {
+  font-size: 9px;
+  opacity: 0.7;
+}
+
+.settings-panel {
+  background: var(--header-bg);
+  padding: 14px 16px 16px;
+  border-bottom: 1px solid var(--grid-line);
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  box-shadow: inset 0 4px 8px rgba(0, 0, 0, 0.04);
+}
+
+/* header-controls lives inside the settings panel now — neutralize the
+   old in-header responsive overrides (top border / order / width). */
+.settings-panel .header-controls {
+  order: 0;
+  width: auto;
+  flex: 1;
+  padding-top: 0;
+  margin-top: 0;
+  border-top: none;
+  gap: 16px;
+}
+
+.settings-danger {
+  display: flex;
+  align-items: center;
+  padding-top: 12px;
+  border-top: 1px dashed var(--grid-line);
+}
+
+.reset-confirm {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.reset-confirm-label {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--foreground);
+}
+
+.reset-btn.confirm {
+  background: linear-gradient(135deg, #ff6b6b, #ee5253);
+}
+
+.reset-cancel-btn {
+  padding: 8px 16px;
+  border-radius: 20px;
+  border: 1px solid var(--grid-line);
+  background: var(--grid-bg);
+  color: var(--foreground);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.reset-cancel-btn:hover {
+  background: var(--grid-line);
+}
+
 /* Main content */
 .main {
   flex: 1;
