@@ -9,6 +9,7 @@ import {
   adjustPitchBound,
   clearAllowedNotes,
   removeMelodyNote,
+  setAllowAccidentals,
   setAllowedNotes,
   setMelodyNoteDuration,
   toggleAllowedNote,
@@ -199,6 +200,10 @@ export default function Home() {
     setSong((prev) => ({ ...prev, instrument }));
   };
 
+  const handleToggleAccidentals = () => {
+    setSong((prev) => setAllowAccidentals(prev, !prev.constraints.allowAccidentals));
+  };
+
   const handleNoteChipClick = useCallback(
     (noteName: NoteName) => {
       const current = song.constraints.allowedNotes;
@@ -360,6 +365,15 @@ export default function Home() {
                 </button>
               </div>
             </div>
+          </div>
+          <div className="control-group">
+            <button
+              className={`accidentals-btn ${song.constraints.allowAccidentals ? "active" : ""}`}
+              onClick={handleToggleAccidentals}
+              aria-pressed={song.constraints.allowAccidentals}
+            >
+              {t.blackKeys}
+            </button>
           </div>
           <div className="control-group">
             <button

@@ -1,6 +1,5 @@
 import type { MelodyNote, NoteName, Song } from "@/core/types";
-import { midiToNoteName, noteNameToMidi } from "@/core/utils";
-import { isAccidental } from "./color";
+import { isAccidental, midiToNoteName, noteNameToMidi } from "@/core/utils";
 
 function notesInMidiRange(
   minMidi: number,

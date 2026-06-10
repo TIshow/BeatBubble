@@ -10,6 +10,7 @@ type Translations = {
   range: string;
   allNotes: string;
   nNotes: (n: number) => string;
+  blackKeys: string;
   // Actions
   undo: string;
   reset: string;
@@ -48,6 +49,7 @@ export const translations: Record<Locale, Translations> = {
     range: "Range",
     allNotes: "All notes",
     nNotes: (n) => `${n} notes`,
+    blackKeys: "Black keys",
     undo: "Undo",
     reset: "Reset",
     save: "Save",
@@ -79,6 +81,7 @@ export const translations: Record<Locale, Translations> = {
     range: "おんいき",
     allNotes: "ぜんぶのおと",
     nNotes: (n) => `${n}このおと`,
+    blackKeys: "くろいけんばん",
     undo: "もどす",
     reset: "リセット",
     save: "ほぞん",

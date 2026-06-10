@@ -68,6 +68,10 @@ export function isWhiteKey(midi: number): boolean {
   return WHITE_KEYS.includes(midi % 12);
 }
 
+export function isAccidental(note: NoteName): boolean {
+  return note.includes("#") || note.includes("b");
+}
+
 export function transposeNoteName(
   note: NoteName,
   semitones: number,

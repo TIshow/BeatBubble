@@ -308,6 +308,46 @@ a {
   opacity: 0.6;
 }
 
+.accidentals-btn {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 10px;
+  border-radius: 8px;
+  border: 1px solid var(--grid-line);
+  background: var(--grid-bg);
+  color: var(--foreground);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease;
+  white-space: nowrap;
+}
+
+.accidentals-btn::before {
+  content: "♯";
+  font-size: 13px;
+  opacity: 0.7;
+}
+
+.accidentals-btn:hover {
+  background: var(--grid-line);
+}
+
+.accidentals-btn.active {
+  background: linear-gradient(135deg, #2c2c34, #4a4a55);
+  color: white;
+  border-color: transparent;
+}
+
+.accidentals-btn.active::before {
+  opacity: 1;
+}
+
+.accidentals-btn.active:hover {
+  opacity: 0.9;
+}
+
 /* Note Picker Panel */
 .note-panel {
   background: var(--header-bg);
