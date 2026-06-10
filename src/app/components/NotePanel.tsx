@@ -4,6 +4,7 @@ import type { NoteName } from "@/core/types";
 import type { Locale } from "@/lib/i18n";
 import { translations } from "@/lib/i18n";
 import { colorForNote } from "@/ui/color";
+import { noteLabel } from "@/ui/noteLabel";
 
 interface Props {
   rangeNotes: NoteName[];
@@ -45,7 +46,7 @@ export function NotePanel({ rangeNotes, allowedNotes, locale, onNoteClick, onCle
               }
               onClick={() => onNoteClick(noteName)}
             >
-              {noteName}
+              {noteLabel(noteName, locale)}
             </button>
           );
         })}
