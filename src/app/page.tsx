@@ -16,6 +16,7 @@ import {
 } from "@/core/ops";
 import { totalSteps } from "@/core/utils";
 import { colorForDrum, colorForNote } from "@/ui/color";
+import { noteLabel } from "@/ui/noteLabel";
 import { buildNoteRows, buildRangeNotes, findMelodyNoteAt, getNotePosition } from "@/ui/grid";
 import { AudioEngine } from "@/audio/engine";
 import { useDragInteraction } from "@/hooks/useDragInteraction";
@@ -331,7 +332,7 @@ export default function Home() {
                 >
                   ◀
                 </button>
-                <span className="range-chip-value">{song.constraints.minNote}</span>
+                <span className="range-chip-value">{noteLabel(song.constraints.minNote, locale)}</span>
                 <button
                   className="range-chip-btn"
                   onClick={() => handlePitchBoundChange("min", "up")}
@@ -349,7 +350,7 @@ export default function Home() {
                 >
                   ◀
                 </button>
-                <span className="range-chip-value">{song.constraints.maxNote}</span>
+                <span className="range-chip-value">{noteLabel(song.constraints.maxNote, locale)}</span>
                 <button
                   className="range-chip-btn"
                   onClick={() => handlePitchBoundChange("max", "up")}
@@ -406,7 +407,7 @@ export default function Home() {
                   className="label-cell"
                   style={{ backgroundColor: colorForNote(noteName) }}
                 >
-                  {noteName}
+                  {noteLabel(noteName, locale)}
                 </div>
               </div>
             ))}
