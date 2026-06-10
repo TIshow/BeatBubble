@@ -24,7 +24,3 @@ export function colorForNote(noteName: NoteName): string {
 export function colorForDrum(drumId: string): string {
   return DRUM_COLORS[drumId] ?? "hsl(0, 0%, 50%)";
 }
-
-export function isAccidental(noteName: NoteName): boolean {
-  return noteName.includes("#") || noteName.includes("b");
-}

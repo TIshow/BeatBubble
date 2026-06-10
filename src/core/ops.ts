@@ -2,6 +2,7 @@ import type { DrumId, MelodyNote, NoteName, Song } from "./types";
 import { newId } from "./id";
 import {
   compareNotes,
+  isAccidental,
   normalizeDuration,
   noteNameToMidi,
   PITCH_RANGE_MAX,
@@ -200,6 +201,38 @@ export function adjustPitchBound(
       ...song.melody,
       notes: filteredNotes,
     },
+  };
+}
+
+export function setAllowAccidentals(song: Song, allow: boolean): Song {
+  if (song.constraints.allowAccidentals === allow) return song;
+
+  // Turning accidentals on only reveals more rows — nothing to clean up.
+  if (allow) {
+    return {
+      ...song,
+      constraints: { ...song.constraints, allowAccidentals: true },
+    };
+  }
+
+  // Turning off: drop melody notes on black keys and prune allowedNotes.
+  const filteredNotes = song.melody.notes.filter((n) => !isAccidental(n.note));
+
+  let newAllowedNotes = song.constraints.allowedNotes;
+  if (newAllowedNotes !== null) {
+    const filtered = newAllowedNotes.filter((n) => !isAccidental(n));
+    // Keep current selection if filtering would leave 0 notes.
+    newAllowedNotes = filtered.length > 0 ? filtered : newAllowedNotes;
+  }
+
+  return {
+    ...song,
+    constraints: {
+      ...song.constraints,
+      allowAccidentals: false,
+      allowedNotes: newAllowedNotes,
+    },
+    melody: { ...song.melody, notes: filteredNotes },
   };
 }
 
