@@ -42,6 +42,8 @@ export default function Home() {
   const [isPlaying, setIsPlaying] = useState(false);
   const [playheadStep, setPlayheadStep] = useState<number | null>(null);
   const [isNotePanelOpen, setIsNotePanelOpen] = useState(false);
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [isConfirmingReset, setIsConfirmingReset] = useState(false);
   const [isSaveModalOpen, setIsSaveModalOpen] = useState(false);
 
   const gridRef = useRef<HTMLDivElement>(null);
@@ -179,6 +181,7 @@ export default function Home() {
     handleStop();
     setSong(DEFAULT_SONG);
     setHistory([]);
+    setIsConfirmingReset(false);
   };
 
   const handleUndo = useCallback(() => {
@@ -297,99 +300,20 @@ export default function Home() {
             {t.stop}
           </button>
         </div>
-        <div className="header-controls">
-          <div className={`control-group ${isPlaying ? "disabled" : ""}`}>
-            <span className="control-label">{t.tempo}</span>
-            <input
-              type="range"
-              className="control-slider"
-              value={song.bpm}
-              onChange={handleBpmChange}
-              min={BPM_MIN}
-              max={BPM_MAX}
-              step={BPM_STEP}
-              disabled={isPlaying}
-            />
-            <span className="control-value">{song.bpm}</span>
-          </div>
-          <div className="control-group">
-            <span className="control-label">{t.sound}</span>
-            <div className="instrument-selector">
-              {INSTRUMENTS.map(({ id, label }) => (
-                <button
-                  key={id}
-                  className={`instrument-btn ${song.instrument === id ? "active" : ""}`}
-                  onClick={() => handleInstrumentChange(id)}
-                >
-                  {label}
-                </button>
-              ))}
-            </div>
-          </div>
-          <div className="control-group range-control">
-            <span className="control-label">{t.range}</span>
-            <div className="range-chips">
-              <div className="range-chip">
-                <button
-                  className="range-chip-btn"
-                  onClick={() => handlePitchBoundChange("min", "down")}
-                  aria-label="Lower minimum note"
-                >
-                  ◀
-                </button>
-                <span className="range-chip-value">{noteLabel(song.constraints.minNote, locale)}</span>
-                <button
-                  className="range-chip-btn"
-                  onClick={() => handlePitchBoundChange("min", "up")}
-                  aria-label="Raise minimum note"
-                >
-                  ▶
-                </button>
-              </div>
-              <span className="range-separator">–</span>
-              <div className="range-chip">
-                <button
-                  className="range-chip-btn"
-                  onClick={() => handlePitchBoundChange("max", "down")}
-                  aria-label="Lower maximum note"
-                >
-                  ◀
-                </button>
-                <span className="range-chip-value">{noteLabel(song.constraints.maxNote, locale)}</span>
-                <button
-                  className="range-chip-btn"
-                  onClick={() => handlePitchBoundChange("max", "up")}
-                  aria-label="Raise maximum note"
-                >
-                  ▶
-                </button>
-              </div>
-            </div>
-          </div>
-          <div className="control-group">
-            <button
-              className={`accidentals-btn ${song.constraints.allowAccidentals ? "active" : ""}`}
-              onClick={handleToggleAccidentals}
-              aria-pressed={song.constraints.allowAccidentals}
-            >
-              {t.blackKeys}
-            </button>
-          </div>
-          <div className="control-group">
-            <button
-              className={`notes-panel-btn ${allowedNotes !== null ? "active" : ""}`}
-              onClick={() => setIsNotePanelOpen((prev) => !prev)}
-            >
-              {allowedNotes !== null ? t.nNotes(allowedNotes.length) : t.allNotes}
-              <span className="notes-panel-arrow">{isNotePanelOpen ? "▲" : "▼"}</span>
-            </button>
-          </div>
-        </div>
         <button className="undo-btn" onClick={handleUndo} disabled={history.length === 0}>
           {t.undo}
         </button>
-        <button className="reset-btn" onClick={handleReset}>
-          {t.reset}
+        <button
+          className={`settings-btn ${isSettingsOpen ? "active" : ""}`}
+          onClick={() => {
+            setIsSettingsOpen((prev) => !prev);
+            setIsConfirmingReset(false);
+          }}
+          aria-expanded={isSettingsOpen}
+        >
+          <span className="settings-icon" aria-hidden="true">⚙</span>
+          {t.settings}
+          <span className="settings-arrow">{isSettingsOpen ? "▲" : "▼"}</span>
         </button>
         <button className="save-btn" onClick={() => setIsSaveModalOpen(true)}>
           {t.save}
@@ -401,6 +325,119 @@ export default function Home() {
           {t.switchLocale}
         </button>
       </header>
+
+      {isSettingsOpen && (
+        <div className="settings-panel">
+          <div className="header-controls">
+            <div className={`control-group ${isPlaying ? "disabled" : ""}`}>
+              <span className="control-label">{t.tempo}</span>
+              <input
+                type="range"
+                className="control-slider"
+                value={song.bpm}
+                onChange={handleBpmChange}
+                min={BPM_MIN}
+                max={BPM_MAX}
+                step={BPM_STEP}
+                disabled={isPlaying}
+              />
+              <span className="control-value">{song.bpm}</span>
+            </div>
+            <div className="control-group">
+              <span className="control-label">{t.sound}</span>
+              <div className="instrument-selector">
+                {INSTRUMENTS.map(({ id, label }) => (
+                  <button
+                    key={id}
+                    className={`instrument-btn ${song.instrument === id ? "active" : ""}`}
+                    onClick={() => handleInstrumentChange(id)}
+                  >
+                    {label}
+                  </button>
+                ))}
+              </div>
+            </div>
+            <div className="control-group range-control">
+              <span className="control-label">{t.range}</span>
+              <div className="range-chips">
+                <div className="range-chip">
+                  <button
+                    className="range-chip-btn"
+                    onClick={() => handlePitchBoundChange("min", "down")}
+                    aria-label="Lower minimum note"
+                  >
+                    ◀
+                  </button>
+                  <span className="range-chip-value">{noteLabel(song.constraints.minNote, locale)}</span>
+                  <button
+                    className="range-chip-btn"
+                    onClick={() => handlePitchBoundChange("min", "up")}
+                    aria-label="Raise minimum note"
+                  >
+                    ▶
+                  </button>
+                </div>
+                <span className="range-separator">–</span>
+                <div className="range-chip">
+                  <button
+                    className="range-chip-btn"
+                    onClick={() => handlePitchBoundChange("max", "down")}
+                    aria-label="Lower maximum note"
+                  >
+                    ◀
+                  </button>
+                  <span className="range-chip-value">{noteLabel(song.constraints.maxNote, locale)}</span>
+                  <button
+                    className="range-chip-btn"
+                    onClick={() => handlePitchBoundChange("max", "up")}
+                    aria-label="Raise maximum note"
+                  >
+                    ▶
+                  </button>
+                </div>
+              </div>
+            </div>
+            <div className="control-group">
+              <button
+                className={`accidentals-btn ${song.constraints.allowAccidentals ? "active" : ""}`}
+                onClick={handleToggleAccidentals}
+                aria-pressed={song.constraints.allowAccidentals}
+              >
+                {t.blackKeys}
+              </button>
+            </div>
+            <div className="control-group">
+              <button
+                className={`notes-panel-btn ${allowedNotes !== null ? "active" : ""}`}
+                onClick={() => setIsNotePanelOpen((prev) => !prev)}
+              >
+                {allowedNotes !== null ? t.nNotes(allowedNotes.length) : t.allNotes}
+                <span className="notes-panel-arrow">{isNotePanelOpen ? "▲" : "▼"}</span>
+              </button>
+            </div>
+          </div>
+          <div className="settings-danger">
+            {isConfirmingReset ? (
+              <div className="reset-confirm">
+                <span className="reset-confirm-label">{t.resetConfirm}</span>
+                <button className="reset-btn confirm" onClick={handleReset}>
+                  {t.confirmYes}
+                </button>
+                <button
+                  className="reset-cancel-btn"
+                  onClick={() => setIsConfirmingReset(false)}
+                >
+                  {t.cancel}
+                </button>
+              </div>
+            ) : (
+              <button className="reset-btn" onClick={() => setIsConfirmingReset(true)}>
+                {t.reset}
+              </button>
+            )}
+          </div>
+        </div>
+      )}
 
       {isNotePanelOpen && (
         <NotePanel

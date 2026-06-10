@@ -11,9 +11,12 @@ type Translations = {
   allNotes: string;
   nNotes: (n: number) => string;
   blackKeys: string;
+  settings: string;
   // Actions
   undo: string;
   reset: string;
+  resetConfirm: string;
+  confirmYes: string;
   save: string;
   songsLink: string;
   // Note panel
@@ -50,8 +53,11 @@ export const translations: Record<Locale, Translations> = {
     allNotes: "All notes",
     nNotes: (n) => `${n} notes`,
     blackKeys: "Black keys",
+    settings: "Settings",
     undo: "Undo",
     reset: "Reset",
+    resetConfirm: "Clear everything?",
+    confirmYes: "Yes",
     save: "Save",
     songsLink: "Songs",
     activeNotes: "Active notes",
@@ -82,8 +88,11 @@ export const translations: Record<Locale, Translations> = {
     allNotes: "ぜんぶのおと",
     nNotes: (n) => `${n}このおと`,
     blackKeys: "くろいけんばん",
+    settings: "せってい",
     undo: "もどす",
     reset: "リセット",
+    resetConfirm: "ぜんぶけす？",
+    confirmYes: "はい",
     save: "ほぞん",
     songsLink: "みんなの曲",
     activeNotes: "つかうおと",
