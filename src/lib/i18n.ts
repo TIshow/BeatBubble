@@ -1,6 +1,6 @@
 export type Locale = "en" | "ja";
 
-type Translations = {
+export type Translations = {
   // Transport
   play: string;
   stop: string;

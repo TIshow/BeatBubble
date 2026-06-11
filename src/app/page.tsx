@@ -1,9 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState, useCallback } from "react";
-import Link from "next/link";
-import type { DrumId, InstrumentId, MelodyNote, NoteName, Song } from "@/core/types";
-import { DEFAULT_SONG, BPM_MIN, BPM_MAX, BPM_STEP, BARS_MIN, BARS_MAX, HISTORY_LIMIT } from "@/core/defaults";
+import type { DrumId, InstrumentId, NoteName, Song } from "@/core/types";
 import {
   addMelodyNote,
   adjustPitchBound,
@@ -16,30 +14,22 @@ import {
   toggleAllowedNote,
   toggleDrumHit,
 } from "@/core/ops";
-import { totalSteps } from "@/core/utils";
-import { colorForDrum, colorForNote } from "@/ui/color";
-import { noteLabel } from "@/ui/noteLabel";
-import { buildNoteRows, buildRangeNotes, findMelodyNoteAt, getNotePosition } from "@/ui/grid";
+import { buildRangeNotes, findMelodyNoteAt } from "@/ui/grid";
 import { AudioEngine } from "@/audio/engine";
 import { useDragInteraction } from "@/hooks/useDragInteraction";
 import { useLocale } from "@/hooks/useLocale";
+import { useSong } from "@/hooks/useSong";
 import { supabase } from "@/lib/supabase";
 import { SaveModal } from "./components/SaveModal";
 import { NotePanel } from "./components/NotePanel";
-
-const DRUM_ROWS: DrumId[] = ["hihat", "snare", "kick"];
-
-const INSTRUMENTS: { id: InstrumentId; label: string }[] = [
-  { id: "piano", label: "Piano" },
-  { id: "synth", label: "Synth" },
-  { id: "marimba", label: "Marimba" },
-  { id: "flute", label: "Flute" },
-];
+import { Header } from "./components/Header";
+import { SettingsPanel } from "./components/SettingsPanel";
+import { Grid } from "./components/Grid";
 
 export default function Home() {
   const { locale, t, toggleLocale } = useLocale();
-  const [song, setSong] = useState<Song>(DEFAULT_SONG);
-  const [history, setHistory] = useState<Song[]>([]);
+  const { song, setSong, songRef, canUndo, pushHistory, undo, reset } = useSong();
+
   const [isPlaying, setIsPlaying] = useState(false);
   const [playheadStep, setPlayheadStep] = useState<number | null>(null);
   const [isNotePanelOpen, setIsNotePanelOpen] = useState(false);
@@ -50,11 +40,6 @@ export default function Home() {
   const gridRef = useRef<HTMLDivElement>(null);
   const gridContainerRef = useRef<HTMLDivElement>(null);
   const engineRef = useRef<AudioEngine | null>(null);
-  const songRef = useRef<Song>(song);
-
-  useEffect(() => {
-    songRef.current = song;
-  }, [song]);
 
   // ?load=<id> で曲を読み込む
   useEffect(() => {
@@ -72,11 +57,7 @@ export default function Home() {
           window.history.replaceState({}, "", "/");
         }
       });
-  }, []);
-
-  const pushHistory = useCallback((snapshot: Song) => {
-    setHistory((h) => [...h.slice(-(HISTORY_LIMIT - 1)), snapshot]);
-  }, []);
+  }, [setSong]);
 
   const getEngine = useCallback(() => {
     if (!engineRef.current) {
@@ -103,7 +84,7 @@ export default function Home() {
       }
       return null;
     },
-    [song, getEngine, pushHistory]
+    [song, setSong, getEngine, pushHistory]
   );
 
   const handleNoteRemove = useCallback(
@@ -111,12 +92,15 @@ export default function Home() {
       pushHistory(song);
       setSong((prev) => removeMelodyNote(prev, noteId));
     },
-    [song, pushHistory]
+    [song, setSong, pushHistory]
   );
 
-  const handleNoteDurationChange = useCallback((noteId: string, duration: number) => {
-    setSong((prev) => setMelodyNoteDuration(prev, noteId, duration));
-  }, []);
+  const handleNoteDurationChange = useCallback(
+    (noteId: string, duration: number) => {
+      setSong((prev) => setMelodyNoteDuration(prev, noteId, duration));
+    },
+    [setSong]
+  );
 
   const handleDrumToggle = useCallback(
     (drumId: DrumId, step: number) => {
@@ -127,7 +111,7 @@ export default function Home() {
         getEngine().playDrumPreview(drumId);
       }
     },
-    [song, getEngine, pushHistory]
+    [song, setSong, getEngine, pushHistory]
   );
 
   const findNoteAt = useCallback(
@@ -137,7 +121,7 @@ export default function Home() {
 
   const handleDragStart = useCallback(() => {
     pushHistory(songRef.current);
-  }, [pushHistory]);
+  }, [pushHistory, songRef]);
 
   const { isDragging, getMelodyCellHandlers, getDrumCellHandlers, containerHandlers } =
     useDragInteraction({
@@ -150,12 +134,6 @@ export default function Home() {
       onDrumToggle: handleDrumToggle,
       findNoteAt,
     });
-
-  const noteRows = buildNoteRows(song);
-  const rangeNotes = buildRangeNotes(song);
-  const steps = totalSteps(song);
-  const stepsArray = Array.from({ length: steps }, (_, i) => i);
-  const { allowedNotes } = song.constraints;
 
   const handlePlay = async () => {
     if (isPlaying) return;
@@ -180,16 +158,9 @@ export default function Home() {
 
   const handleReset = () => {
     handleStop();
-    setSong(DEFAULT_SONG);
-    setHistory([]);
+    reset();
     setIsConfirmingReset(false);
   };
-
-  const handleUndo = useCallback(() => {
-    if (history.length === 0) return;
-    setSong(history[history.length - 1]);
-    setHistory((h) => h.slice(0, -1));
-  }, [history]);
 
   const handleBpmChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = parseInt(e.target.value, 10);
@@ -212,6 +183,11 @@ export default function Home() {
     setSong((prev) => setAllowAccidentals(prev, !prev.constraints.allowAccidentals));
   };
 
+  const handleToggleSettings = () => {
+    setIsSettingsOpen((prev) => !prev);
+    setIsConfirmingReset(false);
+  };
+
   const handleNoteChipClick = useCallback(
     (noteName: NoteName) => {
       const current = song.constraints.allowedNotes;
@@ -223,59 +199,12 @@ export default function Home() {
         setSong((prev) => toggleAllowedNote(prev, noteName));
       }
     },
-    [song]
+    [song, setSong]
   );
 
   const handleClearAllowedNotes = useCallback(() => {
     setSong((prev) => clearAllowedNotes(prev));
-  }, []);
-
-  const renderMelodyCell = (noteName: NoteName, step: number) => {
-    const note = findMelodyNoteAt(song, noteName, step);
-    const isBeatStart = step % song.stepsPerBeat === 0;
-    const isPlayhead = playheadStep === step;
-    const handlers = getMelodyCellHandlers(noteName, step);
-    return (
-      <div
-        key={step}
-        className={`cell ${isBeatStart ? "beat-start" : ""} ${isPlayhead ? "playhead" : ""}`}
-        onMouseDown={handlers.onMouseDown}
-        onTouchStart={handlers.onTouchStart}
-      >
-        {note && renderBubble(note, step)}
-      </div>
-    );
-  };
-
-  const renderBubble = (note: MelodyNote, step: number) => {
-    const position = getNotePosition(note, step);
-    const isStart = step === note.startStep;
-    const color = colorForNote(note.note);
-    return (
-      <div
-        className={`bubble ${position} ${isStart ? "start-highlight" : ""}`}
-        style={{ backgroundColor: color }}
-      />
-    );
-  };
-
-  const renderDrumCell = (drumId: DrumId, step: number) => {
-    const hasHit = song.drums.hits.some((h) => h.drumId === drumId && h.step === step);
-    const isBeatStart = step % song.stepsPerBeat === 0;
-    const color = colorForDrum(drumId);
-    const isPlayhead = playheadStep === step;
-    const handlers = getDrumCellHandlers(drumId, step);
-    return (
-      <div
-        key={step}
-        className={`cell ${isBeatStart ? "beat-start" : ""} ${isPlayhead ? "playhead" : ""}`}
-        onMouseDown={handlers.onMouseDown}
-        onTouchStart={handlers.onTouchStart}
-      >
-        {hasHit && <div className="drum-bubble" style={{ backgroundColor: color }} />}
-      </div>
-    );
-  };
+  }, [setSong]);
 
   return (
     <div
@@ -287,244 +216,61 @@ export default function Home() {
       onTouchEnd={containerHandlers.onTouchEnd}
       onTouchCancel={containerHandlers.onTouchCancel}
     >
-      <header className="header">
-        <h1>BeatBubble</h1>
-        <div className="transport">
-          <button
-            className={`transport-btn play-btn ${isPlaying ? "disabled" : ""}`}
-            onClick={handlePlay}
-            disabled={isPlaying}
-          >
-            {t.play}
-          </button>
-          <button
-            className={`transport-btn stop-btn ${!isPlaying ? "disabled" : ""}`}
-            onClick={handleStop}
-            disabled={!isPlaying}
-          >
-            {t.stop}
-          </button>
-        </div>
-        <button className="undo-btn" onClick={handleUndo} disabled={history.length === 0}>
-          {t.undo}
-        </button>
-        <button
-          className={`settings-btn ${isSettingsOpen ? "active" : ""}`}
-          onClick={() => {
-            setIsSettingsOpen((prev) => !prev);
-            setIsConfirmingReset(false);
-          }}
-          aria-expanded={isSettingsOpen}
-        >
-          <span className="settings-icon" aria-hidden="true">⚙</span>
-          {t.settings}
-          <span className="settings-arrow">{isSettingsOpen ? "▲" : "▼"}</span>
-        </button>
-        <button className="save-btn" onClick={() => setIsSaveModalOpen(true)}>
-          {t.save}
-        </button>
-        <Link href="/songs" className="songs-nav-link">
-          {t.songsLink}
-        </Link>
-        <button className="locale-toggle" onClick={toggleLocale}>
-          {t.switchLocale}
-        </button>
-      </header>
+      <Header
+        t={t}
+        isPlaying={isPlaying}
+        canUndo={canUndo}
+        isSettingsOpen={isSettingsOpen}
+        onPlay={handlePlay}
+        onStop={handleStop}
+        onUndo={undo}
+        onToggleSettings={handleToggleSettings}
+        onOpenSave={() => setIsSaveModalOpen(true)}
+        onToggleLocale={toggleLocale}
+      />
 
       {isSettingsOpen && (
-        <div className="settings-panel">
-          <div className="header-controls">
-            <div className={`control-group ${isPlaying ? "disabled" : ""}`}>
-              <span className="control-label">{t.tempo}</span>
-              <input
-                type="range"
-                className="control-slider"
-                value={song.bpm}
-                onChange={handleBpmChange}
-                min={BPM_MIN}
-                max={BPM_MAX}
-                step={BPM_STEP}
-                disabled={isPlaying}
-              />
-              <span className="control-value">{song.bpm}</span>
-            </div>
-            <div className="control-group">
-              <span className="control-label">{t.sound}</span>
-              <div className="instrument-selector">
-                {INSTRUMENTS.map(({ id, label }) => (
-                  <button
-                    key={id}
-                    className={`instrument-btn ${song.instrument === id ? "active" : ""}`}
-                    onClick={() => handleInstrumentChange(id)}
-                  >
-                    {label}
-                  </button>
-                ))}
-              </div>
-            </div>
-            <div className="control-group range-control">
-              <span className="control-label">{t.range}</span>
-              <div className="range-chips">
-                <div className="range-chip">
-                  <button
-                    className="range-chip-btn"
-                    onClick={() => handlePitchBoundChange("min", "down")}
-                    aria-label="Lower minimum note"
-                  >
-                    ◀
-                  </button>
-                  <span className="range-chip-value">{noteLabel(song.constraints.minNote, locale)}</span>
-                  <button
-                    className="range-chip-btn"
-                    onClick={() => handlePitchBoundChange("min", "up")}
-                    aria-label="Raise minimum note"
-                  >
-                    ▶
-                  </button>
-                </div>
-                <span className="range-separator">–</span>
-                <div className="range-chip">
-                  <button
-                    className="range-chip-btn"
-                    onClick={() => handlePitchBoundChange("max", "down")}
-                    aria-label="Lower maximum note"
-                  >
-                    ◀
-                  </button>
-                  <span className="range-chip-value">{noteLabel(song.constraints.maxNote, locale)}</span>
-                  <button
-                    className="range-chip-btn"
-                    onClick={() => handlePitchBoundChange("max", "up")}
-                    aria-label="Raise maximum note"
-                  >
-                    ▶
-                  </button>
-                </div>
-              </div>
-            </div>
-            <div
-              className={`control-group ${
-                isPlaying || song.constraints.barsLocked ? "disabled" : ""
-              }`}
-            >
-              <span className="control-label">{t.bars}</span>
-              <div className="range-chip">
-                <button
-                  className="range-chip-btn"
-                  onClick={() => handleBarsChange("dec")}
-                  disabled={isPlaying || song.constraints.barsLocked || song.bars <= BARS_MIN}
-                  aria-label="Fewer bars"
-                >
-                  ◀
-                </button>
-                <span className="range-chip-value">{song.bars}</span>
-                <button
-                  className="range-chip-btn"
-                  onClick={() => handleBarsChange("inc")}
-                  disabled={isPlaying || song.constraints.barsLocked || song.bars >= BARS_MAX}
-                  aria-label="More bars"
-                >
-                  ▶
-                </button>
-              </div>
-            </div>
-            <div className="control-group">
-              <button
-                className={`accidentals-btn ${song.constraints.allowAccidentals ? "active" : ""}`}
-                onClick={handleToggleAccidentals}
-                aria-pressed={song.constraints.allowAccidentals}
-              >
-                {t.blackKeys}
-              </button>
-            </div>
-            <div className="control-group">
-              <button
-                className={`notes-panel-btn ${allowedNotes !== null ? "active" : ""}`}
-                onClick={() => setIsNotePanelOpen((prev) => !prev)}
-              >
-                {allowedNotes !== null ? t.nNotes(allowedNotes.length) : t.allNotes}
-                <span className="notes-panel-arrow">{isNotePanelOpen ? "▲" : "▼"}</span>
-              </button>
-            </div>
-          </div>
-          <div className="settings-danger">
-            {isConfirmingReset ? (
-              <div className="reset-confirm">
-                <span className="reset-confirm-label">{t.resetConfirm}</span>
-                <button className="reset-btn confirm" onClick={handleReset}>
-                  {t.confirmYes}
-                </button>
-                <button
-                  className="reset-cancel-btn"
-                  onClick={() => setIsConfirmingReset(false)}
-                >
-                  {t.cancel}
-                </button>
-              </div>
-            ) : (
-              <button className="reset-btn" onClick={() => setIsConfirmingReset(true)}>
-                {t.reset}
-              </button>
-            )}
-          </div>
-        </div>
+        <SettingsPanel
+          song={song}
+          t={t}
+          locale={locale}
+          isPlaying={isPlaying}
+          isNotePanelOpen={isNotePanelOpen}
+          isConfirmingReset={isConfirmingReset}
+          onBpmChange={handleBpmChange}
+          onPitchBoundChange={handlePitchBoundChange}
+          onBarsChange={handleBarsChange}
+          onInstrumentChange={handleInstrumentChange}
+          onToggleAccidentals={handleToggleAccidentals}
+          onToggleNotePanel={() => setIsNotePanelOpen((prev) => !prev)}
+          onStartReset={() => setIsConfirmingReset(true)}
+          onConfirmReset={handleReset}
+          onCancelReset={() => setIsConfirmingReset(false)}
+        />
       )}
 
       {isNotePanelOpen && (
         <NotePanel
-          rangeNotes={rangeNotes}
-          allowedNotes={allowedNotes}
+          rangeNotes={buildRangeNotes(song)}
+          allowedNotes={song.constraints.allowedNotes}
           locale={locale}
           onNoteClick={handleNoteChipClick}
           onClear={handleClearAllowedNotes}
         />
       )}
 
-      <main className="main">
-        <div className="grid-container" ref={gridContainerRef}>
-          <div className="labels grid">
-            {noteRows.map((noteName) => (
-              <div key={noteName} className="label-row">
-                <div
-                  className="label-cell"
-                  style={{ backgroundColor: colorForNote(noteName) }}
-                >
-                  {noteLabel(noteName, locale)}
-                </div>
-              </div>
-            ))}
-            {DRUM_ROWS.map((drumId) => (
-              <div key={drumId} className="label-row drum-row">
-                <div
-                  className="label-cell"
-                  style={{ backgroundColor: colorForDrum(drumId) }}
-                >
-                  {drumId}
-                </div>
-              </div>
-            ))}
-          </div>
-          <div className="grid" ref={gridRef}>
-            {noteRows.map((noteName) => (
-              <div key={noteName} className="grid-row">
-                {stepsArray.map((step) => renderMelodyCell(noteName, step))}
-              </div>
-            ))}
-            {DRUM_ROWS.map((drumId) => (
-              <div key={drumId} className="grid-row drum-row">
-                {stepsArray.map((step) => renderDrumCell(drumId, step))}
-              </div>
-            ))}
-          </div>
-        </div>
-      </main>
+      <Grid
+        song={song}
+        playheadStep={playheadStep}
+        locale={locale}
+        gridRef={gridRef}
+        gridContainerRef={gridContainerRef}
+        getMelodyCellHandlers={getMelodyCellHandlers}
+        getDrumCellHandlers={getDrumCellHandlers}
+      />
 
       {isSaveModalOpen && (
-        <SaveModal
-          song={song}
-          locale={locale}
-          onClose={() => setIsSaveModalOpen(false)}
-        />
+        <SaveModal song={song} locale={locale} onClose={() => setIsSaveModalOpen(false)} />
       )}
     </div>
   );
