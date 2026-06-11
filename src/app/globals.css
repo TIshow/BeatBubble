@@ -129,15 +129,6 @@ a {
     padding: 12px 16px;
   }
 
-  .header-controls {
-    order: 3;
-    width: 100%;
-    justify-content: flex-start;
-    padding-top: 8px;
-    border-top: 1px solid var(--grid-line);
-    margin-top: 4px;
-  }
-
   .control-slider::-webkit-slider-thumb {
     width: 22px;
     height: 22px;
@@ -161,24 +152,35 @@ a {
     width: 100%;
   }
 
+  /* Header order on mobile: title, then primary transport, then
+     secondary actions. (header-controls + reset now live in the
+     settings panel, so they no longer participate in this row.) */
   .transport {
-    order: 2;
-  }
-
-  .reset-btn {
-    order: 3;
-    margin-left: 0;
-    padding: 8px 12px;
-    font-size: 13px;
-  }
-
-  .header-controls {
-    order: 4;
+    order: 1;
     width: 100%;
-    padding-top: 10px;
-    border-top: 1px solid var(--grid-line);
-    margin-top: 4px;
-    gap: 8px;
+  }
+
+  /* .header prefix raises specificity above the base
+     `.undo-btn { margin-left: auto }` defined later in the file. */
+  .header .undo-btn {
+    order: 2;
+    margin-left: 0;
+  }
+
+  .settings-btn {
+    order: 3;
+  }
+
+  .save-btn {
+    order: 4;
+  }
+
+  .songs-nav-link {
+    order: 5;
+  }
+
+  .locale-toggle {
+    order: 6;
   }
 
   .control-group {
@@ -201,6 +203,7 @@ a {
   }
 
   .transport-btn {
+    flex: 1;
     padding: 10px 16px;
     font-size: 13px;
     min-height: 44px;
