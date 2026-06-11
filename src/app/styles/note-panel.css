@@ -1,0 +1,81 @@
+/* Note Picker Panel */
+.note-panel {
+  background: var(--header-bg);
+  padding: 10px 16px 14px;
+  border-bottom: 1px solid var(--grid-line);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.note-panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.note-panel-title {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  opacity: 0.45;
+  margin-right: 8px;
+}
+
+.note-panel-hint {
+  font-size: 11px;
+  opacity: 0.4;
+}
+
+.note-panel-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+/* Filter chip: outlined = not selected, filled = selected */
+.note-chip {
+  padding: 5px 12px;
+  border-radius: 20px;
+  border: 2px solid;
+  background: transparent;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: opacity 0.12s ease, transform 0.1s ease, background-color 0.12s ease;
+}
+
+.note-chip:hover {
+  opacity: 0.65;
+  transform: scale(1.06);
+}
+
+.note-chip.active {
+  color: white !important;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.25);
+}
+
+.note-chip.active:hover {
+  opacity: 0.82;
+  transform: scale(1.06);
+}
+
+.note-panel-reset {
+  padding: 4px 10px;
+  border-radius: 14px;
+  border: 1px solid var(--grid-line);
+  background: transparent;
+  color: var(--foreground);
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  opacity: 0.55;
+  transition: opacity 0.15s ease, background 0.15s ease;
+}
+
+.note-panel-reset:hover {
+  opacity: 1;
+  background: var(--grid-line);
+}
