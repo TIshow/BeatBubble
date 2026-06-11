@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState, useCallback } from "react";
 import Link from "next/link";
 import type { DrumId, InstrumentId, MelodyNote, NoteName, Song } from "@/core/types";
-import { DEFAULT_SONG, BPM_MIN, BPM_MAX, BPM_STEP, HISTORY_LIMIT } from "@/core/defaults";
+import { DEFAULT_SONG, BPM_MIN, BPM_MAX, BPM_STEP, BARS_MIN, BARS_MAX, HISTORY_LIMIT } from "@/core/defaults";
 import {
   addMelodyNote,
   adjustPitchBound,
@@ -11,6 +11,7 @@ import {
   removeMelodyNote,
   setAllowAccidentals,
   setAllowedNotes,
+  setBars,
   setMelodyNoteDuration,
   toggleAllowedNote,
   toggleDrumHit,
@@ -197,6 +198,10 @@ export default function Home() {
 
   const handlePitchBoundChange = (bound: "min" | "max", direction: "up" | "down") => {
     setSong((prev) => adjustPitchBound(prev, bound, direction));
+  };
+
+  const handleBarsChange = (direction: "inc" | "dec") => {
+    setSong((prev) => setBars(prev, prev.bars + (direction === "inc" ? 1 : -1)));
   };
 
   const handleInstrumentChange = (instrument: InstrumentId) => {
@@ -395,6 +400,32 @@ export default function Home() {
                     ▶
                   </button>
                 </div>
+              </div>
+            </div>
+            <div
+              className={`control-group ${
+                isPlaying || song.constraints.barsLocked ? "disabled" : ""
+              }`}
+            >
+              <span className="control-label">{t.bars}</span>
+              <div className="range-chip">
+                <button
+                  className="range-chip-btn"
+                  onClick={() => handleBarsChange("dec")}
+                  disabled={isPlaying || song.constraints.barsLocked || song.bars <= BARS_MIN}
+                  aria-label="Fewer bars"
+                >
+                  ◀
+                </button>
+                <span className="range-chip-value">{song.bars}</span>
+                <button
+                  className="range-chip-btn"
+                  onClick={() => handleBarsChange("inc")}
+                  disabled={isPlaying || song.constraints.barsLocked || song.bars >= BARS_MAX}
+                  aria-label="More bars"
+                >
+                  ▶
+                </button>
               </div>
             </div>
             <div className="control-group">
