@@ -1,0 +1,232 @@
+/* Main content */
+.main {
+  flex: 1;
+  padding: 24px;
+  overflow-x: auto;
+}
+
+/* Grid container */
+.grid-container {
+  display: flex;
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding-bottom: 8px;
+}
+
+.labels {
+  flex-shrink: 0;
+  margin-right: 8px;
+  position: sticky;
+  left: 0;
+  z-index: 2;
+}
+
+.label-row {
+  display: flex;
+}
+
+.label-row:not(:last-child) {
+  border-bottom: 1px solid var(--grid-line);
+}
+
+.label-cell {
+  width: var(--label-width);
+  height: var(--cell-size);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 600;
+  color: white;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+.grid {
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+  background: var(--grid-bg);
+  border-radius: 12px;
+  box-shadow:
+    0 4px 16px rgba(0, 0, 0, 0.08),
+    0 1px 4px rgba(0, 0, 0, 0.04);
+}
+
+.grid-row {
+  display: flex;
+}
+
+.grid-row:not(:last-child) {
+  border-bottom: 1px solid var(--grid-line);
+}
+
+.drum-row {
+  background: rgba(0, 0, 0, 0.04);
+}
+
+@media (prefers-color-scheme: dark) {
+  .drum-row {
+    background: rgba(255, 255, 255, 0.04);
+  }
+}
+
+/* Cells */
+.cell {
+  width: var(--cell-size);
+  height: var(--cell-size);
+  flex-shrink: 0;
+  position: relative;
+  cursor: pointer;
+  transition: background 0.1s ease;
+  touch-action: none;
+}
+
+.cell::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 1px;
+  background: var(--grid-line);
+}
+
+.cell:hover {
+  background: rgba(0, 0, 0, 0.03);
+}
+
+@media (prefers-color-scheme: dark) {
+  .cell:hover {
+    background: rgba(255, 255, 255, 0.05);
+  }
+}
+
+.cell.beat-start::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  width: 2px;
+  background: var(--beat-line);
+  z-index: 1;
+}
+
+.cell.playhead {
+  background: rgba(0, 200, 83, 0.2);
+}
+
+@media (prefers-color-scheme: dark) {
+  .cell.playhead {
+    background: rgba(0, 230, 118, 0.25);
+  }
+}
+
+/* Bubble note styles */
+.bubble {
+  position: absolute;
+  top: 3px;
+  bottom: 3px;
+  left: 3px;
+  right: 3px;
+  border-radius: 8px;
+  transition:
+    transform 0.1s ease,
+    box-shadow 0.1s ease;
+}
+
+.bubble::before {
+  content: "";
+  position: absolute;
+  top: 3px;
+  left: 4px;
+  right: 4px;
+  height: 6px;
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.5) 0%,
+    rgba(255, 255, 255, 0) 100%
+  );
+  border-radius: 4px 4px 0 0;
+}
+
+.bubble:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.bubble.start {
+  border-top-left-radius: 12px;
+  border-bottom-left-radius: 12px;
+  right: 0;
+}
+
+.bubble.end {
+  border-top-right-radius: 12px;
+  border-bottom-right-radius: 12px;
+  left: 0;
+}
+
+.bubble.single {
+  border-radius: 12px;
+}
+
+.bubble.middle {
+  border-radius: 0;
+  left: -1px;
+  right: -1px;
+}
+
+.bubble.start-highlight::after {
+  content: "";
+  position: absolute;
+  left: 5px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 4px;
+  height: 4px;
+  background: rgba(255, 255, 255, 0.6);
+  border-radius: 50%;
+}
+
+/* Drum styles */
+.drum-bubble {
+  position: absolute;
+  top: 4px;
+  bottom: 4px;
+  left: 4px;
+  right: 4px;
+  border-radius: 50%;
+  transition:
+    transform 0.1s ease,
+    box-shadow 0.1s ease;
+}
+
+.drum-bubble::before {
+  content: "";
+  position: absolute;
+  top: 3px;
+  left: 25%;
+  right: 25%;
+  height: 5px;
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.4) 0%,
+    rgba(255, 255, 255, 0) 100%
+  );
+  border-radius: 50%;
+}
+
+.drum-bubble:hover {
+  transform: scale(1.1);
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2);
+}
+
+.dragging .cell {
+  cursor: ew-resize;
+}
+
+/* Preview bubble during drag */
+.bubble.preview {
+  opacity: 0.5;
+}
