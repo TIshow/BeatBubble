@@ -1,6 +1,8 @@
 import type { DrumId, MelodyNote, NoteName, Song } from "./types";
+import { BARS_MAX, BARS_MIN } from "./defaults";
 import { newId } from "./id";
 import {
+  clamp,
   compareNotes,
   isAccidental,
   normalizeDuration,
@@ -201,6 +203,32 @@ export function adjustPitchBound(
       ...song.melody,
       notes: filteredNotes,
     },
+  };
+}
+
+export function setBars(song: Song, bars: number): Song {
+  const clamped = clamp(Math.round(bars), BARS_MIN, BARS_MAX);
+  if (clamped === song.bars) return song;
+
+  const newTotal = clamped * 4 * song.stepsPerBeat;
+
+  // Shrinking: drop notes that start past the new end, and clamp the
+  // duration of notes that now overrun it. (No-op when extending.)
+  const notes = song.melody.notes
+    .filter((n) => n.startStep < newTotal)
+    .map((n) => ({
+      ...n,
+      durationSteps: Math.min(n.durationSteps, newTotal - n.startStep),
+    }));
+
+  // Shrinking: drop drum hits past the new end.
+  const hits = song.drums.hits.filter((h) => h.step < newTotal);
+
+  return {
+    ...song,
+    bars: clamped,
+    melody: { ...song.melody, notes },
+    drums: { ...song.drums, hits },
   };
 }
 
