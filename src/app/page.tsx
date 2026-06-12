@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState, useCallback } from "react";
-import type { DrumId, InstrumentId, NoteName, Song } from "@/core/types";
+import type { DrumId, InstrumentId, NoteName } from "@/core/types";
 import {
   addMelodyNote,
   adjustPitchBound,
@@ -9,11 +9,12 @@ import {
   removeMelodyNote,
   setAllowAccidentals,
   setAllowedNotes,
-  setBars,
+  setBlocks,
   setMelodyNoteDuration,
   toggleAllowedNote,
   toggleDrumHit,
 } from "@/core/ops";
+import { migrateSong } from "@/core/legacy";
 import { buildRangeNotes, findMelodyNoteAt } from "@/ui/grid";
 import { AudioEngine } from "@/audio/engine";
 import { useDragInteraction } from "@/hooks/useDragInteraction";
@@ -53,7 +54,7 @@ export default function Home() {
       .single()
       .then(({ data }) => {
         if (data?.song_data) {
-          setSong(data.song_data as Song);
+          setSong(migrateSong(data.song_data));
           window.history.replaceState({}, "", "/");
         }
       });
@@ -171,8 +172,8 @@ export default function Home() {
     setSong((prev) => adjustPitchBound(prev, bound, direction));
   };
 
-  const handleBarsChange = (direction: "inc" | "dec") => {
-    setSong((prev) => setBars(prev, prev.bars + (direction === "inc" ? 1 : -1)));
+  const handleBlocksChange = (direction: "inc" | "dec") => {
+    setSong((prev) => setBlocks(prev, prev.blocks + (direction === "inc" ? 1 : -1)));
   };
 
   const handleInstrumentChange = (instrument: InstrumentId) => {
@@ -239,7 +240,7 @@ export default function Home() {
           isConfirmingReset={isConfirmingReset}
           onBpmChange={handleBpmChange}
           onPitchBoundChange={handlePitchBoundChange}
-          onBarsChange={handleBarsChange}
+          onBlocksChange={handleBlocksChange}
           onInstrumentChange={handleInstrumentChange}
           onToggleAccidentals={handleToggleAccidentals}
           onToggleNotePanel={() => setIsNotePanelOpen((prev) => !prev)}

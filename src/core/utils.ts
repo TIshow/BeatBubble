@@ -5,7 +5,7 @@ export function clamp(n: number, min: number, max: number): number {
 }
 
 export function totalSteps(song: Song): number {
-  return song.bars * 4 * song.stepsPerBeat;
+  return song.blocks * song.stepsPerBeat;
 }
 
 export function normalizeDuration(

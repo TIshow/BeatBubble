@@ -1,5 +1,5 @@
 import type { DrumId, MelodyNote, NoteName, Song } from "./types";
-import { BARS_MAX, BARS_MIN } from "./defaults";
+import { BLOCKS_MAX, BLOCKS_MIN } from "./defaults";
 import { newId } from "./id";
 import {
   clamp,
@@ -206,11 +206,11 @@ export function adjustPitchBound(
   };
 }
 
-export function setBars(song: Song, bars: number): Song {
-  const clamped = clamp(Math.round(bars), BARS_MIN, BARS_MAX);
-  if (clamped === song.bars) return song;
+export function setBlocks(song: Song, blocks: number): Song {
+  const clamped = clamp(Math.round(blocks), BLOCKS_MIN, BLOCKS_MAX);
+  if (clamped === song.blocks) return song;
 
-  const newTotal = clamped * 4 * song.stepsPerBeat;
+  const newTotal = clamped * song.stepsPerBeat;
 
   // Shrinking: drop notes that start past the new end, and clamp the
   // duration of notes that now overrun it. (No-op when extending.)
@@ -226,7 +226,7 @@ export function setBars(song: Song, bars: number): Song {
 
   return {
     ...song,
-    bars: clamped,
+    blocks: clamped,
     melody: { ...song.melody, notes },
     drums: { ...song.drums, hits },
   };
