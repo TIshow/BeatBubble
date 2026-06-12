@@ -9,7 +9,7 @@ import {
   removeMelodyNote,
   setAllowAccidentals,
   setAllowedNotes,
-  setBlocks,
+  setCells,
   setMelodyNoteDuration,
   toggleAllowedNote,
   toggleDrumHit,
@@ -172,8 +172,8 @@ export default function Home() {
     setSong((prev) => adjustPitchBound(prev, bound, direction));
   };
 
-  const handleBlocksChange = (direction: "inc" | "dec") => {
-    setSong((prev) => setBlocks(prev, prev.blocks + (direction === "inc" ? 1 : -1)));
+  const handleCellsChange = (direction: "inc" | "dec") => {
+    setSong((prev) => setCells(prev, prev.cells + (direction === "inc" ? 1 : -1)));
   };
 
   const handleInstrumentChange = (instrument: InstrumentId) => {
@@ -240,7 +240,7 @@ export default function Home() {
           isConfirmingReset={isConfirmingReset}
           onBpmChange={handleBpmChange}
           onPitchBoundChange={handlePitchBoundChange}
-          onBlocksChange={handleBlocksChange}
+          onCellsChange={handleCellsChange}
           onInstrumentChange={handleInstrumentChange}
           onToggleAccidentals={handleToggleAccidentals}
           onToggleNotePanel={() => setIsNotePanelOpen((prev) => !prev)}
