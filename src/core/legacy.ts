@@ -1,6 +1,42 @@
 import type { DrumId, InstrumentId, Song } from "./types";
 import { newId } from "./id";
-import { DEFAULT_SONG } from "./defaults";
+import { BLOCKS_MAX, BLOCKS_MIN, DEFAULT_SONG } from "./defaults";
+import { clamp } from "./utils";
+
+// v1 fixed 4/4 time, so each bar spanned 4 beats — i.e. 4 blocks.
+const V1_BLOCKS_PER_BAR = 4;
+
+// Migrate a persisted song to the current model.
+// v1 measured length in `bars`; v2 measures length directly in `blocks`.
+// Total step count is unchanged, so notes stay in range.
+export function migrateSong(raw: unknown): Song {
+  const data = raw as Record<string, unknown>;
+
+  if (data.version === 2 && typeof data.blocks === "number") {
+    return data as unknown as Song;
+  }
+
+  const blocks =
+    typeof data.bars === "number"
+      ? clamp(Math.round(data.bars * V1_BLOCKS_PER_BAR), BLOCKS_MIN, BLOCKS_MAX)
+      : DEFAULT_SONG.blocks;
+
+  const { barsLocked, ...restConstraints } =
+    (data.constraints as { barsLocked?: boolean }) ?? {};
+  const next = { ...data };
+  delete next.bars;
+
+  return {
+    ...next,
+    version: 2,
+    blocks,
+    constraints: {
+      ...DEFAULT_SONG.constraints,
+      ...restConstraints,
+      blocksLocked: barsLocked ?? false,
+    },
+  } as unknown as Song;
+}
 
 type LegacyCell = {
   note: string;
@@ -33,15 +69,15 @@ function mapInstrument(instrument?: string): InstrumentId {
 
 export function fromLegacyMusicData(musicData: LegacyMusicData): Song {
   const stepsPerBeat = 4;
-  const bars = Math.ceil(musicData.beats / (stepsPerBeat * 4));
+  const blocks = Math.max(1, Math.ceil(musicData.beats / stepsPerBeat));
   const bpm = musicData.bpm ?? 100;
   const instrument = mapInstrument(musicData.instrument);
 
   const song: Song = {
-    version: 1,
+    version: 2,
     bpm,
     stepsPerBeat,
-    bars,
+    blocks,
     instrument,
     constraints: { ...DEFAULT_SONG.constraints },
     melody: { notes: [] },

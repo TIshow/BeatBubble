@@ -23,15 +23,17 @@ export type Constraints = {
   allowAccidentals: boolean;
   allowedNotes: NoteName[] | null;
   tempoLocked: boolean;
-  barsLocked: boolean;
+  blocksLocked: boolean;
   drumsEnabled: boolean;
 };
 
 export type Song = {
-  version: 1;
+  version: 2;
   bpm: number;
   stepsPerBeat: number;
-  bars: number;
+  // Grid length in blocks. One block = one beat = `stepsPerBeat` cells,
+  // i.e. one visible group bounded by the beat-start lines.
+  blocks: number;
   instrument: InstrumentId;
   constraints: Constraints;
   melody: { notes: MelodyNote[] };
