@@ -3,10 +3,12 @@ import { newId } from "./id";
 import { BLOCKS_MAX, BLOCKS_MIN, DEFAULT_SONG } from "./defaults";
 import { clamp } from "./utils";
 
+// v1 fixed 4/4 time, so each bar spanned 4 beats — i.e. 4 blocks.
+const V1_BLOCKS_PER_BAR = 4;
+
 // Migrate a persisted song to the current model.
-// v1 measured length in `bars` (1 bar = 4 beats = 4 blocks); v2 measures
-// length directly in `blocks`. Total step count is unchanged, so notes
-// stay in range.
+// v1 measured length in `bars`; v2 measures length directly in `blocks`.
+// Total step count is unchanged, so notes stay in range.
 export function migrateSong(raw: unknown): Song {
   const data = raw as Record<string, unknown>;
 
@@ -14,8 +16,10 @@ export function migrateSong(raw: unknown): Song {
     return data as unknown as Song;
   }
 
-  const bars = typeof data.bars === "number" ? data.bars : DEFAULT_SONG.blocks / 4;
-  const blocks = clamp(Math.round(bars * 4), BLOCKS_MIN, BLOCKS_MAX);
+  const blocks =
+    typeof data.bars === "number"
+      ? clamp(Math.round(data.bars * V1_BLOCKS_PER_BAR), BLOCKS_MIN, BLOCKS_MAX)
+      : DEFAULT_SONG.blocks;
 
   const { barsLocked, ...restConstraints } =
     (data.constraints as { barsLocked?: boolean }) ?? {};
