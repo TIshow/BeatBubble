@@ -42,9 +42,17 @@ export function Grid({
     const isStart = step === note.startStep;
     return (
       <div
-        className={`bubble ${position} ${isStart ? "start-highlight" : ""}`}
+        className={`bubble ${position} ${isStart ? "start-highlight" : ""} ${
+          note.locked ? "locked" : ""
+        }`}
         style={{ backgroundColor: colorForNote(note.note) }}
-      />
+      >
+        {note.locked && isStart && (
+          <span className="lock-badge" aria-hidden="true">
+            🔒
+          </span>
+        )}
+      </div>
     );
   };
 
@@ -66,7 +74,7 @@ export function Grid({
   };
 
   const renderDrumCell = (drumId: DrumId, step: number) => {
-    const hasHit = song.drums.hits.some((h) => h.drumId === drumId && h.step === step);
+    const hit = song.drums.hits.find((h) => h.drumId === drumId && h.step === step);
     const isBeatStart = step % song.stepsPerBeat === 0;
     const isPlayhead = playheadStep === step;
     const handlers = getDrumCellHandlers(drumId, step);
@@ -77,7 +85,18 @@ export function Grid({
         onMouseDown={handlers.onMouseDown}
         onTouchStart={handlers.onTouchStart}
       >
-        {hasHit && <div className="drum-bubble" style={{ backgroundColor: colorForDrum(drumId) }} />}
+        {hit && (
+          <div
+            className={`drum-bubble ${hit.locked ? "locked" : ""}`}
+            style={{ backgroundColor: colorForDrum(drumId) }}
+          >
+            {hit.locked && (
+              <span className="lock-badge" aria-hidden="true">
+                🔒
+              </span>
+            )}
+          </div>
+        )}
       </div>
     );
   };

@@ -13,6 +13,8 @@ import {
   setMelodyNoteDuration,
   toggleAllowedNote,
   toggleDrumHit,
+  toggleMelodyNoteLock,
+  toggleDrumHitLock,
 } from "@/core/ops";
 import { migrateSong } from "@/core/legacy";
 import { buildRangeNotes, findMelodyNoteAt } from "@/ui/grid";
@@ -37,6 +39,7 @@ export default function Home() {
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isConfirmingReset, setIsConfirmingReset] = useState(false);
   const [isSaveModalOpen, setIsSaveModalOpen] = useState(false);
+  const [isLockMode, setIsLockMode] = useState(false);
 
   const gridRef = useRef<HTMLDivElement>(null);
   const gridContainerRef = useRef<HTMLDivElement>(null);
@@ -124,6 +127,26 @@ export default function Home() {
     pushHistory(songRef.current);
   }, [pushHistory, songRef]);
 
+  const handleToggleMelodyLock = useCallback(
+    (noteName: NoteName, step: number) => {
+      const note = findMelodyNoteAt(song, noteName, step);
+      if (!note) return;
+      pushHistory(song);
+      setSong((prev) => toggleMelodyNoteLock(prev, note.id));
+    },
+    [song, setSong, pushHistory]
+  );
+
+  const handleToggleDrumLock = useCallback(
+    (drumId: DrumId, step: number) => {
+      const hit = song.drums.hits.find((h) => h.drumId === drumId && h.step === step);
+      if (!hit) return;
+      pushHistory(song);
+      setSong((prev) => toggleDrumHitLock(prev, { step, drumId }));
+    },
+    [song, setSong, pushHistory]
+  );
+
   const { isDragging, getMelodyCellHandlers, getDrumCellHandlers, containerHandlers } =
     useDragInteraction({
       gridRef,
@@ -134,6 +157,9 @@ export default function Home() {
       onDragStart: handleDragStart,
       onDrumToggle: handleDrumToggle,
       findNoteAt,
+      isLockMode,
+      onToggleMelodyLock: handleToggleMelodyLock,
+      onToggleDrumLock: handleToggleDrumLock,
     });
 
   const handlePlay = async () => {
@@ -209,7 +235,7 @@ export default function Home() {
 
   return (
     <div
-      className={`app ${isDragging ? "dragging" : ""}`}
+      className={`app ${isDragging ? "dragging" : ""} ${isLockMode ? "lock-mode" : ""}`}
       onMouseMove={containerHandlers.onMouseMove}
       onMouseUp={containerHandlers.onMouseUp}
       onMouseLeave={containerHandlers.onMouseLeave}
@@ -238,6 +264,8 @@ export default function Home() {
           isPlaying={isPlaying}
           isNotePanelOpen={isNotePanelOpen}
           isConfirmingReset={isConfirmingReset}
+          isLockMode={isLockMode}
+          onToggleLockMode={() => setIsLockMode((prev) => !prev)}
           onBpmChange={handleBpmChange}
           onPitchBoundChange={handlePitchBoundChange}
           onBlocksChange={handleBlocksChange}

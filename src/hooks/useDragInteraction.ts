@@ -1,4 +1,4 @@
-import { useRef, useState, useCallback } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 import type { RefObject } from "react";
 import type { DrumId, MelodyNote, NoteName } from "@/core/types";
 
@@ -28,6 +28,10 @@ interface UseDragInteractionOptions {
   onDragStart?: () => void;
   onDrumToggle: (drumId: DrumId, step: number) => void;
   findNoteAt: (noteName: NoteName, step: number) => MelodyNote | null;
+  // Lock mode: taps toggle a note/drum's locked flag instead of editing.
+  isLockMode?: boolean;
+  onToggleMelodyLock: (noteName: NoteName, step: number) => void;
+  onToggleDrumLock: (drumId: DrumId, step: number) => void;
 }
 
 export function useDragInteraction({
@@ -39,6 +43,9 @@ export function useDragInteraction({
   onDragStart,
   onDrumToggle,
   findNoteAt,
+  isLockMode = false,
+  onToggleMelodyLock,
+  onToggleDrumLock,
 }: UseDragInteractionOptions) {
   // State for CSS (triggers re-render)
   const [isDragging, setIsDragging] = useState(false);
@@ -50,6 +57,11 @@ export function useDragInteraction({
   const lastTouchXRef = useRef(0);
   // Timestamp to prevent synthetic mouse events after touch
   const lastInteractionEndRef = useRef(0);
+  // Mirror lock mode in a ref so the ref-based handlers read the latest value.
+  const lockModeRef = useRef(isLockMode);
+  useEffect(() => {
+    lockModeRef.current = isLockMode;
+  }, [isLockMode]);
 
   // Start potential interaction (tap or drag - we don't know yet)
   const startInteraction = useCallback(
@@ -71,6 +83,9 @@ export function useDragInteraction({
     (clientX: number) => {
       const pending = pendingRef.current;
       if (!pending || !gridRef.current) return;
+
+      // No drag-to-resize while locking.
+      if (lockModeRef.current) return;
 
       const deltaX = clientX - pending.clientX;
 
@@ -118,8 +133,12 @@ export function useDragInteraction({
     const drag = dragRef.current;
 
     if (pending && !drag) {
-      // No drag occurred - this is a tap
-      if (pending.existingNote) {
+      if (lockModeRef.current) {
+        // Lock mode: tapping an existing note toggles its lock (empty cells do nothing).
+        if (pending.existingNote) {
+          onToggleMelodyLock(pending.noteName, pending.step);
+        }
+      } else if (pending.existingNote) {
         // Tap on existing note - delete it
         onNoteRemove(pending.existingNote.id);
       } else {
@@ -134,7 +153,7 @@ export function useDragInteraction({
     dragRef.current = null;
     setIsDragging(false);
     lastInteractionEndRef.current = Date.now();
-  }, [onNoteCreate, onNoteRemove]);
+  }, [onNoteCreate, onNoteRemove, onToggleMelodyLock]);
 
   // Cancel interaction without finalizing
   const cancelInteraction = useCallback(() => {
@@ -188,20 +207,22 @@ export function useDragInteraction({
         if (Date.now() - lastInteractionEndRef.current < 300) {
           return;
         }
-        onDrumToggle(drumId, step);
+        if (lockModeRef.current) onToggleDrumLock(drumId, step);
+        else onDrumToggle(drumId, step);
       },
       onTouchStart: (e: React.TouchEvent) => {
         e.preventDefault();
         touchCountRef.current = e.touches.length;
         if (e.touches.length === 1) {
-          onDrumToggle(drumId, step);
+          if (lockModeRef.current) onToggleDrumLock(drumId, step);
+          else onDrumToggle(drumId, step);
           lastInteractionEndRef.current = Date.now();
         } else if (e.touches.length >= 2) {
           initMultiTouchScroll(e.touches[0].clientX);
         }
       },
     }),
-    [onDrumToggle, initMultiTouchScroll]
+    [onDrumToggle, onToggleDrumLock, initMultiTouchScroll]
   );
 
   // Container handlers
