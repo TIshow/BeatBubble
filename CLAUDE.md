@@ -10,6 +10,7 @@ Key differentiators:
 - Adjustable grid length and beginner-friendly settings panel
 
 ## Non-negotiable Requirements
+**IMPORTANT — these are hard constraints. YOU MUST NOT violate them:**
 - Pitch is represented as **NoteName string** (e.g. "C4", "F#3"). Do not switch to MIDI-only storage.
 - Sustained notes are represented by **one note with durationSteps**, not by duplicating cells.
 - Melody overlap rule: **last write wins** (new note replaces overlapping notes of the same pitch).
