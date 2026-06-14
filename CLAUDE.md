@@ -63,6 +63,15 @@ Key differentiators:
   - Length control: ◀ N ▶ steps `blocks` by 1 (= one beat = 4 cells); shrinking drops out-of-range notes/drums and clamps overrunning durations
   - Black keys toggle flips `allowAccidentals`; turning off removes accidental notes and prunes `allowedNotes`
 
+## Design Conventions
+Playful, rounded, kid-friendly. Keep new UI consistent with these:
+- **Theming**: use the CSS custom properties in `styles/base.css` (`--background`, `--foreground`, `--grid-bg`, `--grid-line`, `--header-bg`, `--beat-line`, `--cell-size` 40px, `--label-width` 48px). Light + dark are handled via `prefers-color-scheme` overriding these vars — **never hardcode theme colors**; reference `var(--…)`.
+- **Note/drum colors**: come from `src/ui/color.ts` (`colorForNote`/`colorForDrum`, HSL by note letter). Don't inline note colors elsewhere.
+- **Accent gradients**: `linear-gradient(135deg, …)` per action — play=green, stop=red, undo=amber, settings/reset=purple (`#667eea→#764ba2`), save=teal, title/songs=rainbow, black-keys=dark. Reuse the matching gradient for new accents.
+- **Shapes**: pill buttons (`border-radius: 20px`), rounded bubble notes (8–12px), rounded chips/cards.
+- **Responsive**: three breakpoints — `≥900px` desktop (single-row header), `600–899px` tablet, `<600px` mobile (stacked header, full-width transport); songs grid also tightens at `≤480px`. Preserve these breakpoints.
+- **CSS location**: edit the matching `src/app/styles/*.css` file (classes are global, not CSS Modules); keep each file's rules in their original relative order.
+
 ## i18n
 - Locale is `"ja"` (Japanese) by default, toggled to `"en"` via the locale button
 - Persisted in `localStorage` under key `"beatbubble-locale"`
