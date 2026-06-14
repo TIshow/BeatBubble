@@ -8,7 +8,7 @@ export type Translations = {
   tempo: string;
   sound: string;
   range: string;
-  cells: string;
+  blocks: string;
   allNotes: string;
   nNotes: (n: number) => string;
   blackKeys: string;
@@ -51,7 +51,7 @@ export const translations: Record<Locale, Translations> = {
     tempo: "Tempo",
     sound: "Sound",
     range: "Range",
-    cells: "Cells",
+    blocks: "Blocks",
     allNotes: "All notes",
     nNotes: (n) => `${n} notes`,
     blackKeys: "Black keys",
@@ -87,7 +87,7 @@ export const translations: Record<Locale, Translations> = {
     tempo: "テンポ",
     sound: "おと",
     range: "おんいき",
-    cells: "マス",
+    blocks: "ブロック",
     allNotes: "ぜんぶのおと",
     nNotes: (n) => `${n}このおと`,
     blackKeys: "くろいけんばん",

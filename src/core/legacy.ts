@@ -1,53 +1,53 @@
 import type { DrumId, InstrumentId, Song } from "./types";
 import { newId } from "./id";
-import { CELLS_MAX, CELLS_MIN, DEFAULT_SONG } from "./defaults";
+import { BLOCKS_MAX, BLOCKS_MIN, DEFAULT_SONG } from "./defaults";
 import { clamp } from "./utils";
 
-// v1 fixed 4/4 time: each bar spanned 4 beats.
-const V1_BEATS_PER_BAR = 4;
+// v1 fixed 4/4 time, so each bar spanned 4 beats — i.e. 4 blocks.
+const V1_BLOCKS_PER_BAR = 4;
 
-// Migrate a persisted song to the current model (length measured in cells).
-// Older versions measured length differently:
-//   v1: `bars`   -> cells = bars * 4 * stepsPerBeat
-//   v2: `blocks` -> cells = blocks * stepsPerBeat
-// The total cell count is preserved, so notes stay in range.
+// Migrate a persisted song to the current model (length measured in blocks;
+// 1 block = 1 beat = stepsPerBeat cells). Older/other shapes:
+//   v1: `bars`  -> blocks = bars * 4
+//   v3: `cells` -> blocks = round(cells / stepsPerBeat)   (short-lived)
+// The cell count is preserved (modulo clamping), so notes stay in range.
 export function migrateSong(raw: unknown): Song {
   const data = raw as Record<string, unknown>;
 
-  if (data.version === 3 && typeof data.cells === "number") {
+  if (data.version === 2 && typeof data.blocks === "number") {
     return data as unknown as Song;
   }
 
   const stepsPerBeat =
     typeof data.stepsPerBeat === "number" ? data.stepsPerBeat : DEFAULT_SONG.stepsPerBeat;
 
-  let cells: number;
-  if (typeof data.cells === "number") {
-    cells = data.cells;
-  } else if (typeof data.blocks === "number") {
-    cells = data.blocks * stepsPerBeat;
+  let blocks: number;
+  if (typeof data.blocks === "number") {
+    blocks = data.blocks;
+  } else if (typeof data.cells === "number") {
+    blocks = data.cells / stepsPerBeat;
   } else if (typeof data.bars === "number") {
-    cells = data.bars * V1_BEATS_PER_BAR * stepsPerBeat;
+    blocks = data.bars * V1_BLOCKS_PER_BAR;
   } else {
-    cells = DEFAULT_SONG.cells;
+    blocks = DEFAULT_SONG.blocks;
   }
-  cells = clamp(Math.round(cells), CELLS_MIN, CELLS_MAX);
+  blocks = clamp(Math.round(blocks), BLOCKS_MIN, BLOCKS_MAX);
 
-  // Length-lock was named barsLocked (v1) then blocksLocked (v2).
-  const { barsLocked, blocksLocked, lengthLocked, ...restConstraints } =
+  // The length-lock has been named barsLocked / lengthLocked across versions.
+  const { barsLocked, lengthLocked, blocksLocked, ...restConstraints } =
     (data.constraints as Record<string, unknown>) ?? {};
   const next = { ...data };
   delete next.bars;
-  delete next.blocks;
+  delete next.cells;
 
   return {
     ...next,
-    version: 3,
-    cells,
+    version: 2,
+    blocks,
     constraints: {
       ...DEFAULT_SONG.constraints,
       ...restConstraints,
-      lengthLocked: (lengthLocked ?? blocksLocked ?? barsLocked ?? false) === true,
+      blocksLocked: (blocksLocked ?? lengthLocked ?? barsLocked ?? false) === true,
     },
   } as unknown as Song;
 }
@@ -83,15 +83,15 @@ function mapInstrument(instrument?: string): InstrumentId {
 
 export function fromLegacyMusicData(musicData: LegacyMusicData): Song {
   const stepsPerBeat = 4;
-  const cells = clamp(Math.round(musicData.beats), CELLS_MIN, CELLS_MAX);
+  const blocks = Math.max(1, Math.ceil(musicData.beats / stepsPerBeat));
   const bpm = musicData.bpm ?? 100;
   const instrument = mapInstrument(musicData.instrument);
 
   const song: Song = {
-    version: 3,
+    version: 2,
     bpm,
     stepsPerBeat,
-    cells,
+    blocks,
     instrument,
     constraints: { ...DEFAULT_SONG.constraints },
     melody: { notes: [] },
