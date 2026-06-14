@@ -9,12 +9,16 @@ export type MelodyNote = {
   startStep: number;
   durationSteps: number;
   note: NoteName;
+  // Creator-locked: read-only in normal editing (can't remove/move/overwrite).
+  // Optional + absent === unlocked, so old saves need no migration.
+  locked?: boolean;
 };
 
 export type DrumHit = {
   id: string;
   step: number;
   drumId: DrumId;
+  locked?: boolean;
 };
 
 export type Constraints = {

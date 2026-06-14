@@ -60,6 +60,14 @@ export function addMelodyNote(
     note,
   };
 
+  // A locked note occupying the same pitch/space wins — can't overwrite it.
+  const samePitchOverlap = song.melody.notes.filter(
+    (existing) => existing.note === note && notesOverlap(existing, newNote)
+  );
+  if (samePitchOverlap.some((n) => n.locked)) {
+    return song;
+  }
+
   const filteredNotes = song.melody.notes.filter((existing) => {
     if (existing.note !== note) return true;
     return !notesOverlap(existing, newNote);
@@ -75,6 +83,8 @@ export function addMelodyNote(
 }
 
 export function removeMelodyNote(song: Song, noteId: string): Song {
+  const target = song.melody.notes.find((n) => n.id === noteId);
+  if (!target || target.locked) return song;
   return {
     ...song,
     melody: {
@@ -89,6 +99,8 @@ export function setMelodyNoteDuration(
   noteId: string,
   durationSteps: number
 ): Song {
+  const target = song.melody.notes.find((n) => n.id === noteId);
+  if (!target || target.locked) return song;
   return {
     ...song,
     melody: {
@@ -98,6 +110,34 @@ export function setMelodyNoteDuration(
         const normalized = normalizeDuration(song, n.startStep, durationSteps);
         return { ...n, durationSteps: normalized };
       }),
+    },
+  };
+}
+
+export function toggleMelodyNoteLock(song: Song, noteId: string): Song {
+  return {
+    ...song,
+    melody: {
+      ...song.melody,
+      notes: song.melody.notes.map((n) =>
+        n.id === noteId ? { ...n, locked: !n.locked } : n
+      ),
+    },
+  };
+}
+
+export function toggleDrumHitLock(
+  song: Song,
+  params: { step: number; drumId: DrumId }
+): Song {
+  const { step, drumId } = params;
+  return {
+    ...song,
+    drums: {
+      ...song.drums,
+      hits: song.drums.hits.map((h) =>
+        h.step === step && h.drumId === drumId ? { ...h, locked: !h.locked } : h
+      ),
     },
   };
 }
@@ -118,6 +158,8 @@ export function toggleDrumHit(
   );
 
   if (existingIndex >= 0) {
+    // Locked hits can't be removed.
+    if (song.drums.hits[existingIndex].locked) return song;
     return {
       ...song,
       drums: {
@@ -207,7 +249,17 @@ export function adjustPitchBound(
 }
 
 export function setBlocks(song: Song, blocks: number): Song {
-  const clamped = clamp(Math.round(blocks), BLOCKS_MIN, BLOCKS_MAX);
+  // Never shrink past a locked element — that would silently delete it.
+  const lockedEnd = Math.max(
+    0,
+    ...song.melody.notes
+      .filter((n) => n.locked)
+      .map((n) => n.startStep + n.durationSteps),
+    ...song.drums.hits.filter((h) => h.locked).map((h) => h.step + 1)
+  );
+  const minBlocks = Math.max(BLOCKS_MIN, Math.ceil(lockedEnd / song.stepsPerBeat));
+
+  const clamped = clamp(Math.round(blocks), minBlocks, BLOCKS_MAX);
   if (clamped === song.blocks) return song;
 
   const newTotal = clamped * song.stepsPerBeat;

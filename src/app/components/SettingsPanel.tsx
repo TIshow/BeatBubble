@@ -19,6 +19,8 @@ interface Props {
   isPlaying: boolean;
   isNotePanelOpen: boolean;
   isConfirmingReset: boolean;
+  isLockMode: boolean;
+  onToggleLockMode: () => void;
   onBpmChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   onPitchBoundChange: (bound: "min" | "max", direction: "up" | "down") => void;
   onBlocksChange: (direction: "inc" | "dec") => void;
@@ -37,6 +39,8 @@ export function SettingsPanel({
   isPlaying,
   isNotePanelOpen,
   isConfirmingReset,
+  isLockMode,
+  onToggleLockMode,
   onBpmChange,
   onPitchBoundChange,
   onBlocksChange,
@@ -161,6 +165,15 @@ export function SettingsPanel({
               ? t.nNotes(constraints.allowedNotes.length)
               : t.allNotes}
             <span className="notes-panel-arrow">{isNotePanelOpen ? "▲" : "▼"}</span>
+          </button>
+        </div>
+        <div className="control-group">
+          <button
+            className={`lock-mode-btn ${isLockMode ? "active" : ""}`}
+            onClick={onToggleLockMode}
+            aria-pressed={isLockMode}
+          >
+            {t.lockMode}
           </button>
         </div>
       </div>

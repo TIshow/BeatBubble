@@ -12,6 +12,7 @@ export type Translations = {
   allNotes: string;
   nNotes: (n: number) => string;
   blackKeys: string;
+  lockMode: string;
   settings: string;
   // Actions
   undo: string;
@@ -55,6 +56,7 @@ export const translations: Record<Locale, Translations> = {
     allNotes: "All notes",
     nNotes: (n) => `${n} notes`,
     blackKeys: "Black keys",
+    lockMode: "🔒 Lock",
     settings: "Settings",
     undo: "Undo",
     reset: "Reset",
@@ -91,6 +93,7 @@ export const translations: Record<Locale, Translations> = {
     allNotes: "ぜんぶのおと",
     nNotes: (n) => `${n}このおと`,
     blackKeys: "くろいけんばん",
+    lockMode: "🔒 ロック",
     settings: "せってい",
     undo: "もどす",
     reset: "リセット",

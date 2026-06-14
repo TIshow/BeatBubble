@@ -230,3 +230,27 @@
 .bubble.preview {
   opacity: 0.5;
 }
+
+/* Locked notes/drums: creator-fixed, read-only. Ringed + a small padlock. */
+.bubble.locked,
+.drum-bubble.locked {
+  box-shadow: inset 0 0 0 2px rgba(255, 255, 255, 0.85);
+  filter: saturate(0.75);
+}
+
+.lock-badge {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 11px;
+  line-height: 1;
+  z-index: 2;
+  pointer-events: none;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.45);
+}
+
+/* In lock mode, the whole grid signals "tap to lock/unlock". */
+.lock-mode .cell {
+  cursor: pointer;
+}
