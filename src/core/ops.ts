@@ -1,5 +1,5 @@
 import type { DrumId, MelodyNote, NoteName, Song } from "./types";
-import { CELLS_MAX, CELLS_MIN } from "./defaults";
+import { BLOCKS_MAX, BLOCKS_MIN } from "./defaults";
 import { newId } from "./id";
 import {
   clamp,
@@ -206,25 +206,27 @@ export function adjustPitchBound(
   };
 }
 
-export function setCells(song: Song, cells: number): Song {
-  const clamped = clamp(Math.round(cells), CELLS_MIN, CELLS_MAX);
-  if (clamped === song.cells) return song;
+export function setBlocks(song: Song, blocks: number): Song {
+  const clamped = clamp(Math.round(blocks), BLOCKS_MIN, BLOCKS_MAX);
+  if (clamped === song.blocks) return song;
+
+  const newTotal = clamped * song.stepsPerBeat;
 
   // Shrinking: drop notes that start past the new end, and clamp the
   // duration of notes that now overrun it. (No-op when extending.)
   const notes = song.melody.notes
-    .filter((n) => n.startStep < clamped)
+    .filter((n) => n.startStep < newTotal)
     .map((n) => ({
       ...n,
-      durationSteps: Math.min(n.durationSteps, clamped - n.startStep),
+      durationSteps: Math.min(n.durationSteps, newTotal - n.startStep),
     }));
 
   // Shrinking: drop drum hits past the new end.
-  const hits = song.drums.hits.filter((h) => h.step < clamped);
+  const hits = song.drums.hits.filter((h) => h.step < newTotal);
 
   return {
     ...song,
-    cells: clamped,
+    blocks: clamped,
     melody: { ...song.melody, notes },
     drums: { ...song.drums, hits },
   };

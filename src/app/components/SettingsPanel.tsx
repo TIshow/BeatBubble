@@ -2,7 +2,7 @@
 
 import type { InstrumentId, Song } from "@/core/types";
 import type { Locale, Translations } from "@/lib/i18n";
-import { BPM_MIN, BPM_MAX, BPM_STEP, CELLS_MIN, CELLS_MAX } from "@/core/defaults";
+import { BPM_MIN, BPM_MAX, BPM_STEP, BLOCKS_MIN, BLOCKS_MAX } from "@/core/defaults";
 import { noteLabel } from "@/ui/noteLabel";
 
 const INSTRUMENTS: { id: InstrumentId; label: string }[] = [
@@ -21,7 +21,7 @@ interface Props {
   isConfirmingReset: boolean;
   onBpmChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   onPitchBoundChange: (bound: "min" | "max", direction: "up" | "down") => void;
-  onCellsChange: (direction: "inc" | "dec") => void;
+  onBlocksChange: (direction: "inc" | "dec") => void;
   onInstrumentChange: (instrument: InstrumentId) => void;
   onToggleAccidentals: () => void;
   onToggleNotePanel: () => void;
@@ -39,7 +39,7 @@ export function SettingsPanel({
   isConfirmingReset,
   onBpmChange,
   onPitchBoundChange,
-  onCellsChange,
+  onBlocksChange,
   onInstrumentChange,
   onToggleAccidentals,
   onToggleNotePanel,
@@ -48,7 +48,7 @@ export function SettingsPanel({
   onCancelReset,
 }: Props) {
   const { constraints } = song;
-  const lengthDisabled = isPlaying || constraints.lengthLocked;
+  const blocksDisabled = isPlaying || constraints.blocksLocked;
 
   return (
     <div className="settings-panel">
@@ -121,23 +121,23 @@ export function SettingsPanel({
             </div>
           </div>
         </div>
-        <div className={`control-group ${lengthDisabled ? "disabled" : ""}`}>
-          <span className="control-label">{t.cells}</span>
+        <div className={`control-group ${blocksDisabled ? "disabled" : ""}`}>
+          <span className="control-label">{t.blocks}</span>
           <div className="range-chip">
             <button
               className="range-chip-btn"
-              onClick={() => onCellsChange("dec")}
-              disabled={lengthDisabled || song.cells <= CELLS_MIN}
-              aria-label="Fewer cells"
+              onClick={() => onBlocksChange("dec")}
+              disabled={blocksDisabled || song.blocks <= BLOCKS_MIN}
+              aria-label="Fewer blocks"
             >
               ◀
             </button>
-            <span className="range-chip-value">{song.cells}</span>
+            <span className="range-chip-value">{song.blocks}</span>
             <button
               className="range-chip-btn"
-              onClick={() => onCellsChange("inc")}
-              disabled={lengthDisabled || song.cells >= CELLS_MAX}
-              aria-label="More cells"
+              onClick={() => onBlocksChange("inc")}
+              disabled={blocksDisabled || song.blocks >= BLOCKS_MAX}
+              aria-label="More blocks"
             >
               ▶
             </button>
