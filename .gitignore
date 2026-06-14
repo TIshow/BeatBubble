@@ -39,3 +39,9 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# Claude Code — local/personal config (shared config like .claude/settings.json stays trackable)
+CLAUDE.local.md
+.claude/settings.local.json
+.claude/launch.json
+.claude/worktrees/
