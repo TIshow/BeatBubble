@@ -371,6 +371,18 @@ export class AudioEngine {
     this.currentStep = 0;
   }
 
+  // Stop the scheduler and tear down the AudioContext. Call when the editor
+  // unmounts (e.g. navigating away mid-playback) so audio can't keep running.
+  dispose(): void {
+    this.stop();
+    if (this.ctx) {
+      this.ctx.close().catch(() => {});
+      this.ctx = null;
+      this.masterGain = null;
+      this.noiseBuffer = null;
+    }
+  }
+
   getState(): TransportState {
     return this.state;
   }
