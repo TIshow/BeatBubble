@@ -45,6 +45,12 @@ export default function Home() {
   const gridContainerRef = useRef<HTMLDivElement>(null);
   const engineRef = useRef<AudioEngine | null>(null);
 
+  // Tear down audio when the editor unmounts (e.g. tapping "みんなの曲" mid-play),
+  // otherwise the scheduler keeps running and the song can't be stopped.
+  useEffect(() => {
+    return () => engineRef.current?.dispose();
+  }, []);
+
   // ?load=<id> で曲を読み込む
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
