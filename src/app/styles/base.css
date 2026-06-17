@@ -44,6 +44,14 @@ a {
   text-decoration: none;
 }
 
+/* Clickable controls always show the pointer cursor (UX polish).
+   Disabled buttons are excluded so their not-allowed cursor still wins. */
+button:not(:disabled),
+a[href],
+[role="button"] {
+  cursor: pointer;
+}
+
 @media (prefers-color-scheme: dark) {
   html {
     color-scheme: dark;

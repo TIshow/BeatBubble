@@ -7,6 +7,8 @@
   align-items: center;
   justify-content: center;
   z-index: 100;
+  /* Clicking the backdrop closes the modal. */
+  cursor: pointer;
 }
 
 .modal {
@@ -18,6 +20,8 @@
   flex-direction: column;
   gap: 16px;
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  /* The dialog itself isn't click-to-close — reset the inherited pointer. */
+  cursor: default;
 }
 
 .modal-title {
