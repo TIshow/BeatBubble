@@ -28,6 +28,7 @@ Key differentiators:
 ## Project Structure
 - `src/core/` : data model + pure ops + migration (types/defaults/utils/ops/id/legacy)
   - `legacy.ts` : `migrateSong()` (version upgrades) + old-format import
+- `src/analysis/` : research/analytics — pure `Song`→feature extraction (`metrics.ts`); consumes `src/core`, not used at app runtime
 - `src/audio/` : Web Audio scheduling + synthesis (`engine.ts`)
 - `src/ui/` : grid helpers, color mapping, `noteLabel.ts` (locale-aware ドレミ/ABC)
 - `src/hooks/` : custom hooks — `useSong` (song state + undo history), `useDragInteraction`, `useLocale`
