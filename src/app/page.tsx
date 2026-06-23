@@ -22,6 +22,7 @@ import { AudioEngine } from "@/audio/engine";
 import { useDragInteraction } from "@/hooks/useDragInteraction";
 import { useLocale } from "@/hooks/useLocale";
 import { useSong } from "@/hooks/useSong";
+import { useAuth, authDisplayName } from "@/hooks/useAuth";
 import { supabase } from "@/lib/supabase";
 import { SaveModal } from "./components/SaveModal";
 import { NotePanel } from "./components/NotePanel";
@@ -31,6 +32,7 @@ import { Grid } from "./components/Grid";
 
 export default function Home() {
   const { locale, t, toggleLocale } = useLocale();
+  const { user, signInWithGoogle, signOut } = useAuth();
   const { song, setSong, songRef, canUndo, pushHistory, undo, reset } = useSong();
 
   const [isPlaying, setIsPlaying] = useState(false);
@@ -260,6 +262,9 @@ export default function Home() {
         onToggleSettings={handleToggleSettings}
         onOpenSave={() => setIsSaveModalOpen(true)}
         onToggleLocale={toggleLocale}
+        user={user}
+        onSignIn={signInWithGoogle}
+        onSignOut={signOut}
       />
 
       {isSettingsOpen && (
@@ -305,7 +310,13 @@ export default function Home() {
       />
 
       {isSaveModalOpen && (
-        <SaveModal song={song} locale={locale} onClose={() => setIsSaveModalOpen(false)} />
+        <SaveModal
+          song={song}
+          locale={locale}
+          userId={user?.id ?? null}
+          defaultAuthor={authDisplayName(user)}
+          onClose={() => setIsSaveModalOpen(false)}
+        />
       )}
     </div>
   );
