@@ -45,6 +45,7 @@ export type Translations = {
   playBtn: string;
   copyLink: string;
   linkCopied: string;
+  songMenu: string;
   feedAll: string;
   feedMine: string;
   feedTemplates: string;
@@ -106,6 +107,7 @@ export const translations: Record<Locale, Translations> = {
     playBtn: "Play",
     copyLink: "Copy link",
     linkCopied: "Copied!",
+    songMenu: "More",
     feedAll: "All",
     feedMine: "Mine",
     feedTemplates: "Templates",
@@ -164,6 +166,7 @@ export const translations: Record<Locale, Translations> = {
     playBtn: "あそぶ",
     copyLink: "リンクをコピー",
     linkCopied: "コピーしました！",
+    songMenu: "メニュー",
     feedAll: "みんな",
     feedMine: "じぶん",
     feedTemplates: "テンプレ",
