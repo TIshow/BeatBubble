@@ -15,6 +15,8 @@ interface Props {
   onUndo: () => void;
   onToggleSettings: () => void;
   onOpenSave: () => void;
+  onExport: () => void;
+  isExporting: boolean;
   onToggleLocale: () => void;
   user: User | null;
   onSignIn: () => void;
@@ -31,6 +33,8 @@ export function Header({
   onUndo,
   onToggleSettings,
   onOpenSave,
+  onExport,
+  isExporting,
   onToggleLocale,
   user,
   onSignIn,
@@ -71,6 +75,9 @@ export function Header({
       </button>
       <button className="save-btn" onClick={onOpenSave}>
         {t.save}
+      </button>
+      <button className="export-btn" onClick={onExport} disabled={isExporting}>
+        {isExporting ? t.exporting : t.exportWav}
       </button>
       <Link href="/songs" className="songs-nav-link">
         {t.songsLink}

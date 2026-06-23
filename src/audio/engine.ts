@@ -3,8 +3,33 @@ import { noteNameToMidi, totalSteps } from "@/core/utils";
 
 export type TransportState = "stopped" | "playing";
 
+// A target for synthesis: any audio context (real-time or offline) plus the
+// master gain and noise buffer created on it. Parameterizing synthesis by the
+// target lets the exact same voices render both live (AudioContext) and offline
+// (OfflineAudioContext for WAV export), so exported audio matches playback.
+type RenderTarget = {
+  ctx: BaseAudioContext;
+  master: GainNode;
+  noiseBuffer: AudioBuffer;
+};
+
+// Seconds of silence/decay rendered after one loop so sustained notes and drum
+// tails ring out instead of being clipped at the loop boundary.
+const EXPORT_TAIL_SECONDS = 1.5;
+const EXPORT_SAMPLE_RATE = 44100;
+
 function midiToFreq(midi: number): number {
   return 440 * Math.pow(2, (midi - 69) / 12);
+}
+
+function createNoiseBuffer(ctx: BaseAudioContext): AudioBuffer {
+  const bufferSize = Math.floor(ctx.sampleRate * 0.5);
+  const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+  const data = buffer.getChannelData(0);
+  for (let i = 0; i < bufferSize; i++) {
+    data[i] = Math.random() * 2 - 1;
+  }
+  return buffer;
 }
 
 export class AudioEngine {
@@ -32,23 +57,20 @@ export class AudioEngine {
       this.masterGain.connect(this.ctx.destination);
     }
     if (!this.noiseBuffer) {
-      this.noiseBuffer = this.createNoiseBuffer();
+      this.noiseBuffer = createNoiseBuffer(this.ctx);
     }
   }
 
-  private createNoiseBuffer(): AudioBuffer {
-    const bufferSize = this.ctx!.sampleRate * 0.5;
-    const buffer = this.ctx!.createBuffer(1, bufferSize, this.ctx!.sampleRate);
-    const data = buffer.getChannelData(0);
-    for (let i = 0; i < bufferSize; i++) {
-      data[i] = Math.random() * 2 - 1;
-    }
-    return buffer;
+  // The live (real-time) render target, or null if not initialized.
+  private liveTarget(): RenderTarget | null {
+    if (!this.ctx || !this.masterGain || !this.noiseBuffer) return null;
+    return { ctx: this.ctx, master: this.masterGain, noiseBuffer: this.noiseBuffer };
   }
 
   play(getSong: () => Song, onStep?: (step: number) => void): void {
     if (this.state === "playing") return;
-    if (!this.ctx || !this.masterGain) {
+    const target = this.liveTarget();
+    if (!target || !this.ctx) {
       console.error("AudioEngine not initialized. Call init() first.");
       return;
     }
@@ -68,7 +90,7 @@ export class AudioEngine {
       const currentSong = getSong();
 
       while (this.nextNoteTime < this.ctx.currentTime + this.LOOKAHEAD) {
-        this.scheduleStep(currentSong, this.currentStep, this.nextNoteTime, secondsPerStep);
+        this.scheduleStep(target, currentSong, this.currentStep, this.nextNoteTime, secondsPerStep);
 
         if (onStep) {
           const stepToReport = this.currentStep;
@@ -93,7 +115,37 @@ export class AudioEngine {
     scheduler();
   }
 
+  // Render one loop of the song (plus a short tail) offline and return the
+  // resulting AudioBuffer. Used for WAV export; does not touch live playback.
+  async renderOffline(song: Song): Promise<AudioBuffer> {
+    const secondsPerBeat = 60 / song.bpm;
+    const secondsPerStep = secondsPerBeat / song.stepsPerBeat;
+    const total = totalSteps(song);
+    const loopDuration = total * secondsPerStep;
+    const renderDuration = loopDuration + EXPORT_TAIL_SECONDS;
+
+    const length = Math.ceil(renderDuration * EXPORT_SAMPLE_RATE);
+    const offline = new OfflineAudioContext(1, length, EXPORT_SAMPLE_RATE);
+
+    const master = offline.createGain();
+    master.gain.value = 0.5;
+    master.connect(offline.destination);
+
+    const target: RenderTarget = {
+      ctx: offline,
+      master,
+      noiseBuffer: createNoiseBuffer(offline),
+    };
+
+    for (let step = 0; step < total; step++) {
+      this.scheduleStep(target, song, step, step * secondsPerStep, secondsPerStep);
+    }
+
+    return offline.startRendering();
+  }
+
   private scheduleStep(
+    target: RenderTarget,
     song: Song,
     step: number,
     time: number,
@@ -102,81 +154,88 @@ export class AudioEngine {
     for (const note of song.melody.notes) {
       if (note.startStep === step) {
         const duration = note.durationSteps * secondsPerStep;
-        this.playMelodyNote(note.note, time, duration, song.instrument);
+        this.playMelodyNote(target, note.note, time, duration, song.instrument);
       }
     }
 
     for (const hit of song.drums.hits) {
       if (hit.step === step) {
-        this.playDrum(hit.drumId, time);
+        this.playDrum(target, hit.drumId, time);
       }
     }
   }
 
   private playMelodyNote(
+    target: RenderTarget,
     noteName: string,
     startTime: number,
     duration: number,
     instrument: InstrumentId
   ): void {
-    if (!this.ctx || !this.masterGain) return;
-
     switch (instrument) {
       case "piano":
-        this.playPiano(noteName, startTime, duration);
+        this.playPiano(target, noteName, startTime, duration);
         break;
       case "synth":
-        this.playSynth(noteName, startTime, duration);
+        this.playSynth(target, noteName, startTime, duration);
         break;
       case "marimba":
-        this.playMarimba(noteName, startTime, duration);
+        this.playMarimba(target, noteName, startTime, duration);
         break;
       case "flute":
-        this.playFlute(noteName, startTime, duration);
+        this.playFlute(target, noteName, startTime, duration);
         break;
     }
   }
 
-  private playPiano(noteName: string, startTime: number, duration: number): void {
-    if (!this.ctx || !this.masterGain) return;
-
+  private playPiano(
+    target: RenderTarget,
+    noteName: string,
+    startTime: number,
+    duration: number
+  ): void {
+    const { ctx, master } = target;
     const midi = noteNameToMidi(noteName);
     const freq = midiToFreq(midi);
 
-    const osc = this.ctx.createOscillator();
+    const osc = ctx.createOscillator();
     osc.type = "triangle";
     osc.frequency.value = freq;
 
-    const gain = this.ctx.createGain();
+    const gain = ctx.createGain();
     gain.gain.setValueAtTime(0, startTime);
     gain.gain.linearRampToValueAtTime(0.35, startTime + 0.005);
     gain.gain.setValueAtTime(0.35, startTime + duration - 0.03);
     gain.gain.linearRampToValueAtTime(0, startTime + duration);
 
     osc.connect(gain);
-    gain.connect(this.masterGain);
+    gain.connect(master);
 
     osc.start(startTime);
     osc.stop(startTime + duration + 0.01);
   }
 
-  private playSynth(noteName: string, startTime: number, duration: number): void {
-    if (!this.ctx || !this.masterGain) return;
-
+  private playSynth(
+    target: RenderTarget,
+    noteName: string,
+    startTime: number,
+    duration: number
+  ): void {
+    const { ctx, master } = target;
     const midi = noteNameToMidi(noteName);
     const freq = midiToFreq(midi);
 
-    const osc = this.ctx.createOscillator();
+    const osc = ctx.createOscillator();
     osc.type = "sawtooth";
     osc.frequency.value = freq;
 
-    const filter = this.ctx.createBiquadFilter();
+    const filter = ctx.createBiquadFilter();
     filter.type = "lowpass";
     filter.frequency.setValueAtTime(2500, startTime);
     filter.frequency.exponentialRampToValueAtTime(900, startTime + 0.1);
     filter.Q.value = 3;
 
-    const gain = this.ctx.createGain();
+    const gain = ctx.createGain();
     gain.gain.setValueAtTime(0, startTime);
     gain.gain.linearRampToValueAtTime(0.25, startTime + 0.003);
     gain.gain.setValueAtTime(0.25, startTime + duration - 0.06);
@@ -184,43 +243,47 @@ export class AudioEngine {
 
     osc.connect(filter);
     filter.connect(gain);
-    gain.connect(this.masterGain);
+    gain.connect(master);
 
     osc.start(startTime);
     osc.stop(startTime + duration + 0.01);
   }
 
-  private playMarimba(noteName: string, startTime: number, duration: number): void {
-    if (!this.ctx || !this.masterGain) return;
-
+  private playMarimba(
+    target: RenderTarget,
+    noteName: string,
+    startTime: number,
+    duration: number
+  ): void {
+    const { ctx, master } = target;
     const midi = noteNameToMidi(noteName);
     const freq = midiToFreq(midi);
 
     // Fundamental + 4th harmonic for marimba-like timbre
-    const osc1 = this.ctx.createOscillator();
+    const osc1 = ctx.createOscillator();
     osc1.type = "sine";
     osc1.frequency.value = freq;
 
-    const osc2 = this.ctx.createOscillator();
+    const osc2 = ctx.createOscillator();
     osc2.type = "sine";
     osc2.frequency.value = freq * 4;
 
     const decayTime = Math.min(duration, 0.6);
 
-    const gain1 = this.ctx.createGain();
+    const gain1 = ctx.createGain();
     gain1.gain.setValueAtTime(0, startTime);
     gain1.gain.linearRampToValueAtTime(0.45, startTime + 0.002);
     gain1.gain.exponentialRampToValueAtTime(0.001, startTime + decayTime);
 
-    const gain2 = this.ctx.createGain();
+    const gain2 = ctx.createGain();
     gain2.gain.setValueAtTime(0, startTime);
     gain2.gain.linearRampToValueAtTime(0.15, startTime + 0.002);
     gain2.gain.exponentialRampToValueAtTime(0.001, startTime + decayTime * 0.3);
 
     osc1.connect(gain1);
-    gain1.connect(this.masterGain);
+    gain1.connect(master);
     osc2.connect(gain2);
-    gain2.connect(this.masterGain);
+    gain2.connect(master);
 
     osc1.start(startTime);
     osc1.stop(startTime + decayTime + 0.01);
@@ -228,40 +291,44 @@ export class AudioEngine {
     osc2.stop(startTime + decayTime * 0.3 + 0.01);
   }
 
-  private playFlute(noteName: string, startTime: number, duration: number): void {
-    if (!this.ctx || !this.masterGain) return;
-
+  private playFlute(
+    target: RenderTarget,
+    noteName: string,
+    startTime: number,
+    duration: number
+  ): void {
+    const { ctx, master } = target;
     const midi = noteNameToMidi(noteName);
     const freq = midiToFreq(midi);
 
-    const osc = this.ctx.createOscillator();
+    const osc = ctx.createOscillator();
     osc.type = "sine";
     osc.frequency.value = freq;
 
     // Faint 2nd harmonic for breath warmth
-    const osc2 = this.ctx.createOscillator();
+    const osc2 = ctx.createOscillator();
     osc2.type = "sine";
     osc2.frequency.value = freq * 2;
 
     const attack = Math.min(0.08, duration * 0.2);
     const release = Math.min(0.1, duration * 0.15);
 
-    const gain = this.ctx.createGain();
+    const gain = ctx.createGain();
     gain.gain.setValueAtTime(0, startTime);
     gain.gain.linearRampToValueAtTime(0.3, startTime + attack);
     gain.gain.setValueAtTime(0.3, startTime + duration - release);
     gain.gain.linearRampToValueAtTime(0, startTime + duration);
 
-    const gain2 = this.ctx.createGain();
+    const gain2 = ctx.createGain();
     gain2.gain.setValueAtTime(0, startTime);
     gain2.gain.linearRampToValueAtTime(0.06, startTime + attack);
     gain2.gain.setValueAtTime(0.06, startTime + duration - release);
     gain2.gain.linearRampToValueAtTime(0, startTime + duration);
 
     osc.connect(gain);
-    gain.connect(this.masterGain);
+    gain.connect(master);
     osc2.connect(gain2);
-    gain2.connect(this.masterGain);
+    gain2.connect(master);
 
     osc.start(startTime);
     osc.stop(startTime + duration + 0.01);
@@ -269,70 +336,66 @@ export class AudioEngine {
     osc2.stop(startTime + duration + 0.01);
   }
 
-  private playDrum(drumId: DrumId, time: number): void {
-    if (!this.ctx || !this.masterGain) return;
-
+  private playDrum(target: RenderTarget, drumId: DrumId, time: number): void {
     switch (drumId) {
       case "kick":
-        this.playKick(time);
+        this.playKick(target, time);
         break;
       case "snare":
-        this.playSnare(time);
+        this.playSnare(target, time);
         break;
       case "hihat":
-        this.playHihat(time);
+        this.playHihat(target, time);
         break;
     }
   }
 
-  private playKick(time: number): void {
-    if (!this.ctx || !this.masterGain) return;
-
-    const osc = this.ctx.createOscillator();
+  private playKick(target: RenderTarget, time: number): void {
+    const { ctx, master } = target;
+    const osc = ctx.createOscillator();
     osc.type = "sine";
     osc.frequency.setValueAtTime(150, time);
     osc.frequency.exponentialRampToValueAtTime(40, time + 0.1);
 
-    const gain = this.ctx.createGain();
+    const gain = ctx.createGain();
     gain.gain.setValueAtTime(0.8, time);
     gain.gain.exponentialRampToValueAtTime(0.01, time + 0.3);
 
     osc.connect(gain);
-    gain.connect(this.masterGain);
+    gain.connect(master);
 
     osc.start(time);
     osc.stop(time + 0.3);
   }
 
-  private playSnare(time: number): void {
-    if (!this.ctx || !this.masterGain || !this.noiseBuffer) return;
+  private playSnare(target: RenderTarget, time: number): void {
+    const { ctx, master, noiseBuffer } = target;
+    const noise = ctx.createBufferSource();
+    noise.buffer = noiseBuffer;
 
-    const noise = this.ctx.createBufferSource();
-    noise.buffer = this.noiseBuffer;
-
-    const filter = this.ctx.createBiquadFilter();
+    const filter = ctx.createBiquadFilter();
     filter.type = "bandpass";
     filter.frequency.value = 3000;
     filter.Q.value = 1;
 
-    const gain = this.ctx.createGain();
+    const gain = ctx.createGain();
     gain.gain.setValueAtTime(0.5, time);
     gain.gain.exponentialRampToValueAtTime(0.01, time + 0.15);
 
-    const osc = this.ctx.createOscillator();
+    const osc = ctx.createOscillator();
     osc.type = "triangle";
     osc.frequency.value = 180;
 
-    const oscGain = this.ctx.createGain();
+    const oscGain = ctx.createGain();
     oscGain.gain.setValueAtTime(0.4, time);
     oscGain.gain.exponentialRampToValueAtTime(0.01, time + 0.05);
 
     noise.connect(filter);
     filter.connect(gain);
-    gain.connect(this.masterGain);
+    gain.connect(master);
 
     osc.connect(oscGain);
-    oscGain.connect(this.masterGain);
+    oscGain.connect(master);
 
     noise.start(time);
     noise.stop(time + 0.15);
@@ -340,23 +403,22 @@ export class AudioEngine {
     osc.stop(time + 0.05);
   }
 
-  private playHihat(time: number): void {
-    if (!this.ctx || !this.masterGain || !this.noiseBuffer) return;
+  private playHihat(target: RenderTarget, time: number): void {
+    const { ctx, master, noiseBuffer } = target;
+    const noise = ctx.createBufferSource();
+    noise.buffer = noiseBuffer;
 
-    const noise = this.ctx.createBufferSource();
-    noise.buffer = this.noiseBuffer;
-
-    const filter = this.ctx.createBiquadFilter();
+    const filter = ctx.createBiquadFilter();
     filter.type = "highpass";
     filter.frequency.value = 7000;
 
-    const gain = this.ctx.createGain();
+    const gain = ctx.createGain();
     gain.gain.setValueAtTime(0.2, time);
     gain.gain.exponentialRampToValueAtTime(0.01, time + 0.05);
 
     noise.connect(filter);
     filter.connect(gain);
-    gain.connect(this.masterGain);
+    gain.connect(master);
 
     noise.start(time);
     noise.stop(time + 0.05);
@@ -389,13 +451,15 @@ export class AudioEngine {
 
   async playNotePreview(noteName: string, instrument: InstrumentId): Promise<void> {
     await this.init();
-    if (!this.ctx) return;
-    this.playMelodyNote(noteName, this.ctx.currentTime, 0.3, instrument);
+    const target = this.liveTarget();
+    if (!target) return;
+    this.playMelodyNote(target, noteName, target.ctx.currentTime, 0.3, instrument);
   }
 
   async playDrumPreview(drumId: DrumId): Promise<void> {
     await this.init();
-    if (!this.ctx) return;
-    this.playDrum(drumId, this.ctx.currentTime);
+    const target = this.liveTarget();
+    if (!target) return;
+    this.playDrum(target, drumId, target.ctx.currentTime);
   }
 }

@@ -20,6 +20,8 @@ export type Translations = {
   resetConfirm: string;
   confirmYes: string;
   save: string;
+  exportWav: string;
+  exporting: string;
   songsLink: string;
   // Note panel
   activeNotes: string;
@@ -85,6 +87,8 @@ export const translations: Record<Locale, Translations> = {
     resetConfirm: "Clear everything?",
     confirmYes: "Yes",
     save: "Save",
+    exportWav: "Export",
+    exporting: "Exporting...",
     songsLink: "Songs",
     activeNotes: "Active notes",
     tapToExclude: "Tap to exclude notes",
@@ -144,6 +148,8 @@ export const translations: Record<Locale, Translations> = {
     resetConfirm: "ぜんぶけす？",
     confirmYes: "はい",
     save: "ほぞん",
+    exportWav: "書き出し",
+    exporting: "書き出しちゅう...",
     songsLink: "みんなの曲",
     activeNotes: "つかうおと",
     tapToExclude: "のぞくおとをタップ",

@@ -19,6 +19,7 @@ import {
 import { migrateSong } from "@/core/legacy";
 import { buildRangeNotes, findMelodyNoteAt } from "@/ui/grid";
 import { AudioEngine } from "@/audio/engine";
+import { audioBufferToWavBlob } from "@/audio/wav";
 import { useDragInteraction } from "@/hooks/useDragInteraction";
 import { useLocale } from "@/hooks/useLocale";
 import { useSong } from "@/hooks/useSong";
@@ -42,6 +43,7 @@ export default function Home() {
   const [isConfirmingReset, setIsConfirmingReset] = useState(false);
   const [isSaveModalOpen, setIsSaveModalOpen] = useState(false);
   const [isLockMode, setIsLockMode] = useState(false);
+  const [isExporting, setIsExporting] = useState(false);
   // The song loaded via ?load=<id>, so its owner can overwrite it on save.
   const [loadedSong, setLoadedSong] = useState<{
     id: string;
@@ -210,6 +212,28 @@ export default function Home() {
     setPlayheadStep(null);
   };
 
+  const handleExport = async () => {
+    if (isExporting) return;
+    setIsExporting(true);
+    try {
+      const buffer = await getEngine().renderOffline(songRef.current);
+      const blob = audioBufferToWavBlob(buffer);
+      const url = URL.createObjectURL(blob);
+      const base = (loadedSong?.title ?? "beatbubble").trim().replace(/[\\/:*?"<>|]/g, "_");
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `${base || "beatbubble"}.wav`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error("Failed to export WAV:", error);
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
   const handleReset = () => {
     handleStop();
     reset();
@@ -280,6 +304,8 @@ export default function Home() {
         onUndo={undo}
         onToggleSettings={handleToggleSettings}
         onOpenSave={() => setIsSaveModalOpen(true)}
+        onExport={handleExport}
+        isExporting={isExporting}
         onToggleLocale={toggleLocale}
         user={user}
         onSignIn={signInWithGoogle}
