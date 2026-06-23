@@ -42,6 +42,13 @@ export default function Home() {
   const [isConfirmingReset, setIsConfirmingReset] = useState(false);
   const [isSaveModalOpen, setIsSaveModalOpen] = useState(false);
   const [isLockMode, setIsLockMode] = useState(false);
+  // The song loaded via ?load=<id>, so its owner can overwrite it on save.
+  const [loadedSong, setLoadedSong] = useState<{
+    id: string;
+    title: string;
+    author: string;
+    userId: string | null;
+  } | null>(null);
 
   const gridRef = useRef<HTMLDivElement>(null);
   const gridContainerRef = useRef<HTMLDivElement>(null);
@@ -60,12 +67,18 @@ export default function Home() {
     if (!loadId) return;
     supabase
       .from("songs")
-      .select("song_data")
+      .select("id, title, author, song_data, user_id")
       .eq("id", loadId)
       .single()
       .then(({ data }) => {
         if (data?.song_data) {
           setSong(migrateSong(data.song_data));
+          setLoadedSong({
+            id: data.id,
+            title: data.title,
+            author: data.author,
+            userId: data.user_id ?? null,
+          });
           window.history.replaceState({}, "", "/");
         }
       });
@@ -315,6 +328,14 @@ export default function Home() {
           locale={locale}
           userId={user?.id ?? null}
           defaultAuthor={authDisplayName(user)}
+          existing={
+            user && loadedSong && loadedSong.userId === user.id
+              ? { id: loadedSong.id, title: loadedSong.title, author: loadedSong.author }
+              : null
+          }
+          onOverwritten={(title, author) =>
+            setLoadedSong((prev) => (prev ? { ...prev, title, author } : prev))
+          }
           onClose={() => setIsSaveModalOpen(false)}
         />
       )}

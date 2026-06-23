@@ -1,11 +1,12 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { supabase } from "@/lib/supabase";
 import { useLocale } from "@/hooks/useLocale";
 import { useAuth } from "@/hooks/useAuth";
 import { AuthButton } from "@/app/components/AuthButton";
+import { SongCard } from "@/app/components/SongCard";
 import type { Song } from "@/core/types";
 import type { Locale } from "@/lib/i18n";
 import { translations } from "@/lib/i18n";
@@ -16,7 +17,10 @@ type FeedSong = {
   author: string;
   created_at: string;
   song_data: Song;
+  user_id: string | null;
 };
+
+type View = "all" | "mine";
 
 const CARD_GRADIENTS = [
   "linear-gradient(135deg, #ff6b6b, #feca57)",
@@ -43,17 +47,35 @@ export default function SongsPage() {
   const { user, signInWithGoogle, signOut } = useAuth();
   const [songs, setSongs] = useState<FeedSong[]>([]);
   const [loading, setLoading] = useState(true);
+  const [view, setView] = useState<View>("all");
+
+  // "mine" only applies while signed in (no corrective setState needed).
+  const effectiveView: View = user ? view : "all";
 
   useEffect(() => {
-    supabase
+    let query = supabase
       .from("songs")
-      .select("id, title, author, created_at, song_data")
+      .select("id, title, author, created_at, song_data, user_id");
+    if (effectiveView === "mine" && user) query = query.eq("user_id", user.id);
+    query
       .order("created_at", { ascending: false })
       .limit(50)
       .then(({ data }) => {
         setSongs((data as FeedSong[]) ?? []);
         setLoading(false);
       });
+  }, [effectiveView, user]);
+
+  // Client-side filter keeps the view correct instantly while a refetch lands.
+  const displayed =
+    effectiveView === "mine" && user ? songs.filter((s) => s.user_id === user.id) : songs;
+
+  const handleDeleted = useCallback((id: string) => {
+    setSongs((prev) => prev.filter((s) => s.id !== id));
+  }, []);
+
+  const handleRenamed = useCallback((id: string, title: string) => {
+    setSongs((prev) => prev.map((s) => (s.id === id ? { ...s, title } : s)));
   }, []);
 
   return (
@@ -70,27 +92,42 @@ export default function SongsPage() {
       </header>
 
       <main className="songs-main">
+        {user && (
+          <div className="songs-tabs">
+            <button
+              className={`songs-tab ${effectiveView === "all" ? "active" : ""}`}
+              onClick={() => setView("all")}
+            >
+              {t.feedAll}
+            </button>
+            <button
+              className={`songs-tab ${effectiveView === "mine" ? "active" : ""}`}
+              onClick={() => setView("mine")}
+            >
+              {t.feedMine}
+            </button>
+          </div>
+        )}
+
         {loading ? (
           <p className="songs-status">{t.loading}</p>
-        ) : songs.length === 0 ? (
-          <p className="songs-status">{t.noSongs}</p>
+        ) : displayed.length === 0 ? (
+          <p className="songs-status">{effectiveView === "mine" ? t.noMySongs : t.noSongs}</p>
         ) : (
           <div className="songs-grid">
-            {songs.map((song, i) => (
-              <div key={song.id} className="song-card">
-                <div
-                  className="song-card-art"
-                  style={{ background: CARD_GRADIENTS[i % CARD_GRADIENTS.length] }}
-                />
-                <div className="song-card-body">
-                  <p className="song-card-title">{song.title}</p>
-                  <p className="song-card-author">{song.author}</p>
-                  <p className="song-card-time">{timeAgo(song.created_at, locale)}</p>
-                  <Link href={`/?load=${song.id}`} className="song-card-play">
-                    {t.playBtn}
-                  </Link>
-                </div>
-              </div>
+            {displayed.map((song, i) => (
+              <SongCard
+                key={song.id}
+                id={song.id}
+                title={song.title}
+                author={song.author}
+                time={timeAgo(song.created_at, locale)}
+                gradient={CARD_GRADIENTS[i % CARD_GRADIENTS.length]}
+                isOwner={!!user && song.user_id === user.id}
+                t={t}
+                onDeleted={handleDeleted}
+                onRenamed={handleRenamed}
+              />
             ))}
           </div>
         )}
