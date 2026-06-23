@@ -90,6 +90,20 @@
 .song-card-art {
   height: 90px;
   flex-shrink: 0;
+  position: relative;
+}
+
+.song-card-template-badge {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  padding: 3px 8px;
+  border-radius: 10px;
+  background: rgba(0, 0, 0, 0.55);
+  color: white;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.02em;
 }
 
 .song-card-body {
@@ -211,6 +225,18 @@
 .song-card-mini:disabled {
   opacity: 0.5;
   cursor: not-allowed;
+}
+
+/* Template toggle (full-width, above rename/delete) */
+.song-card-mini.template {
+  width: 100%;
+  margin-top: 8px;
+}
+
+.song-card-mini.template.active {
+  background: linear-gradient(135deg, #f7971e, #ffd200);
+  color: white;
+  border-color: transparent;
 }
 
 /* Inline rename */

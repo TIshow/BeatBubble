@@ -18,9 +18,10 @@ type FeedSong = {
   created_at: string;
   song_data: Song;
   user_id: string | null;
+  is_template: boolean;
 };
 
-type View = "all" | "mine";
+type View = "all" | "mine" | "templates";
 
 const CARD_GRADIENTS = [
   "linear-gradient(135deg, #ff6b6b, #feca57)",
@@ -49,14 +50,15 @@ export default function SongsPage() {
   const [loading, setLoading] = useState(true);
   const [view, setView] = useState<View>("all");
 
-  // "mine" only applies while signed in (no corrective setState needed).
-  const effectiveView: View = user ? view : "all";
+  // "mine" needs sign-in; "all" and "templates" are open to everyone.
+  const effectiveView: View = !user && view === "mine" ? "all" : view;
 
   useEffect(() => {
     let query = supabase
       .from("songs")
-      .select("id, title, author, created_at, song_data, user_id");
+      .select("id, title, author, created_at, song_data, user_id, is_template");
     if (effectiveView === "mine" && user) query = query.eq("user_id", user.id);
+    else if (effectiveView === "templates") query = query.eq("is_template", true);
     query
       .order("created_at", { ascending: false })
       .limit(50)
@@ -68,7 +70,11 @@ export default function SongsPage() {
 
   // Client-side filter keeps the view correct instantly while a refetch lands.
   const displayed =
-    effectiveView === "mine" && user ? songs.filter((s) => s.user_id === user.id) : songs;
+    effectiveView === "mine" && user
+      ? songs.filter((s) => s.user_id === user.id)
+      : effectiveView === "templates"
+        ? songs.filter((s) => s.is_template)
+        : songs;
 
   const handleDeleted = useCallback((id: string) => {
     setSongs((prev) => prev.filter((s) => s.id !== id));
@@ -76,6 +82,10 @@ export default function SongsPage() {
 
   const handleRenamed = useCallback((id: string, title: string) => {
     setSongs((prev) => prev.map((s) => (s.id === id ? { ...s, title } : s)));
+  }, []);
+
+  const handleTemplateToggled = useCallback((id: string, isTemplate: boolean) => {
+    setSongs((prev) => prev.map((s) => (s.id === id ? { ...s, is_template: isTemplate } : s)));
   }, []);
 
   return (
@@ -92,27 +102,39 @@ export default function SongsPage() {
       </header>
 
       <main className="songs-main">
-        {user && (
-          <div className="songs-tabs">
-            <button
-              className={`songs-tab ${effectiveView === "all" ? "active" : ""}`}
-              onClick={() => setView("all")}
-            >
-              {t.feedAll}
-            </button>
+        <div className="songs-tabs">
+          <button
+            className={`songs-tab ${effectiveView === "all" ? "active" : ""}`}
+            onClick={() => setView("all")}
+          >
+            {t.feedAll}
+          </button>
+          <button
+            className={`songs-tab ${effectiveView === "templates" ? "active" : ""}`}
+            onClick={() => setView("templates")}
+          >
+            {t.feedTemplates}
+          </button>
+          {user && (
             <button
               className={`songs-tab ${effectiveView === "mine" ? "active" : ""}`}
               onClick={() => setView("mine")}
             >
               {t.feedMine}
             </button>
-          </div>
-        )}
+          )}
+        </div>
 
         {loading ? (
           <p className="songs-status">{t.loading}</p>
         ) : displayed.length === 0 ? (
-          <p className="songs-status">{effectiveView === "mine" ? t.noMySongs : t.noSongs}</p>
+          <p className="songs-status">
+            {effectiveView === "mine"
+              ? t.noMySongs
+              : effectiveView === "templates"
+                ? t.noTemplates
+                : t.noSongs}
+          </p>
         ) : (
           <div className="songs-grid">
             {displayed.map((song, i) => (
@@ -124,9 +146,11 @@ export default function SongsPage() {
                 time={timeAgo(song.created_at, locale)}
                 gradient={CARD_GRADIENTS[i % CARD_GRADIENTS.length]}
                 isOwner={!!user && song.user_id === user.id}
+                isTemplate={song.is_template}
                 t={t}
                 onDeleted={handleDeleted}
                 onRenamed={handleRenamed}
+                onTemplateToggled={handleTemplateToggled}
               />
             ))}
           </div>
