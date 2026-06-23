@@ -50,6 +50,7 @@ export default function Home() {
     title: string;
     author: string;
     userId: string | null;
+    isTemplate: boolean;
   } | null>(null);
 
   const gridRef = useRef<HTMLDivElement>(null);
@@ -69,7 +70,7 @@ export default function Home() {
     if (!loadId) return;
     supabase
       .from("songs")
-      .select("id, title, author, song_data, user_id")
+      .select("id, title, author, song_data, user_id, is_template")
       .eq("id", loadId)
       .single()
       .then(({ data }) => {
@@ -80,6 +81,7 @@ export default function Home() {
             title: data.title,
             author: data.author,
             userId: data.user_id ?? null,
+            isTemplate: data.is_template ?? false,
           });
           window.history.replaceState({}, "", "/");
         }
@@ -170,10 +172,12 @@ export default function Home() {
     [song, setSong, pushHistory]
   );
 
-  // Locks may only be edited by the song's author. Loading someone else's
-  // song (e.g. a template) makes the locks read-only, so a student can't
-  // unlock the fixed backing in their copy. A fresh, unsaved song is editable.
-  const canLock = !loadedSong || (!!user && loadedSong.userId === user.id);
+  // Lock editing is blocked only for someone else's *template*: a student must
+  // not be able to unlock the fixed backing in a template they opened. Any other
+  // song — fresh, your own, or someone else's non-template — stays freely
+  // lockable (overwriting the saved row is still owner-only, enforced by RLS).
+  const isLoadedOwner = !!user && !!loadedSong && loadedSong.userId === user.id;
+  const canLock = !loadedSong || isLoadedOwner || !loadedSong.isTemplate;
   const lockActive = isLockMode && canLock;
 
   const { isDragging, getMelodyCellHandlers, getDrumCellHandlers, containerHandlers } =
