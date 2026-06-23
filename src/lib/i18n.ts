@@ -61,6 +61,7 @@ export type Translations = {
   switchLocale: string;
   login: string;
   logout: string;
+  logoutConfirm: string;
 };
 
 export const translations: Record<Locale, Translations> = {
@@ -118,6 +119,7 @@ export const translations: Record<Locale, Translations> = {
     switchLocale: "日本語",
     login: "Log in",
     logout: "Log out",
+    logoutConfirm: "Log out?",
   },
   ja: {
     play: "えんそう",
@@ -173,5 +175,6 @@ export const translations: Record<Locale, Translations> = {
     switchLocale: "EN",
     login: "ログイン",
     logout: "ログアウト",
+    logoutConfirm: "本当にログアウトしますか？",
   },
 };
