@@ -74,6 +74,13 @@
   opacity: 1;
 }
 
+.modal-error {
+  margin: -4px 0 0;
+  font-size: 13px;
+  font-weight: 600;
+  color: #ee5253;
+}
+
 .modal-save {
   padding: 8px 20px;
   border-radius: 12px;
