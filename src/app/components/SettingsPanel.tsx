@@ -20,6 +20,7 @@ interface Props {
   isNotePanelOpen: boolean;
   isConfirmingReset: boolean;
   isLockMode: boolean;
+  canLock: boolean;
   onToggleLockMode: () => void;
   onBpmChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   onPitchBoundChange: (bound: "min" | "max", direction: "up" | "down") => void;
@@ -40,6 +41,7 @@ export function SettingsPanel({
   isNotePanelOpen,
   isConfirmingReset,
   isLockMode,
+  canLock,
   onToggleLockMode,
   onBpmChange,
   onPitchBoundChange,
@@ -167,15 +169,17 @@ export function SettingsPanel({
             <span className="notes-panel-arrow">{isNotePanelOpen ? "▲" : "▼"}</span>
           </button>
         </div>
-        <div className="control-group">
-          <button
-            className={`lock-mode-btn ${isLockMode ? "active" : ""}`}
-            onClick={onToggleLockMode}
-            aria-pressed={isLockMode}
-          >
-            {t.lockMode}
-          </button>
-        </div>
+        {canLock && (
+          <div className="control-group">
+            <button
+              className={`lock-mode-btn ${isLockMode ? "active" : ""}`}
+              onClick={onToggleLockMode}
+              aria-pressed={isLockMode}
+            >
+              {t.lockMode}
+            </button>
+          </div>
+        )}
       </div>
       <div className="settings-danger">
         {isConfirmingReset ? (

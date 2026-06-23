@@ -168,6 +168,12 @@ export default function Home() {
     [song, setSong, pushHistory]
   );
 
+  // Locks may only be edited by the song's author. Loading someone else's
+  // song (e.g. a template) makes the locks read-only, so a student can't
+  // unlock the fixed backing in their copy. A fresh, unsaved song is editable.
+  const canLock = !loadedSong || (!!user && loadedSong.userId === user.id);
+  const lockActive = isLockMode && canLock;
+
   const { isDragging, getMelodyCellHandlers, getDrumCellHandlers, containerHandlers } =
     useDragInteraction({
       gridRef,
@@ -178,7 +184,7 @@ export default function Home() {
       onDragStart: handleDragStart,
       onDrumToggle: handleDrumToggle,
       findNoteAt,
-      isLockMode,
+      isLockMode: lockActive,
       onToggleMelodyLock: handleToggleMelodyLock,
       onToggleDrumLock: handleToggleDrumLock,
     });
@@ -256,7 +262,7 @@ export default function Home() {
 
   return (
     <div
-      className={`app ${isDragging ? "dragging" : ""} ${isLockMode ? "lock-mode" : ""}`}
+      className={`app ${isDragging ? "dragging" : ""} ${lockActive ? "lock-mode" : ""}`}
       onMouseMove={containerHandlers.onMouseMove}
       onMouseUp={containerHandlers.onMouseUp}
       onMouseLeave={containerHandlers.onMouseLeave}
@@ -288,7 +294,8 @@ export default function Home() {
           isPlaying={isPlaying}
           isNotePanelOpen={isNotePanelOpen}
           isConfirmingReset={isConfirmingReset}
-          isLockMode={isLockMode}
+          isLockMode={lockActive}
+          canLock={canLock}
           onToggleLockMode={() => setIsLockMode((prev) => !prev)}
           onBpmChange={handleBpmChange}
           onPitchBoundChange={handlePitchBoundChange}

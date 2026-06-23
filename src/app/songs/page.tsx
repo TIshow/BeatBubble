@@ -59,6 +59,7 @@ export default function SongsPage() {
       .select("id, title, author, created_at, song_data, user_id, is_template");
     if (effectiveView === "mine" && user) query = query.eq("user_id", user.id);
     else if (effectiveView === "templates") query = query.eq("is_template", true);
+    else query = query.eq("is_template", false); // "all" excludes templates
     query
       .order("created_at", { ascending: false })
       .limit(50)
@@ -74,7 +75,7 @@ export default function SongsPage() {
       ? songs.filter((s) => s.user_id === user.id)
       : effectiveView === "templates"
         ? songs.filter((s) => s.is_template)
-        : songs;
+        : songs.filter((s) => !s.is_template);
 
   const handleDeleted = useCallback((id: string) => {
     setSongs((prev) => prev.filter((s) => s.id !== id));
