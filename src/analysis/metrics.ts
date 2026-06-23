@@ -1,5 +1,5 @@
-import type { Song } from "./types";
-import { noteNameToMidi, totalSteps } from "./utils";
+import type { Song } from "@/core/types";
+import { noteNameToMidi, totalSteps } from "@/core/utils";
 
 // Research instrument: pure, deterministic features extracted from a Song.
 //

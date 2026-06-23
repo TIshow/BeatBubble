@@ -10,8 +10,8 @@ import {
   usesDrums,
   songMetrics,
 } from "./metrics";
-import { DEFAULT_SONG } from "./defaults";
-import type { DrumId, MelodyNote, DrumHit, Song } from "./types";
+import { DEFAULT_SONG } from "@/core/defaults";
+import type { DrumId, MelodyNote, DrumHit, Song } from "@/core/types";
 
 let counter = 0;
 const note = (n: string, startStep: number, durationSteps = 1): MelodyNote => ({
