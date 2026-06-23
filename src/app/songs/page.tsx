@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { supabase } from "@/lib/supabase";
 import { useLocale } from "@/hooks/useLocale";
+import { useAuth, authDisplayName } from "@/hooks/useAuth";
 import type { Song } from "@/core/types";
 import type { Locale } from "@/lib/i18n";
 import { translations } from "@/lib/i18n";
@@ -38,6 +39,7 @@ function timeAgo(dateStr: string, locale: Locale): string {
 
 export default function SongsPage() {
   const { locale, t, toggleLocale } = useLocale();
+  const { user, signInWithGoogle, signOut } = useAuth();
   const [songs, setSongs] = useState<FeedSong[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -63,6 +65,15 @@ export default function SongsPage() {
         <button className="locale-toggle" onClick={toggleLocale}>
           {t.switchLocale}
         </button>
+        {authDisplayName(user) ? (
+          <button className="auth-btn" onClick={signOut} title={authDisplayName(user)}>
+            {t.logout}
+          </button>
+        ) : (
+          <button className="auth-btn" onClick={signInWithGoogle}>
+            {t.login}
+          </button>
+        )}
       </header>
 
       <main className="songs-main">

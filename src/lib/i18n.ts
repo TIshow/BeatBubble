@@ -46,6 +46,8 @@ export type Translations = {
   daysAgo: (n: number) => string;
   // Locale toggle label (the language you'll switch TO)
   switchLocale: string;
+  login: string;
+  logout: string;
 };
 
 export const translations: Record<Locale, Translations> = {
@@ -88,6 +90,8 @@ export const translations: Record<Locale, Translations> = {
     hoursAgo: (n) => `${n}h ago`,
     daysAgo: (n) => `${n}d ago`,
     switchLocale: "日本語",
+    login: "Log in",
+    logout: "Log out",
   },
   ja: {
     play: "えんそう",
@@ -128,5 +132,7 @@ export const translations: Record<Locale, Translations> = {
     hoursAgo: (n) => `${n}時間まえ`,
     daysAgo: (n) => `${n}日まえ`,
     switchLocale: "EN",
+    login: "ログイン",
+    logout: "ログアウト",
   },
 };

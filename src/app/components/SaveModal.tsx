@@ -15,13 +15,15 @@ import {
 interface Props {
   song: Song;
   locale: Locale;
+  userId: string | null;
+  defaultAuthor?: string;
   onClose: () => void;
 }
 
-export function SaveModal({ song, locale, onClose }: Props) {
+export function SaveModal({ song, locale, userId, defaultAuthor = "", onClose }: Props) {
   const t = translations[locale];
   const [title, setTitle] = useState("");
-  const [author, setAuthor] = useState("");
+  const [author, setAuthor] = useState(defaultAuthor);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -45,6 +47,7 @@ export function SaveModal({ song, locale, onClose }: Props) {
         title: title.trim(),
         author: author.trim(),
         song_data: song,
+        user_id: userId,
       });
       if (dbError) {
         setError(t.saveErrorFailed);

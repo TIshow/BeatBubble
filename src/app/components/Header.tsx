@@ -14,6 +14,9 @@ interface Props {
   onToggleSettings: () => void;
   onOpenSave: () => void;
   onToggleLocale: () => void;
+  userName: string | null;
+  onSignIn: () => void;
+  onSignOut: () => void;
 }
 
 export function Header({
@@ -27,6 +30,9 @@ export function Header({
   onToggleSettings,
   onOpenSave,
   onToggleLocale,
+  userName,
+  onSignIn,
+  onSignOut,
 }: Props) {
   return (
     <header className="header">
@@ -70,6 +76,15 @@ export function Header({
       <button className="locale-toggle" onClick={onToggleLocale}>
         {t.switchLocale}
       </button>
+      {userName ? (
+        <button className="auth-btn" onClick={onSignOut} title={userName}>
+          {t.logout}
+        </button>
+      ) : (
+        <button className="auth-btn" onClick={onSignIn}>
+          {t.login}
+        </button>
+      )}
     </header>
   );
 }
