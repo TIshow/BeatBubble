@@ -41,6 +41,17 @@ export function SongCard({
   const [mode, setMode] = useState<Mode>("view");
   const [draft, setDraft] = useState(title);
   const [busy, setBusy] = useState(false);
+  const [copied, setCopied] = useState(false);
+
+  const copyLink = async () => {
+    try {
+      await navigator.clipboard.writeText(`${window.location.origin}/?load=${id}`);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1500);
+    } catch {
+      // clipboard unavailable (e.g. insecure context) — silently ignore
+    }
+  };
 
   const saveRename = async () => {
     const next = draft.trim();
@@ -137,6 +148,12 @@ export function SongCard({
           <Link href={`/?load=${id}`} className="song-card-play">
             {t.playBtn}
           </Link>
+        )}
+
+        {mode === "view" && (
+          <button className="song-card-share" onClick={copyLink}>
+            🔗 {copied ? t.linkCopied : t.copyLink}
+          </button>
         )}
 
         {isOwner && mode === "view" && (

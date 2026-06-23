@@ -43,6 +43,8 @@ export type Translations = {
   noSongs: string;
   noMySongs: string;
   playBtn: string;
+  copyLink: string;
+  linkCopied: string;
   feedAll: string;
   feedMine: string;
   feedTemplates: string;
@@ -102,6 +104,8 @@ export const translations: Record<Locale, Translations> = {
     noSongs: "No songs yet. Be the first to save one!",
     noMySongs: "You haven't saved any songs yet.",
     playBtn: "Play",
+    copyLink: "Copy link",
+    linkCopied: "Copied!",
     feedAll: "All",
     feedMine: "Mine",
     feedTemplates: "Templates",
@@ -158,6 +162,8 @@ export const translations: Record<Locale, Translations> = {
     noSongs: "まだ曲がありません。さいしょに保存してみよう！",
     noMySongs: "まだ じぶんの曲が ありません。",
     playBtn: "あそぶ",
+    copyLink: "リンクをコピー",
+    linkCopied: "コピーしました！",
     feedAll: "みんな",
     feedMine: "じぶん",
     feedTemplates: "テンプレ",

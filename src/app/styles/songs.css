@@ -156,6 +156,25 @@
   box-shadow: 0 6px 16px rgba(0, 200, 83, 0.4);
 }
 
+/* Copy-share-link button (shown to everyone) */
+.song-card-share {
+  margin-top: 8px;
+  width: 100%;
+  padding: 8px;
+  border-radius: 12px;
+  border: 1px solid var(--grid-line);
+  background: var(--grid-bg);
+  color: var(--foreground);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.song-card-share:hover {
+  background: var(--grid-line);
+}
+
 /* My/All filter tabs */
 .songs-tabs {
   display: flex;
