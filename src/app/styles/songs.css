@@ -142,6 +142,124 @@
   box-shadow: 0 6px 16px rgba(0, 200, 83, 0.4);
 }
 
+/* My/All filter tabs */
+.songs-tabs {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 20px;
+}
+
+.songs-tab {
+  padding: 8px 18px;
+  border-radius: 20px;
+  border: 1.5px solid var(--grid-line);
+  background: var(--grid-bg);
+  color: var(--foreground);
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+
+.songs-tab.active {
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  border-color: transparent;
+  color: white;
+}
+
+/* Owner controls on a song card */
+.song-card-owner {
+  display: flex;
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.song-card-mini {
+  flex: 1;
+  padding: 6px 8px;
+  border-radius: 10px;
+  border: 1px solid var(--grid-line);
+  background: var(--grid-bg);
+  color: var(--foreground);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.15s ease, opacity 0.15s ease;
+}
+
+.song-card-mini:hover {
+  background: var(--grid-line);
+}
+
+.song-card-mini.save {
+  background: linear-gradient(135deg, #11998e, #38ef7d);
+  color: white;
+  border-color: transparent;
+}
+
+.song-card-mini.danger {
+  color: #ee5253;
+  border-color: #ee5253;
+}
+
+.song-card-mini.danger:hover {
+  background: #ee5253;
+  color: white;
+}
+
+.song-card-mini:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Inline rename */
+.song-card-rename {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 2px;
+}
+
+.song-card-rename-input {
+  width: 100%;
+  padding: 6px 10px;
+  border-radius: 8px;
+  border: 1px solid var(--grid-line);
+  background: var(--grid-bg);
+  color: var(--foreground);
+  font-size: 15px;
+  font-weight: 700;
+  outline: none;
+}
+
+.song-card-rename-input:focus {
+  border-color: #667eea;
+}
+
+.song-card-rename-actions {
+  display: flex;
+  gap: 6px;
+}
+
+.song-card-rename-actions .song-card-mini {
+  flex: 1;
+}
+
+/* Inline delete confirm */
+.song-card-confirm {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: auto;
+}
+
+.song-card-confirm-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: #ee5253;
+}
+
 @media (max-width: 480px) {
   .songs-header {
     padding: 12px 16px;

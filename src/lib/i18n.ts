@@ -39,7 +39,13 @@ export type Translations = {
   pageTitle: string;
   loading: string;
   noSongs: string;
+  noMySongs: string;
   playBtn: string;
+  feedAll: string;
+  feedMine: string;
+  rename: string;
+  deleteSong: string;
+  confirmDeleteSong: string;
   justNow: string;
   minutesAgo: (n: number) => string;
   hoursAgo: (n: number) => string;
@@ -84,7 +90,13 @@ export const translations: Record<Locale, Translations> = {
     pageTitle: "Everyone's Songs",
     loading: "Loading...",
     noSongs: "No songs yet. Be the first to save one!",
+    noMySongs: "You haven't saved any songs yet.",
     playBtn: "Play",
+    feedAll: "All",
+    feedMine: "Mine",
+    rename: "Rename",
+    deleteSong: "Delete",
+    confirmDeleteSong: "Delete this song?",
     justNow: "just now",
     minutesAgo: (n) => `${n}m ago`,
     hoursAgo: (n) => `${n}h ago`,
@@ -126,7 +138,13 @@ export const translations: Record<Locale, Translations> = {
     pageTitle: "みんなの曲",
     loading: "よみこみちゅう...",
     noSongs: "まだ曲がありません。さいしょに保存してみよう！",
+    noMySongs: "まだ じぶんの曲が ありません。",
     playBtn: "あそぶ",
+    feedAll: "みんな",
+    feedMine: "じぶん",
+    rename: "なまえをかえる",
+    deleteSong: "けす",
+    confirmDeleteSong: "この曲を けしますか？",
     justNow: "たったいま",
     minutesAgo: (n) => `${n}分まえ`,
     hoursAgo: (n) => `${n}時間まえ`,
