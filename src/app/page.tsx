@@ -262,7 +262,7 @@ export default function Home() {
         onToggleSettings={handleToggleSettings}
         onOpenSave={() => setIsSaveModalOpen(true)}
         onToggleLocale={toggleLocale}
-        userName={authDisplayName(user) || null}
+        user={user}
         onSignIn={signInWithGoogle}
         onSignOut={signOut}
       />

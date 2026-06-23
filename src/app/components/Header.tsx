@@ -1,7 +1,9 @@
 "use client";
 
 import Link from "next/link";
+import type { User } from "@supabase/supabase-js";
 import type { Translations } from "@/lib/i18n";
+import { AuthButton } from "./AuthButton";
 
 interface Props {
   t: Translations;
@@ -14,7 +16,7 @@ interface Props {
   onToggleSettings: () => void;
   onOpenSave: () => void;
   onToggleLocale: () => void;
-  userName: string | null;
+  user: User | null;
   onSignIn: () => void;
   onSignOut: () => void;
 }
@@ -30,7 +32,7 @@ export function Header({
   onToggleSettings,
   onOpenSave,
   onToggleLocale,
-  userName,
+  user,
   onSignIn,
   onSignOut,
 }: Props) {
@@ -76,15 +78,7 @@ export function Header({
       <button className="locale-toggle" onClick={onToggleLocale}>
         {t.switchLocale}
       </button>
-      {userName ? (
-        <button className="auth-btn" onClick={onSignOut} title={userName}>
-          {t.logout}
-        </button>
-      ) : (
-        <button className="auth-btn" onClick={onSignIn}>
-          {t.login}
-        </button>
-      )}
+      <AuthButton user={user} t={t} onSignIn={onSignIn} onSignOut={onSignOut} />
     </header>
   );
 }

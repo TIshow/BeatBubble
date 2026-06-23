@@ -4,7 +4,8 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { supabase } from "@/lib/supabase";
 import { useLocale } from "@/hooks/useLocale";
-import { useAuth, authDisplayName } from "@/hooks/useAuth";
+import { useAuth } from "@/hooks/useAuth";
+import { AuthButton } from "@/app/components/AuthButton";
 import type { Song } from "@/core/types";
 import type { Locale } from "@/lib/i18n";
 import { translations } from "@/lib/i18n";
@@ -65,15 +66,7 @@ export default function SongsPage() {
         <button className="locale-toggle" onClick={toggleLocale}>
           {t.switchLocale}
         </button>
-        {authDisplayName(user) ? (
-          <button className="auth-btn" onClick={signOut} title={authDisplayName(user)}>
-            {t.logout}
-          </button>
-        ) : (
-          <button className="auth-btn" onClick={signInWithGoogle}>
-            {t.login}
-          </button>
-        )}
+        <AuthButton user={user} t={t} onSignIn={signInWithGoogle} onSignOut={signOut} />
       </header>
 
       <main className="songs-main">
