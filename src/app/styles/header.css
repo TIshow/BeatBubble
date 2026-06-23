@@ -74,6 +74,11 @@
     order: 4;
   }
 
+  /* Same order as .save-btn; DOM order keeps export right after save. */
+  .export-btn {
+    order: 4;
+  }
+
   .songs-nav-link {
     order: 5;
   }
@@ -244,6 +249,30 @@
 .save-btn:hover {
   transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(17, 153, 142, 0.4);
+}
+
+/* Export (WAV download) button */
+.export-btn {
+  padding: 8px 16px;
+  border-radius: 20px;
+  border: none;
+  background: linear-gradient(135deg, #2193b0, #6dd5ed);
+  color: white;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.15s ease, opacity 0.15s ease;
+  white-space: nowrap;
+}
+
+.export-btn:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(33, 147, 176, 0.4);
+}
+
+.export-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 /* Locale toggle button (shared by editor header and songs page) */
