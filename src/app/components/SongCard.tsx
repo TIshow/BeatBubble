@@ -1,13 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import type { Translations } from "@/lib/i18n";
 import { supabase } from "@/lib/supabase";
-import {
-  MAX_TITLE_LENGTH,
-  validateSongMeta,
-} from "@/lib/validation";
+import { MAX_TITLE_LENGTH, validateSongMeta } from "@/lib/validation";
 
 interface Props {
   id: string;
@@ -42,6 +39,17 @@ export function SongCard({
   const [draft, setDraft] = useState(title);
   const [busy, setBusy] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!menuOpen) return;
+    const onDoc = (e: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) setMenuOpen(false);
+    };
+    document.addEventListener("mousedown", onDoc);
+    return () => document.removeEventListener("mousedown", onDoc);
+  }, [menuOpen]);
 
   const copyLink = async () => {
     try {
@@ -55,7 +63,6 @@ export function SongCard({
 
   const saveRename = async () => {
     const next = draft.trim();
-    // Reuse the same title rules as saving (length, empty, blocked word).
     const meta = validateSongMeta({ title: next, author });
     if (!meta.ok || next === title) {
       setMode("view");
@@ -81,11 +88,9 @@ export function SongCard({
 
   const toggleTemplate = async () => {
     const next = !isTemplate;
+    setMenuOpen(false);
     setBusy(true);
-    const { error } = await supabase
-      .from("songs")
-      .update({ is_template: next })
-      .eq("id", id);
+    const { error } = await supabase.from("songs").update({ is_template: next }).eq("id", id);
     setBusy(false);
     if (!error) onTemplateToggled(id, next);
   };
@@ -94,7 +99,47 @@ export function SongCard({
     <div className="song-card">
       <div className="song-card-art" style={{ background: gradient }}>
         {isTemplate && <span className="song-card-template-badge">{t.templateBadge}</span>}
+        {isOwner && (
+          <div className="song-card-menu" ref={menuRef}>
+            <button
+              className="song-card-kebab"
+              aria-label={t.songMenu}
+              aria-haspopup="true"
+              aria-expanded={menuOpen}
+              onClick={() => setMenuOpen((o) => !o)}
+            >
+              ⋯
+            </button>
+            {menuOpen && (
+              <div className="song-card-menu-pop" role="menu">
+                <button role="menuitem" onClick={toggleTemplate} disabled={busy}>
+                  {isTemplate ? `★ ${t.templateOff}` : `☆ ${t.templateOn}`}
+                </button>
+                <button
+                  role="menuitem"
+                  onClick={() => {
+                    setMenuOpen(false);
+                    setMode("rename");
+                  }}
+                >
+                  ✎ {t.rename}
+                </button>
+                <button
+                  role="menuitem"
+                  className="danger"
+                  onClick={() => {
+                    setMenuOpen(false);
+                    setMode("confirmDelete");
+                  }}
+                >
+                  🗑 {t.deleteSong}
+                </button>
+              </div>
+            )}
+          </div>
+        )}
       </div>
+
       <div className="song-card-body">
         {mode === "rename" ? (
           <div className="song-card-rename">
@@ -125,8 +170,9 @@ export function SongCard({
           <p className="song-card-title">{title}</p>
         )}
 
-        <p className="song-card-author">{author}</p>
-        <p className="song-card-time">{time}</p>
+        <p className="song-card-meta">
+          {author} ・ {time}
+        </p>
 
         {mode === "confirmDelete" ? (
           <div className="song-card-confirm">
@@ -135,45 +181,25 @@ export function SongCard({
               <button className="song-card-mini danger" onClick={confirmDelete} disabled={busy}>
                 {t.confirmYes}
               </button>
-              <button
-                className="song-card-mini"
-                onClick={() => setMode("view")}
-                disabled={busy}
-              >
+              <button className="song-card-mini" onClick={() => setMode("view")} disabled={busy}>
                 {t.cancel}
               </button>
             </div>
           </div>
         ) : (
-          <Link href={`/?load=${id}`} className="song-card-play">
-            {t.playBtn}
-          </Link>
-        )}
-
-        {mode === "view" && (
-          <button className="song-card-share" onClick={copyLink}>
-            🔗 {copied ? t.linkCopied : t.copyLink}
-          </button>
-        )}
-
-        {isOwner && mode === "view" && (
-          <>
+          <div className="song-card-actions">
+            <Link href={`/?load=${id}`} className="song-card-play">
+              {t.playBtn}
+            </Link>
             <button
-              className={`song-card-mini template ${isTemplate ? "active" : ""}`}
-              onClick={toggleTemplate}
-              disabled={busy}
+              className="song-card-copy"
+              onClick={copyLink}
+              aria-label={copied ? t.linkCopied : t.copyLink}
+              title={copied ? t.linkCopied : t.copyLink}
             >
-              {isTemplate ? `★ ${t.templateOff}` : `☆ ${t.templateOn}`}
+              {copied ? "✓" : "🔗"}
             </button>
-            <div className="song-card-owner">
-              <button className="song-card-mini" onClick={() => setMode("rename")}>
-                ✎ {t.rename}
-              </button>
-              <button className="song-card-mini danger" onClick={() => setMode("confirmDelete")}>
-                🗑 {t.deleteSong}
-              </button>
-            </div>
-          </>
+          </div>
         )}
       </div>
     </div>
