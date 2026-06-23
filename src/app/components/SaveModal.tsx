@@ -19,6 +19,9 @@ interface Props {
   defaultAuthor?: string;
   // When set, the loaded song is owned by the current user and can be overwritten.
   existing?: { id: string; title: string; author: string } | null;
+  // Called after a successful overwrite so the caller can keep its loaded-song
+  // title/author in sync (avoids a stale prefill reverting the name next time).
+  onOverwritten?: (title: string, author: string) => void;
   onClose: () => void;
 }
 
@@ -28,6 +31,7 @@ export function SaveModal({
   userId,
   defaultAuthor = "",
   existing = null,
+  onOverwritten,
   onClose,
 }: Props) {
   const t = translations[locale];
@@ -51,7 +55,7 @@ export function SaveModal({
     return true;
   };
 
-  const run = async (op: () => Promise<{ error: unknown }>) => {
+  const run = async (op: () => Promise<{ error: unknown }>, onSuccess?: () => void) => {
     if (!guard()) return;
     setSaving(true);
     setError(null);
@@ -61,6 +65,7 @@ export function SaveModal({
         setError(t.saveErrorFailed);
         return;
       }
+      onSuccess?.();
       onClose();
     } catch {
       setError(t.saveErrorFailed);
@@ -80,11 +85,13 @@ export function SaveModal({
     );
 
   const handleOverwrite = () =>
-    run(async () =>
-      supabase
-        .from("songs")
-        .update({ title: title.trim(), author: author.trim(), song_data: song })
-        .eq("id", existing!.id)
+    run(
+      async () =>
+        supabase
+          .from("songs")
+          .update({ title: title.trim(), author: author.trim(), song_data: song })
+          .eq("id", existing!.id),
+      () => onOverwritten?.(title.trim(), author.trim())
     );
 
   const canSave = !saving && !!title.trim() && !!author.trim();

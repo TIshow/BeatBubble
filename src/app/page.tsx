@@ -333,6 +333,9 @@ export default function Home() {
               ? { id: loadedSong.id, title: loadedSong.title, author: loadedSong.author }
               : null
           }
+          onOverwritten={(title, author) =>
+            setLoadedSong((prev) => (prev ? { ...prev, title, author } : prev))
+          }
           onClose={() => setIsSaveModalOpen(false)}
         />
       )}
