@@ -16,9 +16,11 @@ interface Props {
   time: string;
   gradient: string;
   isOwner: boolean;
+  isTemplate: boolean;
   t: Translations;
   onDeleted: (id: string) => void;
   onRenamed: (id: string, title: string) => void;
+  onTemplateToggled: (id: string, isTemplate: boolean) => void;
 }
 
 type Mode = "view" | "rename" | "confirmDelete";
@@ -30,9 +32,11 @@ export function SongCard({
   time,
   gradient,
   isOwner,
+  isTemplate,
   t,
   onDeleted,
   onRenamed,
+  onTemplateToggled,
 }: Props) {
   const [mode, setMode] = useState<Mode>("view");
   const [draft, setDraft] = useState(title);
@@ -64,9 +68,22 @@ export function SongCard({
     else setMode("view");
   };
 
+  const toggleTemplate = async () => {
+    const next = !isTemplate;
+    setBusy(true);
+    const { error } = await supabase
+      .from("songs")
+      .update({ is_template: next })
+      .eq("id", id);
+    setBusy(false);
+    if (!error) onTemplateToggled(id, next);
+  };
+
   return (
     <div className="song-card">
-      <div className="song-card-art" style={{ background: gradient }} />
+      <div className="song-card-art" style={{ background: gradient }}>
+        {isTemplate && <span className="song-card-template-badge">{t.templateBadge}</span>}
+      </div>
       <div className="song-card-body">
         {mode === "rename" ? (
           <div className="song-card-rename">
@@ -123,14 +140,23 @@ export function SongCard({
         )}
 
         {isOwner && mode === "view" && (
-          <div className="song-card-owner">
-            <button className="song-card-mini" onClick={() => setMode("rename")}>
-              ✎ {t.rename}
+          <>
+            <button
+              className={`song-card-mini template ${isTemplate ? "active" : ""}`}
+              onClick={toggleTemplate}
+              disabled={busy}
+            >
+              {isTemplate ? `★ ${t.templateOff}` : `☆ ${t.templateOn}`}
             </button>
-            <button className="song-card-mini danger" onClick={() => setMode("confirmDelete")}>
-              🗑 {t.deleteSong}
-            </button>
-          </div>
+            <div className="song-card-owner">
+              <button className="song-card-mini" onClick={() => setMode("rename")}>
+                ✎ {t.rename}
+              </button>
+              <button className="song-card-mini danger" onClick={() => setMode("confirmDelete")}>
+                🗑 {t.deleteSong}
+              </button>
+            </div>
+          </>
         )}
       </div>
     </div>

@@ -45,6 +45,11 @@ export type Translations = {
   playBtn: string;
   feedAll: string;
   feedMine: string;
+  feedTemplates: string;
+  noTemplates: string;
+  templateBadge: string;
+  templateOn: string;
+  templateOff: string;
   rename: string;
   deleteSong: string;
   confirmDeleteSong: string;
@@ -98,6 +103,11 @@ export const translations: Record<Locale, Translations> = {
     playBtn: "Play",
     feedAll: "All",
     feedMine: "Mine",
+    feedTemplates: "Templates",
+    noTemplates: "No templates yet.",
+    templateBadge: "Template",
+    templateOn: "Make template",
+    templateOff: "Unset template",
     rename: "Rename",
     deleteSong: "Delete",
     confirmDeleteSong: "Delete this song?",
@@ -148,6 +158,11 @@ export const translations: Record<Locale, Translations> = {
     playBtn: "あそぶ",
     feedAll: "みんな",
     feedMine: "じぶん",
+    feedTemplates: "テンプレ",
+    noTemplates: "まだ テンプレートが ありません。",
+    templateBadge: "テンプレ",
+    templateOn: "テンプレにする",
+    templateOff: "テンプレ解除",
     rename: "なまえをかえる",
     deleteSong: "けす",
     confirmDeleteSong: "この曲を けしますか？",
