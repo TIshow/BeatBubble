@@ -34,6 +34,8 @@ export type Translations = {
   saveErrorBlockedWord: string;
   saveErrorTooLarge: string;
   saveErrorFailed: string;
+  overwrite: string;
+  saveAsNew: string;
   // Songs page
   backToCreate: string;
   pageTitle: string;
@@ -86,6 +88,8 @@ export const translations: Record<Locale, Translations> = {
     saveErrorBlockedWord: "That title or name can't be used.",
     saveErrorTooLarge: "This song is too large to save.",
     saveErrorFailed: "Couldn't save. Please try again.",
+    overwrite: "Update",
+    saveAsNew: "Save as new",
     backToCreate: "← Create",
     pageTitle: "Everyone's Songs",
     loading: "Loading...",
@@ -134,6 +138,8 @@ export const translations: Record<Locale, Translations> = {
     saveErrorBlockedWord: "つかえない ことばが はいっています。",
     saveErrorTooLarge: "きょくが おおきすぎて ほぞんできません。",
     saveErrorFailed: "ほぞんに しっぱいしました。もういちど ためしてね。",
+    overwrite: "うわがき保存",
+    saveAsNew: "新しく保存",
     backToCreate: "← つくる",
     pageTitle: "みんなの曲",
     loading: "よみこみちゅう...",

@@ -17,38 +17,46 @@ interface Props {
   locale: Locale;
   userId: string | null;
   defaultAuthor?: string;
+  // When set, the loaded song is owned by the current user and can be overwritten.
+  existing?: { id: string; title: string; author: string } | null;
   onClose: () => void;
 }
 
-export function SaveModal({ song, locale, userId, defaultAuthor = "", onClose }: Props) {
+export function SaveModal({
+  song,
+  locale,
+  userId,
+  defaultAuthor = "",
+  existing = null,
+  onClose,
+}: Props) {
   const t = translations[locale];
-  const [title, setTitle] = useState("");
-  const [author, setAuthor] = useState(defaultAuthor);
+  const [title, setTitle] = useState(existing ? existing.title : "");
+  const [author, setAuthor] = useState(existing ? existing.author : defaultAuthor);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const handleSave = async () => {
+  const guard = (): boolean => {
     const meta = validateSongMeta({ title, author });
     if (!meta.ok) {
-      // Empty/length issues are already gated by the disabled button + maxLength;
-      // the meaningful client-side rejection here is the blocked word.
+      // Empty/length are gated by the disabled button + maxLength; the
+      // meaningful client-side rejection here is the blocked word.
       if (meta.reason === "blocked-word") setError(t.saveErrorBlockedWord);
-      return;
+      return false;
     }
     if (!songWithinSizeLimit(song)) {
       setError(t.saveErrorTooLarge);
-      return;
+      return false;
     }
+    return true;
+  };
 
+  const run = async (op: () => Promise<{ error: unknown }>) => {
+    if (!guard()) return;
     setSaving(true);
     setError(null);
     try {
-      const { error: dbError } = await supabase.from("songs").insert({
-        title: title.trim(),
-        author: author.trim(),
-        song_data: song,
-        user_id: userId,
-      });
+      const { error: dbError } = await op();
       if (dbError) {
         setError(t.saveErrorFailed);
         return;
@@ -60,6 +68,26 @@ export function SaveModal({ song, locale, userId, defaultAuthor = "", onClose }:
       setSaving(false);
     }
   };
+
+  const handleInsert = () =>
+    run(async () =>
+      supabase.from("songs").insert({
+        title: title.trim(),
+        author: author.trim(),
+        song_data: song,
+        user_id: userId,
+      })
+    );
+
+  const handleOverwrite = () =>
+    run(async () =>
+      supabase
+        .from("songs")
+        .update({ title: title.trim(), author: author.trim(), song_data: song })
+        .eq("id", existing!.id)
+    );
+
+  const canSave = !saving && !!title.trim() && !!author.trim();
 
   return (
     <div className="modal-overlay" onClick={onClose}>
@@ -93,13 +121,20 @@ export function SaveModal({ song, locale, userId, defaultAuthor = "", onClose }:
           <button className="modal-cancel" onClick={onClose}>
             {t.cancel}
           </button>
-          <button
-            className="modal-save"
-            onClick={handleSave}
-            disabled={saving || !title.trim() || !author.trim()}
-          >
-            {saving ? t.saving : t.save}
-          </button>
+          {existing ? (
+            <>
+              <button className="modal-cancel" onClick={handleInsert} disabled={!canSave}>
+                {t.saveAsNew}
+              </button>
+              <button className="modal-save" onClick={handleOverwrite} disabled={!canSave}>
+                {saving ? t.saving : t.overwrite}
+              </button>
+            </>
+          ) : (
+            <button className="modal-save" onClick={handleInsert} disabled={!canSave}>
+              {saving ? t.saving : t.save}
+            </button>
+          )}
         </div>
       </div>
     </div>
