@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import type { Locale, Translations } from "@/lib/i18n";
+import type { Translations } from "@/lib/i18n";
 import { supabase } from "@/lib/supabase";
 import {
   MAX_TITLE_LENGTH,
@@ -16,7 +16,6 @@ interface Props {
   time: string;
   gradient: string;
   isOwner: boolean;
-  locale: Locale;
   t: Translations;
   onDeleted: (id: string) => void;
   onRenamed: (id: string, title: string) => void;

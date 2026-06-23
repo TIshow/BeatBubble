@@ -124,7 +124,6 @@ export default function SongsPage() {
                 time={timeAgo(song.created_at, locale)}
                 gradient={CARD_GRADIENTS[i % CARD_GRADIENTS.length]}
                 isOwner={!!user && song.user_id === user.id}
-                locale={locale}
                 t={t}
                 onDeleted={handleDeleted}
                 onRenamed={handleRenamed}
