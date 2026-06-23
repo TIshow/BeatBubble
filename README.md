@@ -85,7 +85,24 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=<anon-key>
 
 ```bash
 pnpm install
-pnpm dev        # http://localhost:3000
-pnpm lint       # ESLint
-pnpm format     # Prettier
+pnpm dev          # http://localhost:3000
+pnpm lint         # ESLint
+pnpm test         # Vitest（コアのユニットテスト）
+pnpm format       # Prettier
 ```
+
+## 公開フィードの安全対策・モデレーション
+
+`/songs` は匿名で読み書きできる公開フィード。安全対策は2層:
+
+- **クライアント層（UX）**: `src/lib/validation.ts` — タイトル/作者名の長さ・空チェック、NGワード、曲データのサイズ上限。保存前に検証してエラー表示。
+- **サーバー層（強制）**: `supabase/migrations/0001_harden_songs_feed_safety.sql` — CHECK 制約（長さ/サイズ）、`hidden` モデレーション列、RLS で公開は「表示中の行」のみ読み書き可。匿名は更新/削除不可。
+
+不適切な曲を隠す（サービスロール / SQL エディタ）:
+
+```sql
+update public.songs set hidden = true  where id = '<uuid>';  -- 非表示
+update public.songs set hidden = false where id = '<uuid>';  -- 復帰
+```
+
+未対応（#31）: レート制限（エッジ関数が適切。素朴なDBトリガーは授業中の同時保存を阻害するため不可）、通報フロー（`reports` テーブル＋通報ボタン）。
