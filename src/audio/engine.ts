@@ -1,4 +1,4 @@
-import { CacheStorage, SplendidGrandPiano } from "smplr";
+import { CacheStorage, SplendidGrandPiano, pianoToPreset } from "smplr";
 import type { DrumId, InstrumentId, Song } from "@/core/types";
 import { noteNameToMidi, totalSteps, PITCH_RANGE_MIN, PITCH_RANGE_MAX } from "@/core/utils";
 
@@ -23,6 +23,7 @@ type RenderTarget = {
 const PIANO_VELOCITY_RANGE: [number, number] = [85, 100];
 const PIANO_VELOCITY = 90;
 const PIANO_SAMPLE_CACHE = "beatbubble-piano-samples";
+const PIANO_BASE_URL = "/samples/piano";
 
 function pianoNotesToLoad(): number[] {
   const min = noteNameToMidi(PITCH_RANGE_MIN);
@@ -39,12 +40,58 @@ function createSampledPiano(ctx: BaseAudioContext, destination: AudioNode): Sple
     // Self-hosted (see public/samples/piano/README.md): school networks
     // whitelist the app's domain but not third-party CDNs, and a load failure
     // silently falls back to the 8bit voice — keep samples same-origin.
-    baseUrl: "/samples/piano",
+    baseUrl: PIANO_BASE_URL,
     destination,
     storage: CacheStorage(PIANO_SAMPLE_CACHE),
     velocity: PIANO_VELOCITY,
     notesToLoad: { notes: pianoNotesToLoad(), velocityRange: PIANO_VELOCITY_RANGE },
   });
+}
+
+// The sample names the piano will request, derived from the same preset
+// smplr builds internally so the preload URLs match the loader's exactly.
+function pianoSampleNames(): string[] {
+  const preset = pianoToPreset({
+    baseUrl: PIANO_BASE_URL,
+    detune: 0, // only baseUrl/notesToLoad affect the name list; these two are
+    decayTime: 0.5, // required by the type (values match smplr's defaults)
+    notesToLoad: { notes: pianoNotesToLoad(), velocityRange: PIANO_VELOCITY_RANGE },
+  });
+  const names = new Set<string>();
+  for (const group of preset.groups) {
+    for (const region of group.regions) {
+      names.add(region.sample);
+    }
+  }
+  return [...names];
+}
+
+// Mirror of smplr's format pick (findFirstSupportedFormat, not exported):
+// ogg everywhere except Safari/iPad, which can't decode it and gets m4a.
+function preferredPianoFormat(): string {
+  if (typeof document === "undefined") return "ogg";
+  const ua = navigator.userAgent;
+  const isSafari = ua.includes("Safari") && !ua.includes("Chrome") && !ua.includes("Chromium");
+  const audio = document.createElement("audio");
+  if (!isSafari && audio.canPlayType("audio/ogg")) return "ogg";
+  if (audio.canPlayType("audio/m4a") || audio.canPlayType("audio/aac")) return "m4a";
+  return "ogg";
+}
+
+// Warm the Cache API with the piano samples before any user gesture, so the
+// first Play/preview doesn't race the download (the first notes used to come
+// out as the 8bit fallback). Fetches through the same CacheStorage smplr
+// reads from; no AudioContext is created here. Safe to call on page mount.
+export function preloadPianoSamples(): void {
+  if (typeof window === "undefined") return;
+  const storage = CacheStorage(PIANO_SAMPLE_CACHE);
+  const format = preferredPianoFormat();
+  for (const name of pianoSampleNames()) {
+    // Same escaping as smplr's loadAudioBuffer, so the cache keys match
+    // (sample names contain "#" and spaces).
+    const url = `${PIANO_BASE_URL}/${name}.${format}`.replace(/#/g, "%23").replace(/ /g, "%20");
+    storage.fetch(url).catch(() => {});
+  }
 }
 
 // Seconds of silence/decay rendered after one loop so sustained notes and drum
@@ -120,15 +167,40 @@ export class AudioEngine {
     };
   }
 
-  play(getSong: () => Song, onStep?: (step: number) => void): void {
+  // Wait (bounded) for the piano samples so the first scheduled notes don't
+  // come out as the 8bit fallback. Resolves early on load failure or timeout;
+  // playback then proceeds with the fallback voice.
+  private async waitForPianoReady(timeoutMs: number): Promise<void> {
+    if (this.pianoReady || !this.piano) return;
+    await Promise.race([
+      this.piano.ready.catch(() => {}),
+      new Promise((resolve) => setTimeout(resolve, timeoutMs)),
+    ]);
+  }
+
+  async play(getSong: () => Song, onStep?: (step: number) => void): Promise<void> {
     if (this.state === "playing") return;
-    const target = this.liveTarget();
-    if (!target || !this.ctx) {
+    if (!this.ctx || !this.masterGain || !this.noiseBuffer) {
       console.error("AudioEngine not initialized. Call init() first.");
       return;
     }
 
     this.state = "playing";
+
+    // The render target snapshots pianoReady, so a loop started before the
+    // samples finished loading would stay on the fallback voice for the whole
+    // loop — wait for the piano first (bounded).
+    if (getSong().instrument === "piano" && getSong().melody.notes.length > 0) {
+      await this.waitForPianoReady(4000);
+      if (this.state !== "playing") return; // stopped while waiting
+    }
+
+    const target = this.liveTarget();
+    if (!target || !this.ctx) {
+      this.state = "stopped";
+      return;
+    }
+
     this.currentStep = 0;
     this.nextNoteTime = this.ctx.currentTime + 0.05;
 
@@ -550,6 +622,11 @@ export class AudioEngine {
 
   async playNotePreview(noteName: string, instrument: InstrumentId): Promise<void> {
     await this.init();
+    if (instrument === "piano") {
+      // With the mount-time preload the samples are usually cached by now,
+      // so this only covers the decode (~first click after page load).
+      await this.waitForPianoReady(2000);
+    }
     const target = this.liveTarget();
     if (!target) return;
     this.playMelodyNote(target, noteName, target.ctx.currentTime, 0.3, instrument);

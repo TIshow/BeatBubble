@@ -18,7 +18,7 @@ import {
 } from "@/core/ops";
 import { migrateSong } from "@/core/legacy";
 import { buildRangeNotes, findMelodyNoteAt } from "@/ui/grid";
-import { AudioEngine } from "@/audio/engine";
+import { AudioEngine, preloadPianoSamples } from "@/audio/engine";
 import { audioBufferToWavBlob } from "@/audio/wav";
 import { useDragInteraction } from "@/hooks/useDragInteraction";
 import { useLocale } from "@/hooks/useLocale";
@@ -61,6 +61,12 @@ export default function Home() {
   // otherwise the scheduler keeps running and the song can't be stopped.
   useEffect(() => {
     return () => engineRef.current?.dispose();
+  }, []);
+
+  // Warm the piano-sample cache before the first user gesture so the first
+  // Play/preview sounds the sampled piano, not the 8bit fallback.
+  useEffect(() => {
+    preloadPianoSamples();
   }, []);
 
   // ?load=<id> で曲を読み込む
