@@ -1,6 +1,6 @@
 export type NoteName = string;
 
-export type InstrumentId = "piano" | "synth" | "marimba" | "flute";
+export type InstrumentId = "piano" | "8bit" | "synth" | "marimba" | "flute";
 
 export type DrumId = "kick" | "snare" | "hihat";
 

@@ -18,7 +18,7 @@ import {
 } from "@/core/ops";
 import { migrateSong } from "@/core/legacy";
 import { buildRangeNotes, findMelodyNoteAt } from "@/ui/grid";
-import { AudioEngine } from "@/audio/engine";
+import { AudioEngine, preloadPianoSamples } from "@/audio/engine";
 import { audioBufferToWavBlob } from "@/audio/wav";
 import { useDragInteraction } from "@/hooks/useDragInteraction";
 import { useLocale } from "@/hooks/useLocale";
@@ -61,6 +61,12 @@ export default function Home() {
   // otherwise the scheduler keeps running and the song can't be stopped.
   useEffect(() => {
     return () => engineRef.current?.dispose();
+  }, []);
+
+  // Warm the piano-sample cache before the first user gesture so the first
+  // Play/preview sounds the sampled piano, not the 8bit fallback.
+  useEffect(() => {
+    preloadPianoSamples();
   }, []);
 
   // ?load=<id> で曲を読み込む
@@ -108,7 +114,9 @@ export default function Home() {
       if (addedNote) {
         pushHistory(song);
         setSong(newSong);
-        getEngine().playNotePreview(noteName, song.instrument);
+        getEngine()
+          .playNotePreview(noteName, song.instrument)
+          .catch((error) => console.error("Note preview failed:", error));
         return addedNote.id;
       }
       return null;
@@ -137,7 +145,9 @@ export default function Home() {
       pushHistory(song);
       setSong((prev) => toggleDrumHit(prev, { step, drumId }));
       if (!wasHit) {
-        getEngine().playDrumPreview(drumId);
+        getEngine()
+          .playDrumPreview(drumId)
+          .catch((error) => console.error("Drum preview failed:", error));
       }
     },
     [song, setSong, getEngine, pushHistory]
@@ -200,13 +210,23 @@ export default function Home() {
     try {
       const engine = getEngine();
       await engine.init();
+      // Before play() resolves it may briefly wait for piano samples; show
+      // the playing state already so Stop stays available during the wait.
       setIsPlaying(true);
-      engine.play(
+      await engine.play(
         () => songRef.current,
         (step) => setPlayheadStep(step)
       );
+      // play() can bail without starting (stopped while waiting for samples,
+      // or the engine was disposed mid-wait) — don't leave the UI stuck.
+      if (engine.getState() !== "playing") {
+        setIsPlaying(false);
+        setPlayheadStep(null);
+      }
     } catch (error) {
       console.error("Failed to start audio:", error);
+      setIsPlaying(false);
+      setPlayheadStep(null);
     }
   };
 

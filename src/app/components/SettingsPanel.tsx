@@ -7,6 +7,7 @@ import { noteLabel } from "@/ui/noteLabel";
 
 const INSTRUMENTS: { id: InstrumentId; label: string }[] = [
   { id: "piano", label: "Piano" },
+  { id: "8bit", label: "8bit" },
   { id: "synth", label: "Synth" },
   { id: "marimba", label: "Marimba" },
   { id: "flute", label: "Flute" },
