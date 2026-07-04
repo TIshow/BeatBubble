@@ -239,8 +239,8 @@ export class AudioEngine {
       case "piano":
         this.playPiano(target, noteName, startTime, duration);
         break;
-      case "organ":
-        this.playOrgan(target, noteName, startTime, duration);
+      case "8bit":
+        this.playEightBit(target, noteName, startTime, duration);
         break;
       case "synth":
         this.playSynth(target, noteName, startTime, duration);
@@ -260,17 +260,17 @@ export class AudioEngine {
     startTime: number,
     duration: number
   ): void {
-    // Sampled piano when ready; organ voice as fallback while loading.
+    // Sampled piano when ready; 8bit voice as fallback while loading.
     if (target.piano) {
       target.piano.start({ note: noteNameToMidi(noteName), time: startTime, duration });
       return;
     }
-    this.playOrgan(target, noteName, startTime, duration);
+    this.playEightBit(target, noteName, startTime, duration);
   }
 
   // Triangle wave held at constant volume — BeatBubble's original "piano"
-  // voice, kept as its own instrument.
-  private playOrgan(
+  // voice, kept as its own chiptune-style instrument.
+  private playEightBit(
     target: RenderTarget,
     noteName: string,
     startTime: number,
