@@ -1,5 +1,6 @@
+import { CacheStorage, SplendidGrandPiano } from "smplr";
 import type { DrumId, InstrumentId, Song } from "@/core/types";
-import { noteNameToMidi, totalSteps } from "@/core/utils";
+import { noteNameToMidi, totalSteps, PITCH_RANGE_MIN, PITCH_RANGE_MAX } from "@/core/utils";
 
 export type TransportState = "stopped" | "playing";
 
@@ -7,11 +8,40 @@ export type TransportState = "stopped" | "playing";
 // master gain and noise buffer created on it. Parameterizing synthesis by the
 // target lets the exact same voices render both live (AudioContext) and offline
 // (OfflineAudioContext for WAV export), so exported audio matches playback.
+// `piano` is the sampled piano when its samples are ready, or null to fall
+// back to the synthesized piano voice.
 type RenderTarget = {
   ctx: BaseAudioContext;
   master: GainNode;
   noiseBuffer: AudioBuffer;
+  piano: SplendidGrandPiano | null;
 };
+
+// Sampled piano (smplr SplendidGrandPiano). Loading every velocity layer would
+// fetch ~300 files, so restrict to one mid-loud layer over the app's full
+// pitch range (C2–C7) — small download, still a real piano recording.
+const PIANO_VELOCITY_RANGE: [number, number] = [85, 100];
+const PIANO_VELOCITY = 90;
+const PIANO_SAMPLE_CACHE = "beatbubble-piano-samples";
+
+function pianoNotesToLoad(): number[] {
+  const min = noteNameToMidi(PITCH_RANGE_MIN);
+  const max = noteNameToMidi(PITCH_RANGE_MAX);
+  const notes: number[] = [];
+  for (let midi = min; midi <= max; midi++) {
+    notes.push(midi);
+  }
+  return notes;
+}
+
+function createSampledPiano(ctx: BaseAudioContext, destination: AudioNode): SplendidGrandPiano {
+  return SplendidGrandPiano(ctx, {
+    destination,
+    storage: CacheStorage(PIANO_SAMPLE_CACHE),
+    velocity: PIANO_VELOCITY,
+    notesToLoad: { notes: pianoNotesToLoad(), velocityRange: PIANO_VELOCITY_RANGE },
+  });
+}
 
 // Seconds of silence/decay rendered after one loop so sustained notes and drum
 // tails ring out instead of being clipped at the loop boundary.
@@ -40,6 +70,8 @@ export class AudioEngine {
   private nextNoteTime = 0;
   private currentStep = 0;
   private noiseBuffer: AudioBuffer | null = null;
+  private piano: SplendidGrandPiano | null = null;
+  private pianoReady = false;
 
   private readonly SCHEDULE_INTERVAL = 25;
   private readonly LOOKAHEAD = 0.15;
@@ -59,12 +91,29 @@ export class AudioEngine {
     if (!this.noiseBuffer) {
       this.noiseBuffer = createNoiseBuffer(this.ctx);
     }
+    if (!this.piano) {
+      // Kick off sample loading without awaiting: playback falls back to the
+      // synthesized piano until samples are ready, then switches over.
+      this.piano = createSampledPiano(this.ctx, this.masterGain);
+      this.piano.ready
+        .then(() => {
+          this.pianoReady = true;
+        })
+        .catch((err) => {
+          console.warn("Piano samples failed to load; using synthesized piano.", err);
+        });
+    }
   }
 
   // The live (real-time) render target, or null if not initialized.
   private liveTarget(): RenderTarget | null {
     if (!this.ctx || !this.masterGain || !this.noiseBuffer) return null;
-    return { ctx: this.ctx, master: this.masterGain, noiseBuffer: this.noiseBuffer };
+    return {
+      ctx: this.ctx,
+      master: this.masterGain,
+      noiseBuffer: this.noiseBuffer,
+      piano: this.pianoReady ? this.piano : null,
+    };
   }
 
   play(getSong: () => Song, onStep?: (step: number) => void): void {
@@ -131,10 +180,24 @@ export class AudioEngine {
     master.gain.value = 0.5;
     master.connect(offline.destination);
 
+    // Load the sampled piano on the offline context too, so exported audio
+    // matches playback. On load failure fall back to the synthesized piano.
+    let piano: SplendidGrandPiano | null = null;
+    if (song.instrument === "piano" && song.melody.notes.length > 0) {
+      try {
+        piano = createSampledPiano(offline, master);
+        await piano.ready;
+      } catch (err) {
+        console.warn("Piano samples failed to load for export; using synthesized piano.", err);
+        piano = null;
+      }
+    }
+
     const target: RenderTarget = {
       ctx: offline,
       master,
       noiseBuffer: createNoiseBuffer(offline),
+      piano,
     };
 
     for (let step = 0; step < total; step++) {
@@ -196,6 +259,13 @@ export class AudioEngine {
   ): void {
     const { ctx, master } = target;
     const midi = noteNameToMidi(noteName);
+
+    // Sampled piano when ready; synthesized fallback while loading.
+    if (target.piano) {
+      target.piano.start({ note: midi, time: startTime, duration });
+      return;
+    }
+
     const freq = midiToFreq(midi);
 
     const osc = ctx.createOscillator();
@@ -429,6 +499,10 @@ export class AudioEngine {
       clearInterval(this.schedulerInterval);
       this.schedulerInterval = null;
     }
+    // Cut already-scheduled sampled-piano voices so Stop is immediate.
+    if (this.pianoReady && this.piano) {
+      this.piano.stop();
+    }
     this.state = "stopped";
     this.currentStep = 0;
   }
@@ -437,6 +511,15 @@ export class AudioEngine {
   // unmounts (e.g. navigating away mid-playback) so audio can't keep running.
   dispose(): void {
     this.stop();
+    if (this.piano) {
+      try {
+        this.piano.dispose();
+      } catch {
+        // Disposing mid-load can throw; the context teardown below cleans up.
+      }
+      this.piano = null;
+      this.pianoReady = false;
+    }
     if (this.ctx) {
       this.ctx.close().catch(() => {});
       this.ctx = null;
