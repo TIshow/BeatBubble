@@ -24,8 +24,10 @@ import { useDragInteraction } from "@/hooks/useDragInteraction";
 import { useLocale } from "@/hooks/useLocale";
 import { useSong } from "@/hooks/useSong";
 import { useAuth, authDisplayName } from "@/hooks/useAuth";
+import { useProfile } from "@/hooks/useProfile";
 import { supabase } from "@/lib/supabase";
 import { SaveModal } from "./components/SaveModal";
+import { ProfileModal } from "./components/ProfileModal";
 import { NotePanel } from "./components/NotePanel";
 import { Header } from "./components/Header";
 import { SettingsPanel } from "./components/SettingsPanel";
@@ -34,6 +36,7 @@ import { Grid } from "./components/Grid";
 export default function Home() {
   const { locale, t, toggleLocale } = useLocale();
   const { user, signInWithGoogle, signOut } = useAuth();
+  const { profile, saveProfile } = useProfile(user);
   const { song, setSong, songRef, canUndo, pushHistory, undo, reset } = useSong();
 
   const [isPlaying, setIsPlaying] = useState(false);
@@ -42,6 +45,7 @@ export default function Home() {
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isConfirmingReset, setIsConfirmingReset] = useState(false);
   const [isSaveModalOpen, setIsSaveModalOpen] = useState(false);
+  const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
   const [isLockMode, setIsLockMode] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
   // The song loaded via ?load=<id>, so its owner can overwrite it on save.
@@ -334,6 +338,7 @@ export default function Home() {
         user={user}
         onSignIn={signInWithGoogle}
         onSignOut={signOut}
+        onOpenProfile={() => setIsProfileModalOpen(true)}
       />
 
       {isSettingsOpen && (
@@ -394,6 +399,15 @@ export default function Home() {
             setLoadedSong((prev) => (prev ? { ...prev, title, author } : prev))
           }
           onClose={() => setIsSaveModalOpen(false)}
+        />
+      )}
+
+      {isProfileModalOpen && user && (
+        <ProfileModal
+          t={t}
+          profile={profile}
+          onSave={saveProfile}
+          onClose={() => setIsProfileModalOpen(false)}
         />
       )}
     </div>

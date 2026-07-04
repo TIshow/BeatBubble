@@ -319,3 +319,23 @@
   border-color: transparent;
   color: white;
 }
+
+.profile-btn {
+  padding: 6px 14px;
+  border-radius: 20px;
+  border: 1.5px solid var(--grid-line);
+  background: transparent;
+  color: var(--foreground);
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+  flex-shrink: 0;
+  transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+
+.profile-btn:hover {
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  border-color: transparent;
+  color: white;
+}

@@ -21,6 +21,7 @@ interface Props {
   user: User | null;
   onSignIn: () => void;
   onSignOut: () => void;
+  onOpenProfile: () => void;
 }
 
 export function Header({
@@ -39,6 +40,7 @@ export function Header({
   user,
   onSignIn,
   onSignOut,
+  onOpenProfile,
 }: Props) {
   return (
     <header className="header">
@@ -85,6 +87,11 @@ export function Header({
       <button className="locale-toggle" onClick={onToggleLocale}>
         {t.switchLocale}
       </button>
+      {user && (
+        <button className="profile-btn" onClick={onOpenProfile}>
+          {t.profile}
+        </button>
+      )}
       <AuthButton user={user} t={t} onSignIn={onSignIn} onSignOut={onSignOut} />
     </header>
   );
