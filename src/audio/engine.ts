@@ -36,6 +36,10 @@ function pianoNotesToLoad(): number[] {
 
 function createSampledPiano(ctx: BaseAudioContext, destination: AudioNode): SplendidGrandPiano {
   return SplendidGrandPiano(ctx, {
+    // Self-hosted (see public/samples/piano/README.md): school networks
+    // whitelist the app's domain but not third-party CDNs, and a load failure
+    // silently falls back to the 8bit voice — keep samples same-origin.
+    baseUrl: "/samples/piano",
     destination,
     storage: CacheStorage(PIANO_SAMPLE_CACHE),
     velocity: PIANO_VELOCITY,
