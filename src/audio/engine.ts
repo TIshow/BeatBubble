@@ -239,6 +239,9 @@ export class AudioEngine {
       case "piano":
         this.playPiano(target, noteName, startTime, duration);
         break;
+      case "organ":
+        this.playOrgan(target, noteName, startTime, duration);
+        break;
       case "synth":
         this.playSynth(target, noteName, startTime, duration);
         break;
@@ -257,15 +260,24 @@ export class AudioEngine {
     startTime: number,
     duration: number
   ): void {
-    const { ctx, master } = target;
-    const midi = noteNameToMidi(noteName);
-
-    // Sampled piano when ready; synthesized fallback while loading.
+    // Sampled piano when ready; organ voice as fallback while loading.
     if (target.piano) {
-      target.piano.start({ note: midi, time: startTime, duration });
+      target.piano.start({ note: noteNameToMidi(noteName), time: startTime, duration });
       return;
     }
+    this.playOrgan(target, noteName, startTime, duration);
+  }
 
+  // Triangle wave held at constant volume — BeatBubble's original "piano"
+  // voice, kept as its own instrument.
+  private playOrgan(
+    target: RenderTarget,
+    noteName: string,
+    startTime: number,
+    duration: number
+  ): void {
+    const { ctx, master } = target;
+    const midi = noteNameToMidi(noteName);
     const freq = midiToFreq(midi);
 
     const osc = ctx.createOscillator();
