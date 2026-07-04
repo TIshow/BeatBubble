@@ -1,4 +1,5 @@
-import { CacheStorage, SplendidGrandPiano, pianoToPreset } from "smplr";
+import { Scheduler, SplendidGrandPiano, pianoToPreset } from "smplr";
+import type { SampleLoader, Storage } from "smplr";
 import type { DrumId, InstrumentId, Song } from "@/core/types";
 import { noteNameToMidi, totalSteps, PITCH_RANGE_MIN, PITCH_RANGE_MAX } from "@/core/utils";
 
@@ -25,6 +26,12 @@ const PIANO_VELOCITY = 90;
 const PIANO_SAMPLE_CACHE = "beatbubble-piano-samples";
 const PIANO_BASE_URL = "/samples/piano";
 
+// How long sound may be delayed waiting for samples before falling back to
+// the 8bit voice (the export path can afford a longer wait than the UI).
+const PIANO_WAIT_PLAY_MS = 4000;
+const PIANO_WAIT_PREVIEW_MS = 2000;
+const PIANO_WAIT_EXPORT_MS = 15000;
+
 function pianoNotesToLoad(): number[] {
   const min = noteNameToMidi(PITCH_RANGE_MIN);
   const max = noteNameToMidi(PITCH_RANGE_MAX);
@@ -35,28 +42,70 @@ function pianoNotesToLoad(): number[] {
   return notes;
 }
 
-function createSampledPiano(ctx: BaseAudioContext, destination: AudioNode): SplendidGrandPiano {
+// The preset-shaping options, shared by the piano instances and the preload
+// so they derive the same sample list (detune/decayTime are required by
+// pianoToPreset's type; the values are smplr's defaults).
+const PIANO_PRESET_OPTIONS = {
+  baseUrl: PIANO_BASE_URL,
+  detune: 0,
+  decayTime: 0.5,
+  notesToLoad: { notes: pianoNotesToLoad(), velocityRange: PIANO_VELOCITY_RANGE },
+};
+
+// Cache-API-backed storage for the piano samples. Unlike smplr's CacheStorage
+// it (a) never caches non-200 responses — a deploy window serving 404s must
+// not poison the cache forever, (b) purges any previously-cached bad entry,
+// and (c) rejects on HTTP errors so `piano.ready` rejects and the 8bit
+// fallback actually engages (smplr's own loader resolves ready on non-200 and
+// then plays *silence* for every note whose buffer is missing).
+const pianoStorage: Storage = {
+  async fetch(url: string): Promise<Response> {
+    const cache =
+      typeof caches !== "undefined" ? await caches.open(PIANO_SAMPLE_CACHE).catch(() => null) : null;
+    const cached = await cache?.match(url);
+    if (cached) {
+      if (cached.status === 200) return cached;
+      await cache?.delete(url);
+    }
+    const response = await fetch(url);
+    if (response.status !== 200) {
+      throw new Error(`Piano sample request failed (${response.status}): ${url}`);
+    }
+    await cache?.put(url, response.clone()).catch(() => {});
+    return response;
+  },
+};
+
+function createSampledPiano(
+  ctx: BaseAudioContext,
+  destination: AudioNode,
+  loader?: SampleLoader
+): SplendidGrandPiano {
   return SplendidGrandPiano(ctx, {
     // Self-hosted (see public/samples/piano/README.md): school networks
-    // whitelist the app's domain but not third-party CDNs, and a load failure
-    // silently falls back to the 8bit voice — keep samples same-origin.
-    baseUrl: PIANO_BASE_URL,
+    // whitelist the app's domain but not third-party CDNs — keep samples
+    // same-origin.
+    ...PIANO_PRESET_OPTIONS,
     destination,
-    storage: CacheStorage(PIANO_SAMPLE_CACHE),
+    storage: pianoStorage,
     velocity: PIANO_VELOCITY,
-    notesToLoad: { notes: pianoNotesToLoad(), velocityRange: PIANO_VELOCITY_RANGE },
+    // Reuse the live piano's loader for offline export so already-decoded
+    // buffers aren't re-fetched and re-decoded on every WAV export.
+    loader,
+    // smplr's default Scheduler dispatches events beyond its 200ms lookahead
+    // from a real-time setInterval, which an OfflineAudioContext render
+    // outruns — every note past 200ms would be dropped from WAV exports. An
+    // effectively infinite lookahead makes start() schedule each voice
+    // synchronously at its absolute time, which is also correct for live
+    // playback (our own scheduler already stays within a 150ms lookahead).
+    scheduler: Scheduler(ctx, { lookaheadMs: Number.MAX_SAFE_INTEGER }),
   });
 }
 
 // The sample names the piano will request, derived from the same preset
 // smplr builds internally so the preload URLs match the loader's exactly.
 function pianoSampleNames(): string[] {
-  const preset = pianoToPreset({
-    baseUrl: PIANO_BASE_URL,
-    detune: 0, // only baseUrl/notesToLoad affect the name list; these two are
-    decayTime: 0.5, // required by the type (values match smplr's defaults)
-    notesToLoad: { notes: pianoNotesToLoad(), velocityRange: PIANO_VELOCITY_RANGE },
-  });
+  const preset = pianoToPreset(PIANO_PRESET_OPTIONS);
   const names = new Set<string>();
   for (const group of preset.groups) {
     for (const region of group.regions) {
@@ -80,18 +129,46 @@ function preferredPianoFormat(): string {
 
 // Warm the Cache API with the piano samples before any user gesture, so the
 // first Play/preview doesn't race the download (the first notes used to come
-// out as the 8bit fallback). Fetches through the same CacheStorage smplr
-// reads from; no AudioContext is created here. Safe to call on page mount.
+// out as the 8bit fallback). Fetches through the same storage smplr reads
+// from; no AudioContext is created here. Safe to call on page mount; guarded
+// so React StrictMode's double-mounted effects don't fetch everything twice.
+let preloadStarted = false;
 export function preloadPianoSamples(): void {
-  if (typeof window === "undefined") return;
-  const storage = CacheStorage(PIANO_SAMPLE_CACHE);
+  if (typeof window === "undefined" || preloadStarted) return;
+  preloadStarted = true;
   const format = preferredPianoFormat();
   for (const name of pianoSampleNames()) {
     // Same escaping as smplr's loadAudioBuffer, so the cache keys match
     // (sample names contain "#" and spaces).
-    const url = `${PIANO_BASE_URL}/${name}.${format}`.replace(/#/g, "%23").replace(/ /g, "%20");
-    storage.fetch(url).catch(() => {});
+    const url = `${PIANO_BASE_URL}/${name}.${format}`
+      .replace(/#/g, "%23")
+      .replace(/ /g, "%20")
+      .replace(/([^:]\/)\/+/g, "$1");
+    pianoStorage.fetch(url).catch(() => {});
   }
+}
+
+// Resolve when `promise` settles or reject after `ms` — without leaving the
+// timer running once the race is decided.
+function withTimeout<T>(promise: Promise<T>, ms: number): Promise<T> {
+  return new Promise<T>((resolve, reject) => {
+    const timer = setTimeout(() => reject(new Error(`Timed out after ${ms}ms`)), ms);
+    promise.then(
+      (value) => {
+        clearTimeout(timer);
+        resolve(value);
+      },
+      (err) => {
+        clearTimeout(timer);
+        reject(err);
+      }
+    );
+  });
+}
+
+// Whether playing/exporting this song needs the sampled piano to be loaded.
+function usesSampledPiano(song: Song): boolean {
+  return song.instrument === "piano" && song.melody.notes.length > 0;
 }
 
 // Seconds of silence/decay rendered after one loop so sustained notes and drum
@@ -123,6 +200,8 @@ export class AudioEngine {
   private noiseBuffer: AudioBuffer | null = null;
   private piano: SplendidGrandPiano | null = null;
   private pianoReady = false;
+  // Incremented by each play() call; see the epoch check in play().
+  private playEpoch = 0;
 
   private readonly SCHEDULE_INTERVAL = 25;
   private readonly LOOKAHEAD = 0.15;
@@ -172,10 +251,7 @@ export class AudioEngine {
   // playback then proceeds with the fallback voice.
   private async waitForPianoReady(timeoutMs: number): Promise<void> {
     if (this.pianoReady || !this.piano) return;
-    await Promise.race([
-      this.piano.ready.catch(() => {}),
-      new Promise((resolve) => setTimeout(resolve, timeoutMs)),
-    ]);
+    await withTimeout(this.piano.ready, timeoutMs).catch(() => {});
   }
 
   async play(getSong: () => Song, onStep?: (step: number) => void): Promise<void> {
@@ -186,13 +262,20 @@ export class AudioEngine {
     }
 
     this.state = "playing";
+    // Identifies this play() invocation across the await below: a Play →
+    // Stop → Play sequence while samples are loading parks two calls in
+    // waitForPianoReady, and the state re-check alone can't tell "still my
+    // playback" from "a newer play() restarted it" — without the epoch both
+    // would start a scheduler interval and the first one would leak,
+    // permanently uncancellable.
+    const epoch = ++this.playEpoch;
 
     // The render target snapshots pianoReady, so a loop started before the
     // samples finished loading would stay on the fallback voice for the whole
     // loop — wait for the piano first (bounded).
-    if (getSong().instrument === "piano" && getSong().melody.notes.length > 0) {
-      await this.waitForPianoReady(4000);
-      if (this.state !== "playing") return; // stopped while waiting
+    if (usesSampledPiano(getSong())) {
+      await this.waitForPianoReady(PIANO_WAIT_PLAY_MS);
+      if (this.state !== "playing" || epoch !== this.playEpoch) return;
     }
 
     const target = this.liveTarget();
@@ -257,12 +340,15 @@ export class AudioEngine {
     master.connect(offline.destination);
 
     // Load the sampled piano on the offline context too, so exported audio
-    // matches playback. On load failure fall back to the synthesized piano.
+    // matches playback. Reusing the live piano's loader (when it exists)
+    // means the already-decoded buffers are shared instead of re-fetched and
+    // re-decoded on every export. Bounded so a stalled network can't hang the
+    // export forever; on failure/timeout fall back to the 8bit voice.
     let piano: SplendidGrandPiano | null = null;
-    if (song.instrument === "piano" && song.melody.notes.length > 0) {
+    if (usesSampledPiano(song)) {
       try {
-        piano = createSampledPiano(offline, master);
-        await piano.ready;
+        piano = createSampledPiano(offline, master, this.piano?.loader);
+        await withTimeout(piano.ready, PIANO_WAIT_EXPORT_MS);
       } catch (err) {
         console.warn("Piano samples failed to load for export; using synthesized piano.", err);
         piano = null;
@@ -625,7 +711,7 @@ export class AudioEngine {
     if (instrument === "piano") {
       // With the mount-time preload the samples are usually cached by now,
       // so this only covers the decode (~first click after page load).
-      await this.waitForPianoReady(2000);
+      await this.waitForPianoReady(PIANO_WAIT_PREVIEW_MS);
     }
     const target = this.liveTarget();
     if (!target) return;
