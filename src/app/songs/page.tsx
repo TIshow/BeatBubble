@@ -5,7 +5,9 @@ import Link from "next/link";
 import { supabase } from "@/lib/supabase";
 import { useLocale } from "@/hooks/useLocale";
 import { useAuth } from "@/hooks/useAuth";
-import { AuthButton } from "@/app/components/AuthButton";
+import { useProfile } from "@/hooks/useProfile";
+import { AccountMenu } from "@/app/components/AccountMenu";
+import { ProfileModal } from "@/app/components/ProfileModal";
 import { SongCard } from "@/app/components/SongCard";
 import type { Song } from "@/core/types";
 import type { Locale } from "@/lib/i18n";
@@ -44,11 +46,22 @@ function timeAgo(dateStr: string, locale: Locale): string {
 }
 
 export default function SongsPage() {
-  const { locale, t, toggleLocale } = useLocale();
+  const { locale, t, changeLocale } = useLocale();
   const { user, signInWithGoogle, signOut } = useAuth();
+  const { profile, saveProfile } = useProfile(user);
   const [songs, setSongs] = useState<FeedSong[]>([]);
   const [loading, setLoading] = useState(true);
   const [view, setView] = useState<View>("all");
+  const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
+
+  // Identity line for the account menu, from whatever profile fields are set.
+  const profileSubtitle = [
+    profile?.school,
+    profile?.grade != null ? t.profileGradeUnit(profile.grade) : null,
+    profile?.className,
+  ]
+    .filter(Boolean)
+    .join("・");
 
   // "mine" needs sign-in; "all" and "templates" are open to everyone.
   const effectiveView: View = !user && view === "mine" ? "all" : view;
@@ -96,11 +109,27 @@ export default function SongsPage() {
           {t.backToCreate}
         </Link>
         <h1 className="songs-heading">{t.pageTitle}</h1>
-        <button className="locale-toggle" onClick={toggleLocale}>
-          {t.switchLocale}
-        </button>
-        <AuthButton user={user} t={t} onSignIn={signInWithGoogle} onSignOut={signOut} />
+        <AccountMenu
+          user={user}
+          t={t}
+          locale={locale}
+          displayName={profile?.displayName}
+          subtitle={profileSubtitle || null}
+          onSetLocale={changeLocale}
+          onSignIn={signInWithGoogle}
+          onSignOut={signOut}
+          onOpenProfile={() => setIsProfileModalOpen(true)}
+        />
       </header>
+
+      {isProfileModalOpen && user && (
+        <ProfileModal
+          t={t}
+          profile={profile}
+          onSave={saveProfile}
+          onClose={() => setIsProfileModalOpen(false)}
+        />
+      )}
 
       <main className="songs-main">
         <div className="songs-tabs">

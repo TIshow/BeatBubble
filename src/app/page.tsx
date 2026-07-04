@@ -34,9 +34,18 @@ import { SettingsPanel } from "./components/SettingsPanel";
 import { Grid } from "./components/Grid";
 
 export default function Home() {
-  const { locale, t, toggleLocale } = useLocale();
+  const { locale, t, changeLocale } = useLocale();
   const { user, signInWithGoogle, signOut } = useAuth();
   const { profile, saveProfile } = useProfile(user);
+
+  // Identity line for the account menu, from whatever profile fields are set.
+  const profileSubtitle = [
+    profile?.school,
+    profile?.grade != null ? t.profileGradeUnit(profile.grade) : null,
+    profile?.className,
+  ]
+    .filter(Boolean)
+    .join("・");
   const { song, setSong, songRef, canUndo, pushHistory, undo, reset } = useSong();
 
   const [isPlaying, setIsPlaying] = useState(false);
@@ -324,6 +333,7 @@ export default function Home() {
     >
       <Header
         t={t}
+        locale={locale}
         isPlaying={isPlaying}
         canUndo={canUndo}
         isSettingsOpen={isSettingsOpen}
@@ -334,8 +344,10 @@ export default function Home() {
         onOpenSave={() => setIsSaveModalOpen(true)}
         onExport={handleExport}
         isExporting={isExporting}
-        onToggleLocale={toggleLocale}
+        onSetLocale={changeLocale}
         user={user}
+        profileName={profile?.displayName}
+        profileSubtitle={profileSubtitle || null}
         onSignIn={signInWithGoogle}
         onSignOut={signOut}
         onOpenProfile={() => setIsProfileModalOpen(true)}

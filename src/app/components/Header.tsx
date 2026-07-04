@@ -2,11 +2,12 @@
 
 import Link from "next/link";
 import type { User } from "@supabase/supabase-js";
-import type { Translations } from "@/lib/i18n";
-import { AuthButton } from "./AuthButton";
+import type { Locale, Translations } from "@/lib/i18n";
+import { AccountMenu } from "./AccountMenu";
 
 interface Props {
   t: Translations;
+  locale: Locale;
   isPlaying: boolean;
   canUndo: boolean;
   isSettingsOpen: boolean;
@@ -17,8 +18,10 @@ interface Props {
   onOpenSave: () => void;
   onExport: () => void;
   isExporting: boolean;
-  onToggleLocale: () => void;
+  onSetLocale: (locale: Locale) => void;
   user: User | null;
+  profileName?: string | null;
+  profileSubtitle?: string | null;
   onSignIn: () => void;
   onSignOut: () => void;
   onOpenProfile: () => void;
@@ -26,6 +29,7 @@ interface Props {
 
 export function Header({
   t,
+  locale,
   isPlaying,
   canUndo,
   isSettingsOpen,
@@ -36,8 +40,10 @@ export function Header({
   onOpenSave,
   onExport,
   isExporting,
-  onToggleLocale,
+  onSetLocale,
   user,
+  profileName,
+  profileSubtitle,
   onSignIn,
   onSignOut,
   onOpenProfile,
@@ -84,15 +90,17 @@ export function Header({
       <Link href="/songs" className="songs-nav-link">
         {t.songsLink}
       </Link>
-      <button className="locale-toggle" onClick={onToggleLocale}>
-        {t.switchLocale}
-      </button>
-      {user && (
-        <button className="profile-btn" onClick={onOpenProfile}>
-          {t.profile}
-        </button>
-      )}
-      <AuthButton user={user} t={t} onSignIn={onSignIn} onSignOut={onSignOut} />
+      <AccountMenu
+        user={user}
+        t={t}
+        locale={locale}
+        displayName={profileName}
+        subtitle={profileSubtitle}
+        onSetLocale={onSetLocale}
+        onSignIn={onSignIn}
+        onSignOut={onSignOut}
+        onOpenProfile={onOpenProfile}
+      />
     </header>
   );
 }

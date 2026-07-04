@@ -62,11 +62,12 @@ export type Translations = {
   minutesAgo: (n: number) => string;
   hoursAgo: (n: number) => string;
   daysAgo: (n: number) => string;
-  // Locale toggle label (the language you'll switch TO)
-  switchLocale: string;
   login: string;
   logout: string;
   logoutConfirm: string;
+  // Account menu
+  accountMenu: string;
+  languageLabel: string;
   // Profile
   profile: string;
   profileModalTitle: string;
@@ -145,10 +146,11 @@ export const translations: Record<Locale, Translations> = {
     minutesAgo: (n) => `${n}m ago`,
     hoursAgo: (n) => `${n}h ago`,
     daysAgo: (n) => `${n}d ago`,
-    switchLocale: "日本語",
     login: "Log in",
     logout: "Log out",
     logoutConfirm: "Log out?",
+    accountMenu: "Account",
+    languageLabel: "Language",
     profile: "Profile",
     profileModalTitle: "Your profile",
     profileDisplayName: "Name",
@@ -224,10 +226,11 @@ export const translations: Record<Locale, Translations> = {
     minutesAgo: (n) => `${n}分まえ`,
     hoursAgo: (n) => `${n}時間まえ`,
     daysAgo: (n) => `${n}日まえ`,
-    switchLocale: "EN",
     login: "ログイン",
     logout: "ログアウト",
     logoutConfirm: "本当にログアウトしますか？",
+    accountMenu: "アカウント",
+    languageLabel: "ことば",
     profile: "プロフィール",
     profileModalTitle: "プロフィール",
     profileDisplayName: "なまえ",
