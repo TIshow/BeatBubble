@@ -10,11 +10,10 @@ export function useLocale() {
     return (localStorage.getItem(STORAGE_KEY) as Locale) ?? "ja";
   });
 
-  const toggleLocale = () => {
-    const next: Locale = locale === "ja" ? "en" : "ja";
+  const changeLocale = (next: Locale) => {
     setLocale(next);
     localStorage.setItem(STORAGE_KEY, next);
   };
 
-  return { locale, t: translations[locale], toggleLocale };
+  return { locale, t: translations[locale], changeLocale };
 }

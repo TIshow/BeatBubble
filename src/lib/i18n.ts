@@ -62,11 +62,31 @@ export type Translations = {
   minutesAgo: (n: number) => string;
   hoursAgo: (n: number) => string;
   daysAgo: (n: number) => string;
-  // Locale toggle label (the language you'll switch TO)
-  switchLocale: string;
   login: string;
   logout: string;
   logoutConfirm: string;
+  // Account menu
+  accountMenu: string;
+  languageLabel: string;
+  // Profile
+  profile: string;
+  profileModalTitle: string;
+  profileDisplayName: string;
+  profileSchool: string;
+  profileGrade: string;
+  profileClass: string;
+  profileGender: string;
+  profileGradeUnit: (n: number) => string;
+  profileNotSet: string;
+  genderMale: string;
+  genderFemale: string;
+  genderOther: string;
+  genderUndisclosed: string;
+  profileSaved: string;
+  profileSaveFailed: string;
+  profileSchoolPlaceholder: string;
+  profileClassPlaceholder: string;
+  profileNamePlaceholder: string;
 };
 
 export const translations: Record<Locale, Translations> = {
@@ -126,10 +146,29 @@ export const translations: Record<Locale, Translations> = {
     minutesAgo: (n) => `${n}m ago`,
     hoursAgo: (n) => `${n}h ago`,
     daysAgo: (n) => `${n}d ago`,
-    switchLocale: "日本語",
     login: "Log in",
     logout: "Log out",
     logoutConfirm: "Log out?",
+    accountMenu: "Account",
+    languageLabel: "Language",
+    profile: "Profile",
+    profileModalTitle: "Your profile",
+    profileDisplayName: "Name",
+    profileSchool: "School",
+    profileGrade: "Grade",
+    profileClass: "Class",
+    profileGender: "Gender",
+    profileGradeUnit: (n) => `Grade ${n}`,
+    profileNotSet: "—",
+    genderMale: "Boy",
+    genderFemale: "Girl",
+    genderOther: "Other",
+    genderUndisclosed: "Prefer not to say",
+    profileSaved: "Saved!",
+    profileSaveFailed: "Couldn't save. Please try again.",
+    profileSchoolPlaceholder: "School name",
+    profileClassPlaceholder: "e.g. 1, A",
+    profileNamePlaceholder: "Your name or nickname",
   },
   ja: {
     play: "えんそう",
@@ -187,9 +226,28 @@ export const translations: Record<Locale, Translations> = {
     minutesAgo: (n) => `${n}分まえ`,
     hoursAgo: (n) => `${n}時間まえ`,
     daysAgo: (n) => `${n}日まえ`,
-    switchLocale: "EN",
     login: "ログイン",
     logout: "ログアウト",
     logoutConfirm: "本当にログアウトしますか？",
+    accountMenu: "アカウント",
+    languageLabel: "ことば",
+    profile: "プロフィール",
+    profileModalTitle: "プロフィール",
+    profileDisplayName: "なまえ",
+    profileSchool: "がっこう",
+    profileGrade: "がくねん",
+    profileClass: "クラス",
+    profileGender: "せいべつ",
+    profileGradeUnit: (n) => `${n}年`,
+    profileNotSet: "—",
+    genderMale: "男の子",
+    genderFemale: "女の子",
+    genderOther: "その他",
+    genderUndisclosed: "こたえない",
+    profileSaved: "ほぞんしました！",
+    profileSaveFailed: "ほぞんに しっぱいしました。もういちど ためしてね。",
+    profileSchoolPlaceholder: "がっこうのなまえ",
+    profileClassPlaceholder: "れい: 1、A",
+    profileNamePlaceholder: "なまえ か ニックネーム",
   },
 };

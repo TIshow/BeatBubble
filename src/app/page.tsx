@@ -24,16 +24,28 @@ import { useDragInteraction } from "@/hooks/useDragInteraction";
 import { useLocale } from "@/hooks/useLocale";
 import { useSong } from "@/hooks/useSong";
 import { useAuth, authDisplayName } from "@/hooks/useAuth";
+import { useProfile } from "@/hooks/useProfile";
 import { supabase } from "@/lib/supabase";
 import { SaveModal } from "./components/SaveModal";
+import { ProfileModal } from "./components/ProfileModal";
 import { NotePanel } from "./components/NotePanel";
 import { Header } from "./components/Header";
 import { SettingsPanel } from "./components/SettingsPanel";
 import { Grid } from "./components/Grid";
 
 export default function Home() {
-  const { locale, t, toggleLocale } = useLocale();
+  const { locale, t, changeLocale } = useLocale();
   const { user, signInWithGoogle, signOut } = useAuth();
+  const { profile, saveProfile } = useProfile(user);
+
+  // Identity line for the account menu, from whatever profile fields are set.
+  const profileSubtitle = [
+    profile?.school,
+    profile?.grade != null ? t.profileGradeUnit(profile.grade) : null,
+    profile?.className,
+  ]
+    .filter(Boolean)
+    .join("・");
   const { song, setSong, songRef, canUndo, pushHistory, undo, reset } = useSong();
 
   const [isPlaying, setIsPlaying] = useState(false);
@@ -42,6 +54,7 @@ export default function Home() {
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isConfirmingReset, setIsConfirmingReset] = useState(false);
   const [isSaveModalOpen, setIsSaveModalOpen] = useState(false);
+  const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
   const [isLockMode, setIsLockMode] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
   // The song loaded via ?load=<id>, so its owner can overwrite it on save.
@@ -320,6 +333,7 @@ export default function Home() {
     >
       <Header
         t={t}
+        locale={locale}
         isPlaying={isPlaying}
         canUndo={canUndo}
         isSettingsOpen={isSettingsOpen}
@@ -330,10 +344,13 @@ export default function Home() {
         onOpenSave={() => setIsSaveModalOpen(true)}
         onExport={handleExport}
         isExporting={isExporting}
-        onToggleLocale={toggleLocale}
+        onSetLocale={changeLocale}
         user={user}
+        profileName={profile?.displayName}
+        profileSubtitle={profileSubtitle || null}
         onSignIn={signInWithGoogle}
         onSignOut={signOut}
+        onOpenProfile={() => setIsProfileModalOpen(true)}
       />
 
       {isSettingsOpen && (
@@ -394,6 +411,15 @@ export default function Home() {
             setLoadedSong((prev) => (prev ? { ...prev, title, author } : prev))
           }
           onClose={() => setIsSaveModalOpen(false)}
+        />
+      )}
+
+      {isProfileModalOpen && user && (
+        <ProfileModal
+          t={t}
+          profile={profile}
+          onSave={saveProfile}
+          onClose={() => setIsProfileModalOpen(false)}
         />
       )}
     </div>

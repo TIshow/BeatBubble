@@ -74,11 +74,11 @@ Playful, rounded, kid-friendly. Keep new UI consistent with these:
 - **CSS location**: edit the matching `src/app/styles/*.css` file (classes are global, not CSS Modules); keep each file's rules in their original relative order.
 
 ## i18n
-- Locale is `"ja"` (Japanese) by default, toggled to `"en"` via the locale button
+- Locale is `"ja"` (Japanese) by default, switched via the **account menu** (avatar circle, top right — `AccountMenu`; also holds profile / login / logout)
 - Persisted in `localStorage` under key `"beatbubble-locale"`
 - All UI strings come from `src/lib/i18n.ts` via `useLocale()` hook
 - **Note names are localized**: ja shows ドレミ (`noteLabel`), en shows ABC — display only; storage stays NoteName
-- Both `/` and `/songs` pages support locale toggle
+- Both `/` and `/songs` pages share the account menu (locale switch works signed out too)
 
 ## Save / Feed
 - Songs are saved to Supabase table `songs` (columns: id, title, author, song_data jsonb, created_at)
