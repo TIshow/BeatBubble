@@ -270,16 +270,14 @@ export class AudioEngine {
     // permanently uncancellable.
     const epoch = ++this.playEpoch;
 
-    // The render target snapshots pianoReady, so a loop started before the
-    // samples finished loading would stay on the fallback voice for the whole
-    // loop — wait for the piano first (bounded).
+    // When the song starts on the piano, wait for its samples first (bounded)
+    // so the opening notes don't come out as the 8bit fallback.
     if (usesSampledPiano(getSong())) {
       await this.waitForPianoReady(PIANO_WAIT_PLAY_MS);
       if (this.state !== "playing" || epoch !== this.playEpoch) return;
     }
 
-    const target = this.liveTarget();
-    if (!target || !this.ctx) {
+    if (!this.liveTarget()) {
       this.state = "stopped";
       return;
     }
@@ -293,16 +291,22 @@ export class AudioEngine {
     const total = totalSteps(initialSong);
 
     const scheduler = () => {
-      if (!this.ctx || this.state !== "playing") return;
+      if (this.state !== "playing") return;
+      // Re-resolve the target every tick instead of snapshotting it once:
+      // target.piano reflects pianoReady at resolve time, so a snapshot taken
+      // before the samples finished loading would pin the whole loop to the
+      // 8bit fallback — audible when switching a playing song to the piano.
+      const target = this.liveTarget();
+      if (!target) return;
 
       const currentSong = getSong();
 
-      while (this.nextNoteTime < this.ctx.currentTime + this.LOOKAHEAD) {
+      while (this.nextNoteTime < target.ctx.currentTime + this.LOOKAHEAD) {
         this.scheduleStep(target, currentSong, this.currentStep, this.nextNoteTime, secondsPerStep);
 
         if (onStep) {
           const stepToReport = this.currentStep;
-          const timeUntilStep = (this.nextNoteTime - this.ctx.currentTime) * 1000;
+          const timeUntilStep = (this.nextNoteTime - target.ctx.currentTime) * 1000;
           setTimeout(() => {
             if (this.state === "playing") {
               onStep(stepToReport);
