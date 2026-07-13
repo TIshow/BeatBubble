@@ -1,30 +1,16 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useState } from "react";
 import Link from "next/link";
-import { supabase } from "@/lib/supabase";
 import { useLocale } from "@/hooks/useLocale";
 import { useAuth } from "@/hooks/useAuth";
 import { useProfile } from "@/hooks/useProfile";
+import { useSongFeed, type FeedView } from "@/hooks/useSongFeed";
 import { AccountMenu } from "@/app/components/AccountMenu";
 import { ProfileModal } from "@/app/components/ProfileModal";
 import { SongCard } from "@/app/components/SongCard";
-import type { Song } from "@/core/types";
 import type { Locale } from "@/lib/i18n";
 import { translations } from "@/lib/i18n";
-
-type FeedSong = {
-  id: string;
-  title: string;
-  author: string;
-  created_at: string;
-  updated_at: string;
-  song_data: Song;
-  user_id: string | null;
-  is_template: boolean;
-};
-
-type View = "all" | "mine" | "templates";
 
 const CARD_GRADIENTS = [
   "linear-gradient(135deg, #ff6b6b, #feca57)",
@@ -50,10 +36,24 @@ export default function SongsPage() {
   const { locale, t, changeLocale } = useLocale();
   const { user, signInWithGoogle, signOut } = useAuth();
   const { profile, saveProfile } = useProfile(user);
-  const [songs, setSongs] = useState<FeedSong[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [view, setView] = useState<View>("all");
+  const [view, setView] = useState<FeedView>("all");
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
+
+  // "mine" needs sign-in; "all" and "templates" are open to everyone.
+  const effectiveView: FeedView = !user && view === "mine" ? "all" : view;
+
+  const {
+    songs,
+    total,
+    loading,
+    loadingMore,
+    hasMore,
+    loadMore,
+    sentinelRef,
+    removeSong,
+    renameSong,
+    setSongTemplate,
+  } = useSongFeed(effectiveView, user);
 
   // Identity line for the account menu, from whatever profile fields are set.
   const profileSubtitle = [
@@ -63,45 +63,6 @@ export default function SongsPage() {
   ]
     .filter(Boolean)
     .join("・");
-
-  // "mine" needs sign-in; "all" and "templates" are open to everyone.
-  const effectiveView: View = !user && view === "mine" ? "all" : view;
-
-  useEffect(() => {
-    let query = supabase
-      .from("songs")
-      .select("id, title, author, created_at, updated_at, song_data, user_id, is_template");
-    if (effectiveView === "mine" && user) query = query.eq("user_id", user.id);
-    else if (effectiveView === "templates") query = query.eq("is_template", true);
-    else query = query.eq("is_template", false); // "all" excludes templates
-    query
-      .order("updated_at", { ascending: false })
-      .limit(50)
-      .then(({ data }) => {
-        setSongs((data as FeedSong[]) ?? []);
-        setLoading(false);
-      });
-  }, [effectiveView, user]);
-
-  // Client-side filter keeps the view correct instantly while a refetch lands.
-  const displayed =
-    effectiveView === "mine" && user
-      ? songs.filter((s) => s.user_id === user.id)
-      : effectiveView === "templates"
-        ? songs.filter((s) => s.is_template)
-        : songs.filter((s) => !s.is_template);
-
-  const handleDeleted = useCallback((id: string) => {
-    setSongs((prev) => prev.filter((s) => s.id !== id));
-  }, []);
-
-  const handleRenamed = useCallback((id: string, title: string) => {
-    setSongs((prev) => prev.map((s) => (s.id === id ? { ...s, title } : s)));
-  }, []);
-
-  const handleTemplateToggled = useCallback((id: string, isTemplate: boolean) => {
-    setSongs((prev) => prev.map((s) => (s.id === id ? { ...s, is_template: isTemplate } : s)));
-  }, []);
 
   return (
     <div className="songs-page">
@@ -133,32 +94,48 @@ export default function SongsPage() {
       )}
 
       <main className="songs-main">
-        <div className="songs-tabs">
-          <button
-            className={`songs-tab ${effectiveView === "all" ? "active" : ""}`}
-            onClick={() => setView("all")}
-          >
-            {t.feedAll}
-          </button>
-          <button
-            className={`songs-tab ${effectiveView === "templates" ? "active" : ""}`}
-            onClick={() => setView("templates")}
-          >
-            {t.feedTemplates}
-          </button>
-          {user && (
+        <div className="songs-toolbar">
+          <div className="songs-tabs">
             <button
-              className={`songs-tab ${effectiveView === "mine" ? "active" : ""}`}
-              onClick={() => setView("mine")}
+              className={`songs-tab ${effectiveView === "all" ? "active" : ""}`}
+              onClick={() => setView("all")}
             >
-              {t.feedMine}
+              {t.feedAll}
             </button>
+            <button
+              className={`songs-tab ${effectiveView === "templates" ? "active" : ""}`}
+              onClick={() => setView("templates")}
+            >
+              {t.feedTemplates}
+            </button>
+            {user && (
+              <button
+                className={`songs-tab ${effectiveView === "mine" ? "active" : ""}`}
+                onClick={() => setView("mine")}
+              >
+                {t.feedMine}
+              </button>
+            )}
+          </div>
+          {!loading && total != null && songs.length > 0 && (
+            <span className="songs-count">{t.songsCount(total)}</span>
           )}
         </div>
 
         {loading ? (
-          <p className="songs-status">{t.loading}</p>
-        ) : displayed.length === 0 ? (
+          <div className="songs-grid" aria-busy="true">
+            {Array.from({ length: 8 }).map((_, i) => (
+              <div key={i} className="song-card-skeleton" aria-hidden="true">
+                <div className="song-card-skeleton-art" />
+                <div className="song-card-skeleton-body">
+                  <div className="song-card-skeleton-line wide" />
+                  <div className="song-card-skeleton-line" />
+                  <div className="song-card-skeleton-btn" />
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : songs.length === 0 ? (
           <p className="songs-status">
             {effectiveView === "mine"
               ? t.noMySongs
@@ -167,24 +144,39 @@ export default function SongsPage() {
                 : t.noSongs}
           </p>
         ) : (
-          <div className="songs-grid">
-            {displayed.map((song, i) => (
-              <SongCard
-                key={song.id}
-                id={song.id}
-                title={song.title}
-                author={song.author}
-                time={timeAgo(song.updated_at, locale)}
-                gradient={CARD_GRADIENTS[i % CARD_GRADIENTS.length]}
-                isOwner={!!user && song.user_id === user.id}
-                isTemplate={song.is_template}
-                t={t}
-                onDeleted={handleDeleted}
-                onRenamed={handleRenamed}
-                onTemplateToggled={handleTemplateToggled}
-              />
-            ))}
-          </div>
+          <>
+            <div className="songs-grid">
+              {songs.map((song, i) => (
+                <SongCard
+                  key={song.id}
+                  id={song.id}
+                  title={song.title}
+                  author={song.author}
+                  time={timeAgo(song.updated_at, locale)}
+                  gradient={CARD_GRADIENTS[i % CARD_GRADIENTS.length]}
+                  isOwner={!!user && song.user_id === user.id}
+                  isTemplate={song.is_template}
+                  t={t}
+                  onDeleted={removeSong}
+                  onRenamed={renameSong}
+                  onTemplateToggled={setSongTemplate}
+                />
+              ))}
+            </div>
+            {hasMore && <div ref={sentinelRef} className="songs-sentinel" aria-hidden="true" />}
+            {hasMore &&
+              (loadingMore ? (
+                <p className="songs-more-status">{t.loadingMore}</p>
+              ) : (
+                // Auto-loads on scroll via the observer; this button is a
+                // reliable fallback for environments where it doesn't fire.
+                <div className="songs-more-wrap">
+                  <button className="songs-more-btn" onClick={loadMore}>
+                    {t.showMore}
+                  </button>
+                </div>
+              ))}
+          </>
         )}
       </main>
     </div>

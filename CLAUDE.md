@@ -84,7 +84,7 @@ Playful, rounded, kid-friendly. Keep new UI consistent with these:
 - Songs are saved to Supabase table `songs` (columns: id, title, author, song_data jsonb, created_at, updated_at)
   - `updated_at` is server-controlled (trigger): bumped only when title/author/song_data change (overwrite-save, rename) — not by hidden/is_template flips
 - Public read + insert RLS policies (no auth required)
-- `/songs` page lists the 50 most recent songs; each card links to `/?load=<id>`
+- `/songs` page paginates all songs newest-first (24/page via `.range()`, infinite scroll + "もっと見る" fallback); each card links to `/?load=<id>`
 - Editor loads a song via `?load=<id>` on mount **through `migrateSong()`**, then cleans the URL with `replaceState`
 - Required env vars: `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`
 

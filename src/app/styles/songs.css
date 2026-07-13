@@ -235,11 +235,27 @@
   background: var(--grid-line);
 }
 
+/* Toolbar: filter tabs on the left, song count on the right */
+.songs-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+
+.songs-count {
+  font-size: 14px;
+  font-weight: 700;
+  opacity: 0.5;
+  white-space: nowrap;
+}
+
 /* My/All filter tabs */
 .songs-tabs {
   display: flex;
   gap: 8px;
-  margin-bottom: 20px;
 }
 
 .songs-tab {
@@ -372,4 +388,108 @@
 
 .songs-header .account-menu {
   margin-left: auto;
+}
+
+/* Infinite scroll: sentinel is an invisible tripwire near the list end */
+.songs-sentinel {
+  height: 1px;
+  width: 100%;
+}
+
+.songs-more-status {
+  text-align: center;
+  font-size: 14px;
+  font-weight: 600;
+  opacity: 0.5;
+  padding: 24px 0 8px;
+}
+
+.songs-more-wrap {
+  display: flex;
+  justify-content: center;
+  padding: 24px 0 8px;
+}
+
+.songs-more-btn {
+  padding: 10px 28px;
+  border-radius: 20px;
+  border: 1.5px solid var(--grid-line);
+  background: var(--grid-bg);
+  color: var(--foreground);
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+
+.songs-more-btn:hover {
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  border-color: transparent;
+  color: white;
+}
+
+/* Skeleton placeholders shown while a page loads */
+.song-card-skeleton {
+  background: var(--grid-bg);
+  border-radius: 20px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+  overflow: hidden;
+}
+
+.song-card-skeleton-art {
+  height: 90px;
+}
+
+.song-card-skeleton-body {
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.song-card-skeleton-line {
+  height: 12px;
+  border-radius: 6px;
+  width: 60%;
+}
+
+.song-card-skeleton-line.wide {
+  width: 85%;
+}
+
+.song-card-skeleton-btn {
+  height: 40px;
+  border-radius: 14px;
+  margin-top: 6px;
+}
+
+/* Shimmer sweep across every skeleton surface */
+.song-card-skeleton-art,
+.song-card-skeleton-line,
+.song-card-skeleton-btn {
+  background: linear-gradient(
+    100deg,
+    var(--grid-line) 30%,
+    var(--header-bg) 50%,
+    var(--grid-line) 70%
+  );
+  background-size: 200% 100%;
+  animation: song-skeleton-shimmer 1.4s ease-in-out infinite;
+}
+
+@keyframes song-skeleton-shimmer {
+  from {
+    background-position: 200% 0;
+  }
+  to {
+    background-position: -200% 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .song-card-skeleton-art,
+  .song-card-skeleton-line,
+  .song-card-skeleton-btn {
+    animation: none;
+  }
 }

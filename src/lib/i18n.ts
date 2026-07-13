@@ -52,6 +52,9 @@ export type Translations = {
   feedMine: string;
   feedTemplates: string;
   noTemplates: string;
+  songsCount: (n: number) => string;
+  loadingMore: string;
+  showMore: string;
   templateBadge: string;
   templateOn: string;
   templateOff: string;
@@ -136,6 +139,9 @@ export const translations: Record<Locale, Translations> = {
     feedMine: "Mine",
     feedTemplates: "Templates",
     noTemplates: "No templates yet.",
+    songsCount: (n) => `${n} songs`,
+    loadingMore: "Loading more...",
+    showMore: "Show more",
     templateBadge: "Template",
     templateOn: "Make template",
     templateOff: "Unset template",
@@ -216,6 +222,9 @@ export const translations: Record<Locale, Translations> = {
     feedMine: "じぶん",
     feedTemplates: "テンプレ",
     noTemplates: "まだ テンプレートが ありません。",
+    songsCount: (n) => `${n}曲`,
+    loadingMore: "よみこみちゅう...",
+    showMore: "もっと見る",
     templateBadge: "テンプレ",
     templateOn: "テンプレにする",
     templateOff: "テンプレ解除",
