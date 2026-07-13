@@ -296,11 +296,10 @@
   opacity: 0.75;
 }
 
-/* Toolbar: filter tabs on the left, song count on the right */
+/* Toolbar: tabs + class filters on the left, song count pushed to the right */
 .songs-toolbar {
   display: flex;
   align-items: center;
-  justify-content: space-between;
   gap: 12px;
   margin-bottom: 20px;
   flex-wrap: wrap;
@@ -311,6 +310,39 @@
   font-weight: 700;
   opacity: 0.5;
   white-space: nowrap;
+  margin-left: auto;
+}
+
+.songs-filters {
+  display: flex;
+  gap: 8px;
+}
+
+.songs-filter-select {
+  padding: 8px 32px 8px 14px;
+  border-radius: 20px;
+  border: 1.5px solid var(--grid-line);
+  background-color: var(--grid-bg);
+  color: var(--foreground);
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  outline: none;
+  appearance: none;
+  background-image: linear-gradient(45deg, transparent 50%, var(--foreground) 50%),
+    linear-gradient(135deg, var(--foreground) 50%, transparent 50%);
+  background-position:
+    calc(100% - 18px) 50%,
+    calc(100% - 13px) 50%;
+  background-size:
+    5px 5px,
+    5px 5px;
+  background-repeat: no-repeat;
+  transition: border-color 0.15s ease;
+}
+
+.songs-filter-select:focus {
+  border-color: #667eea;
 }
 
 /* My/All filter tabs */

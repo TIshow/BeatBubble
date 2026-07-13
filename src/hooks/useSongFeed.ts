@@ -46,7 +46,27 @@ function sanitizeSearch(raw: string): string {
 // local mutations that keep the list in sync after a card edits itself.
 // Attach `sentinelRef` to an element near the list end for scroll auto-load;
 // call `loadMore()` from a button as a fallback where the observer can't fire.
-export function useSongFeed(view: FeedView, user: User | null, search = "") {
+export type ClassOption = { grade: number | null; className: string | null };
+
+// Distinct grade/class pairs present in the feed, for the filter dropdowns
+// (computed in the DB so it stays cheap as the table grows).
+export async function fetchClassOptions(): Promise<ClassOption[]> {
+  const { data, error } = await supabase.rpc("song_class_options");
+  if (error || !data) return [];
+  return (data as { grade: number | null; class_name: string | null }[]).map((r) => ({
+    grade: r.grade,
+    className: r.class_name,
+  }));
+}
+
+export type FeedFilters = {
+  search?: string;
+  grade?: number | null;
+  className?: string | null;
+};
+
+export function useSongFeed(view: FeedView, user: User | null, filters: FeedFilters = {}) {
+  const { search = "", grade = null, className = null } = filters;
   const [songs, setSongs] = useState<FeedSong[]>([]);
   const [total, setTotal] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
@@ -68,9 +88,11 @@ export function useSongFeed(view: FeedView, user: User | null, search = "") {
       else query = query.eq("is_template", false);
       const term = sanitizeSearch(search);
       if (term) query = query.or(`title.ilike.%${term}%,author.ilike.%${term}%`);
+      if (grade != null) query = query.eq("grade", grade);
+      if (className) query = query.eq("class_name", className);
       return query.order("updated_at", { ascending: false }).range(from, from + PAGE_SIZE - 1);
     },
-    [view, user, search]
+    [view, user, search, grade, className]
   );
 
   // Initial load, and reset whenever the view (or sign-in state) changes.
