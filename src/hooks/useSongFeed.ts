@@ -32,11 +32,21 @@ function matchesView(song: FeedSong, view: FeedView, user: User | null): boolean
   return !song.is_template; // "all" excludes templates
 }
 
+// Strip characters that would break the PostgREST `.or()` filter string
+// (comma separates terms, parens group them) or act as ilike wildcards, so the
+// term is matched literally. Capped to keep the query bounded.
+function sanitizeSearch(raw: string): string {
+  return raw
+    .replace(/[,()%*\\]/g, "")
+    .trim()
+    .slice(0, 60);
+}
+
 // Paginated songs feed for a view. Owns fetching, infinite scroll, and the
 // local mutations that keep the list in sync after a card edits itself.
 // Attach `sentinelRef` to an element near the list end for scroll auto-load;
 // call `loadMore()` from a button as a fallback where the observer can't fire.
-export function useSongFeed(view: FeedView, user: User | null) {
+export function useSongFeed(view: FeedView, user: User | null, search = "") {
   const [songs, setSongs] = useState<FeedSong[]>([]);
   const [total, setTotal] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
@@ -56,9 +66,11 @@ export function useSongFeed(view: FeedView, user: User | null) {
       if (view === "mine" && user) query = query.eq("user_id", user.id);
       else if (view === "templates") query = query.eq("is_template", true);
       else query = query.eq("is_template", false);
+      const term = sanitizeSearch(search);
+      if (term) query = query.or(`title.ilike.%${term}%,author.ilike.%${term}%`);
       return query.order("updated_at", { ascending: false }).range(from, from + PAGE_SIZE - 1);
     },
-    [view, user]
+    [view, user, search]
   );
 
   // Initial load, and reset whenever the view (or sign-in state) changes.

@@ -52,6 +52,9 @@ export type Translations = {
   feedMine: string;
   feedTemplates: string;
   noTemplates: string;
+  searchPlaceholder: string;
+  searchClear: string;
+  noResults: string;
   songsCount: (n: number) => string;
   loadingMore: string;
   showMore: string;
@@ -139,6 +142,9 @@ export const translations: Record<Locale, Translations> = {
     feedMine: "Mine",
     feedTemplates: "Templates",
     noTemplates: "No templates yet.",
+    searchPlaceholder: "Search by song or name",
+    searchClear: "Clear",
+    noResults: "No matching songs.",
     songsCount: (n) => `${n} songs`,
     loadingMore: "Loading more...",
     showMore: "Show more",
@@ -222,6 +228,9 @@ export const translations: Record<Locale, Translations> = {
     feedMine: "じぶん",
     feedTemplates: "テンプレ",
     noTemplates: "まだ テンプレートが ありません。",
+    searchPlaceholder: "きょくや なまえで さがす",
+    searchClear: "けす",
+    noResults: "みつかりませんでした。",
     songsCount: (n) => `${n}曲`,
     loadingMore: "よみこみちゅう...",
     showMore: "もっと見る",

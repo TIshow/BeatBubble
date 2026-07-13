@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useLocale } from "@/hooks/useLocale";
 import { useAuth } from "@/hooks/useAuth";
@@ -38,6 +38,15 @@ export default function SongsPage() {
   const { profile, saveProfile } = useProfile(user);
   const [view, setView] = useState<FeedView>("all");
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
+  // `searchInput` tracks the field; `search` is the debounced value that
+  // actually drives the query, so we don't hit the DB on every keystroke.
+  const [searchInput, setSearchInput] = useState("");
+  const [search, setSearch] = useState("");
+
+  useEffect(() => {
+    const id = setTimeout(() => setSearch(searchInput), 300);
+    return () => clearTimeout(id);
+  }, [searchInput]);
 
   // "mine" needs sign-in; "all" and "templates" are open to everyone.
   const effectiveView: FeedView = !user && view === "mine" ? "all" : view;
@@ -53,7 +62,7 @@ export default function SongsPage() {
     removeSong,
     renameSong,
     setSongTemplate,
-  } = useSongFeed(effectiveView, user);
+  } = useSongFeed(effectiveView, user, search);
 
   // Identity line for the account menu, from whatever profile fields are set.
   const profileSubtitle = [
@@ -94,6 +103,29 @@ export default function SongsPage() {
       )}
 
       <main className="songs-main">
+        <div className="songs-search-wrap">
+          <span className="songs-search-icon" aria-hidden="true">
+            🔍
+          </span>
+          <input
+            type="search"
+            className="songs-search"
+            placeholder={t.searchPlaceholder}
+            value={searchInput}
+            onChange={(e) => setSearchInput(e.target.value)}
+            aria-label={t.searchPlaceholder}
+          />
+          {searchInput && (
+            <button
+              className="songs-search-clear"
+              onClick={() => setSearchInput("")}
+              aria-label={t.searchClear}
+            >
+              ×
+            </button>
+          )}
+        </div>
+
         <div className="songs-toolbar">
           <div className="songs-tabs">
             <button
@@ -137,11 +169,13 @@ export default function SongsPage() {
           </div>
         ) : songs.length === 0 ? (
           <p className="songs-status">
-            {effectiveView === "mine"
-              ? t.noMySongs
-              : effectiveView === "templates"
-                ? t.noTemplates
-                : t.noSongs}
+            {search
+              ? t.noResults
+              : effectiveView === "mine"
+                ? t.noMySongs
+                : effectiveView === "templates"
+                  ? t.noTemplates
+                  : t.noSongs}
           </p>
         ) : (
           <>
