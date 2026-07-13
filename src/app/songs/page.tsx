@@ -1,35 +1,16 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useState } from "react";
 import Link from "next/link";
-import { supabase } from "@/lib/supabase";
 import { useLocale } from "@/hooks/useLocale";
 import { useAuth } from "@/hooks/useAuth";
 import { useProfile } from "@/hooks/useProfile";
+import { useSongFeed, type FeedView } from "@/hooks/useSongFeed";
 import { AccountMenu } from "@/app/components/AccountMenu";
 import { ProfileModal } from "@/app/components/ProfileModal";
 import { SongCard } from "@/app/components/SongCard";
-import type { Song } from "@/core/types";
 import type { Locale } from "@/lib/i18n";
 import { translations } from "@/lib/i18n";
-
-type FeedSong = {
-  id: string;
-  title: string;
-  author: string;
-  created_at: string;
-  updated_at: string;
-  song_data: Song;
-  user_id: string | null;
-  is_template: boolean;
-};
-
-type View = "all" | "mine" | "templates";
-
-// How many songs to fetch per page. The feed loads more as you scroll.
-const PAGE_SIZE = 24;
-
-const SONG_COLUMNS = "id, title, author, created_at, updated_at, song_data, user_id, is_template";
 
 const CARD_GRADIENTS = [
   "linear-gradient(135deg, #ff6b6b, #feca57)",
@@ -55,18 +36,24 @@ export default function SongsPage() {
   const { locale, t, changeLocale } = useLocale();
   const { user, signInWithGoogle, signOut } = useAuth();
   const { profile, saveProfile } = useProfile(user);
-  const [songs, setSongs] = useState<FeedSong[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [loadingMore, setLoadingMore] = useState(false);
-  const [hasMore, setHasMore] = useState(false);
-  const [total, setTotal] = useState<number | null>(null);
-  const [view, setView] = useState<View>("all");
+  const [view, setView] = useState<FeedView>("all");
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
-  const pageRef = useRef(0);
-  const sentinelRef = useRef<HTMLDivElement | null>(null);
-  // Ref (not state) so overlapping triggers — the scroll observer and the
-  // button firing together — can't start two fetches for the same page.
-  const loadingMoreRef = useRef(false);
+
+  // "mine" needs sign-in; "all" and "templates" are open to everyone.
+  const effectiveView: FeedView = !user && view === "mine" ? "all" : view;
+
+  const {
+    songs,
+    total,
+    loading,
+    loadingMore,
+    hasMore,
+    loadMore,
+    sentinelRef,
+    removeSong,
+    renameSong,
+    setSongTemplate,
+  } = useSongFeed(effectiveView, user);
 
   // Identity line for the account menu, from whatever profile fields are set.
   const profileSubtitle = [
@@ -76,101 +63,6 @@ export default function SongsPage() {
   ]
     .filter(Boolean)
     .join("・");
-
-  // "mine" needs sign-in; "all" and "templates" are open to everyone.
-  const effectiveView: View = !user && view === "mine" ? "all" : view;
-
-  // One page of the current view, ordered newest-first. `count: "exact"` on
-  // every request keeps the total in sync as songs are added/removed.
-  const fetchPage = useCallback(
-    (from: number) => {
-      let query = supabase.from("songs").select(SONG_COLUMNS, { count: "exact" });
-      if (effectiveView === "mine" && user) query = query.eq("user_id", user.id);
-      else if (effectiveView === "templates") query = query.eq("is_template", true);
-      else query = query.eq("is_template", false); // "all" excludes templates
-      return query.order("updated_at", { ascending: false }).range(from, from + PAGE_SIZE - 1);
-    },
-    [effectiveView, user]
-  );
-
-  // Initial load, and reset whenever the view (or sign-in state) changes.
-  useEffect(() => {
-    let active = true;
-    async function loadFirstPage() {
-      setLoading(true);
-      setSongs([]);
-      setHasMore(false);
-      pageRef.current = 0;
-      loadingMoreRef.current = false;
-      const { data, count } = await fetchPage(0);
-      if (!active) return;
-      const rows = (data as FeedSong[]) ?? [];
-      setSongs(rows);
-      setTotal(count ?? rows.length);
-      setHasMore(rows.length === PAGE_SIZE);
-      setLoading(false);
-    }
-    loadFirstPage();
-    return () => {
-      active = false;
-    };
-  }, [fetchPage]);
-
-  const loadMore = useCallback(async () => {
-    if (loadingMoreRef.current || !hasMore) return;
-    loadingMoreRef.current = true;
-    setLoadingMore(true);
-    const nextPage = pageRef.current + 1;
-    try {
-      const { data, count } = await fetchPage(nextPage * PAGE_SIZE);
-      const rows = (data as FeedSong[]) ?? [];
-      pageRef.current = nextPage;
-      // De-dupe by id in case a song was inserted between page fetches.
-      setSongs((prev) => {
-        const seen = new Set(prev.map((s) => s.id));
-        return [...prev, ...rows.filter((r) => !seen.has(r.id))];
-      });
-      if (count != null) setTotal(count);
-      setHasMore(rows.length === PAGE_SIZE);
-    } finally {
-      loadingMoreRef.current = false;
-      setLoadingMore(false);
-    }
-  }, [fetchPage, hasMore]);
-
-  // Infinite scroll: pull the next page as the sentinel nears the viewport.
-  useEffect(() => {
-    const el = sentinelRef.current;
-    if (!el) return;
-    const observer = new IntersectionObserver(
-      (entries) => {
-        if (entries[0].isIntersecting) loadMore();
-      },
-      { rootMargin: "600px" }
-    );
-    observer.observe(el);
-    return () => observer.disconnect();
-  }, [loadMore]);
-
-  // Client-side filter keeps the view correct instantly while a refetch lands.
-  const displayed =
-    effectiveView === "mine" && user
-      ? songs.filter((s) => s.user_id === user.id)
-      : effectiveView === "templates"
-        ? songs.filter((s) => s.is_template)
-        : songs.filter((s) => !s.is_template);
-
-  const handleDeleted = useCallback((id: string) => {
-    setSongs((prev) => prev.filter((s) => s.id !== id));
-  }, []);
-
-  const handleRenamed = useCallback((id: string, title: string) => {
-    setSongs((prev) => prev.map((s) => (s.id === id ? { ...s, title } : s)));
-  }, []);
-
-  const handleTemplateToggled = useCallback((id: string, isTemplate: boolean) => {
-    setSongs((prev) => prev.map((s) => (s.id === id ? { ...s, is_template: isTemplate } : s)));
-  }, []);
 
   return (
     <div className="songs-page">
@@ -225,7 +117,7 @@ export default function SongsPage() {
               </button>
             )}
           </div>
-          {!loading && total != null && displayed.length > 0 && (
+          {!loading && total != null && songs.length > 0 && (
             <span className="songs-count">{t.songsCount(total)}</span>
           )}
         </div>
@@ -243,7 +135,7 @@ export default function SongsPage() {
               </div>
             ))}
           </div>
-        ) : displayed.length === 0 ? (
+        ) : songs.length === 0 ? (
           <p className="songs-status">
             {effectiveView === "mine"
               ? t.noMySongs
@@ -254,7 +146,7 @@ export default function SongsPage() {
         ) : (
           <>
             <div className="songs-grid">
-              {displayed.map((song, i) => (
+              {songs.map((song, i) => (
                 <SongCard
                   key={song.id}
                   id={song.id}
@@ -265,9 +157,9 @@ export default function SongsPage() {
                   isOwner={!!user && song.user_id === user.id}
                   isTemplate={song.is_template}
                   t={t}
-                  onDeleted={handleDeleted}
-                  onRenamed={handleRenamed}
-                  onTemplateToggled={handleTemplateToggled}
+                  onDeleted={removeSong}
+                  onRenamed={renameSong}
+                  onTemplateToggled={setSongTemplate}
                 />
               ))}
             </div>
