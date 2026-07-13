@@ -18,6 +18,7 @@ type FeedSong = {
   title: string;
   author: string;
   created_at: string;
+  updated_at: string;
   song_data: Song;
   user_id: string | null;
   is_template: boolean;
@@ -69,12 +70,12 @@ export default function SongsPage() {
   useEffect(() => {
     let query = supabase
       .from("songs")
-      .select("id, title, author, created_at, song_data, user_id, is_template");
+      .select("id, title, author, created_at, updated_at, song_data, user_id, is_template");
     if (effectiveView === "mine" && user) query = query.eq("user_id", user.id);
     else if (effectiveView === "templates") query = query.eq("is_template", true);
     else query = query.eq("is_template", false); // "all" excludes templates
     query
-      .order("created_at", { ascending: false })
+      .order("updated_at", { ascending: false })
       .limit(50)
       .then(({ data }) => {
         setSongs((data as FeedSong[]) ?? []);
@@ -173,7 +174,7 @@ export default function SongsPage() {
                 id={song.id}
                 title={song.title}
                 author={song.author}
-                time={timeAgo(song.created_at, locale)}
+                time={timeAgo(song.updated_at, locale)}
                 gradient={CARD_GRADIENTS[i % CARD_GRADIENTS.length]}
                 isOwner={!!user && song.user_id === user.id}
                 isTemplate={song.is_template}
