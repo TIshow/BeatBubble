@@ -81,7 +81,8 @@ Playful, rounded, kid-friendly. Keep new UI consistent with these:
 - Both `/` and `/songs` pages share the account menu (locale switch works signed out too)
 
 ## Save / Feed
-- Songs are saved to Supabase table `songs` (columns: id, title, author, song_data jsonb, created_at)
+- Songs are saved to Supabase table `songs` (columns: id, title, author, song_data jsonb, created_at, updated_at)
+  - `updated_at` is server-controlled (trigger): bumped only when title/author/song_data change (overwrite-save, rename) — not by hidden/is_template flips
 - Public read + insert RLS policies (no auth required)
 - `/songs` page lists the 50 most recent songs; each card links to `/?load=<id>`
 - Editor loads a song via `?load=<id>` on mount **through `migrateSong()`**, then cleans the URL with `replaceState`
