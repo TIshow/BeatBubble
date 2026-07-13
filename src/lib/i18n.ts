@@ -55,6 +55,8 @@ export type Translations = {
   searchPlaceholder: string;
   searchClear: string;
   noResults: string;
+  filterGradeAll: string;
+  filterClassAll: string;
   songsCount: (n: number) => string;
   loadingMore: string;
   showMore: string;
@@ -145,6 +147,8 @@ export const translations: Record<Locale, Translations> = {
     searchPlaceholder: "Search by song or name",
     searchClear: "Clear",
     noResults: "No matching songs.",
+    filterGradeAll: "All grades",
+    filterClassAll: "All classes",
     songsCount: (n) => `${n} songs`,
     loadingMore: "Loading more...",
     showMore: "Show more",
@@ -231,6 +235,8 @@ export const translations: Record<Locale, Translations> = {
     searchPlaceholder: "きょくや なまえで さがす",
     searchClear: "けす",
     noResults: "みつかりませんでした。",
+    filterGradeAll: "すべての学年",
+    filterClassAll: "すべてのクラス",
     songsCount: (n) => `${n}曲`,
     loadingMore: "よみこみちゅう...",
     showMore: "もっと見る",

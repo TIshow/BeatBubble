@@ -1,11 +1,12 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import Link from "next/link";
 import { useLocale } from "@/hooks/useLocale";
 import { useAuth } from "@/hooks/useAuth";
 import { useProfile } from "@/hooks/useProfile";
 import { useSongFeed, type FeedView } from "@/hooks/useSongFeed";
+import { useSongFilters } from "@/hooks/useSongFilters";
 import { AccountMenu } from "@/app/components/AccountMenu";
 import { ProfileModal } from "@/app/components/ProfileModal";
 import { SongCard } from "@/app/components/SongCard";
@@ -38,15 +39,19 @@ export default function SongsPage() {
   const { profile, saveProfile } = useProfile(user);
   const [view, setView] = useState<FeedView>("all");
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
-  // `searchInput` tracks the field; `search` is the debounced value that
-  // actually drives the query, so we don't hit the DB on every keystroke.
-  const [searchInput, setSearchInput] = useState("");
-  const [search, setSearch] = useState("");
 
-  useEffect(() => {
-    const id = setTimeout(() => setSearch(searchInput), 300);
-    return () => clearTimeout(id);
-  }, [searchInput]);
+  const {
+    filters,
+    searchInput,
+    setSearchInput,
+    grade,
+    selectGrade,
+    className,
+    setClassName,
+    grades,
+    classNames,
+    hasClassFilters,
+  } = useSongFilters();
 
   // "mine" needs sign-in; "all" and "templates" are open to everyone.
   const effectiveView: FeedView = !user && view === "mine" ? "all" : view;
@@ -62,7 +67,7 @@ export default function SongsPage() {
     removeSong,
     renameSong,
     setSongTemplate,
-  } = useSongFeed(effectiveView, user, search);
+  } = useSongFeed(effectiveView, user, filters);
 
   // Identity line for the account menu, from whatever profile fields are set.
   const profileSubtitle = [
@@ -149,6 +154,42 @@ export default function SongsPage() {
               </button>
             )}
           </div>
+
+          {hasClassFilters && (
+            <div className="songs-filters">
+              {grades.length > 0 && (
+                <select
+                  className="songs-filter-select"
+                  value={grade ?? ""}
+                  onChange={(e) => selectGrade(e.target.value === "" ? null : Number(e.target.value))}
+                  aria-label={t.profileGrade}
+                >
+                  <option value="">{t.filterGradeAll}</option>
+                  {grades.map((g) => (
+                    <option key={g} value={g}>
+                      {t.profileGradeUnit(g)}
+                    </option>
+                  ))}
+                </select>
+              )}
+              {classNames.length > 0 && (
+                <select
+                  className="songs-filter-select"
+                  value={className ?? ""}
+                  onChange={(e) => setClassName(e.target.value === "" ? null : e.target.value)}
+                  aria-label={t.profileClass}
+                >
+                  <option value="">{t.filterClassAll}</option>
+                  {classNames.map((c) => (
+                    <option key={c} value={c}>
+                      {c}
+                    </option>
+                  ))}
+                </select>
+              )}
+            </div>
+          )}
+
           {!loading && total != null && songs.length > 0 && (
             <span className="songs-count">{t.songsCount(total)}</span>
           )}
@@ -169,7 +210,7 @@ export default function SongsPage() {
           </div>
         ) : songs.length === 0 ? (
           <p className="songs-status">
-            {search
+            {filters.search
               ? t.noResults
               : effectiveView === "mine"
                 ? t.noMySongs

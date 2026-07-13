@@ -81,10 +81,11 @@ Playful, rounded, kid-friendly. Keep new UI consistent with these:
 - Both `/` and `/songs` pages share the account menu (locale switch works signed out too)
 
 ## Save / Feed
-- Songs are saved to Supabase table `songs` (columns: id, title, author, song_data jsonb, created_at, updated_at)
+- Songs are saved to Supabase table `songs` (columns: id, title, author, song_data jsonb, created_at, updated_at, grade, class_name)
   - `updated_at` is server-controlled (trigger): bumped only when title/author/song_data change (overwrite-save, rename) — not by hidden/is_template flips
+  - `grade`/`class_name` are a **snapshot of the author's profile at save time** (trigger `songs_class_snapshot`): populated on insert from `profiles`, frozen on update, null for anonymous saves. The client never sends them.
 - Public read + insert RLS policies (no auth required)
-- `/songs` page paginates all songs newest-first (24/page via `.range()`, infinite scroll + "もっと見る" fallback); each card links to `/?load=<id>`
+- `/songs` page: server-side text search (`ilike` title/author, debounced) + grade/class filters (`song_class_options()` RPC feeds the dropdowns; hidden when no class data); all fold into `useSongFeed`, paginated 24/page via `.range()` (infinite scroll + "もっと見る" fallback); each card links to `/?load=<id>`
 - Editor loads a song via `?load=<id>` on mount **through `migrateSong()`**, then cleans the URL with `replaceState`
 - Required env vars: `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`
 
