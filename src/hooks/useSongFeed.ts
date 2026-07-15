@@ -16,12 +16,14 @@ export type FeedSong = {
   song_data: Song;
   user_id: string | null;
   is_template: boolean;
+  visibility: "draft" | "unlisted" | "public";
 };
 
 // How many songs to fetch per page. The feed loads more as you scroll.
 const PAGE_SIZE = 24;
 
-const SONG_COLUMNS = "id, title, author, created_at, updated_at, song_data, user_id, is_template";
+const SONG_COLUMNS =
+  "id, title, author, created_at, updated_at, song_data, user_id, is_template, visibility";
 
 // Whether a song belongs to a view — mirrors the server-side filter, so a
 // locally-mutated song (template toggled, etc.) leaves/stays in the list
@@ -83,9 +85,15 @@ export function useSongFeed(view: FeedView, user: User | null, filters: FeedFilt
   const fetchPage = useCallback(
     (from: number) => {
       let query = supabase.from("songs").select(SONG_COLUMNS, { count: "exact" });
-      if (view === "mine" && user) query = query.eq("user_id", user.id);
-      else if (view === "templates") query = query.eq("is_template", true);
-      else query = query.eq("is_template", false);
+      if (view === "mine" && user) {
+        // "mine" shows the owner's songs at any visibility (drafts included).
+        query = query.eq("user_id", user.id);
+      } else {
+        // Public feeds show only public songs — unlisted is reachable by link
+        // only (RLS allows the read; this filter keeps it out of the feed),
+        // and drafts aren't world-readable at all.
+        query = query.eq("is_template", view === "templates").eq("visibility", "public");
+      }
       const term = sanitizeSearch(search);
       if (term) query = query.or(`title.ilike.%${term}%,author.ilike.%${term}%`);
       if (grade != null) query = query.eq("grade", grade);
