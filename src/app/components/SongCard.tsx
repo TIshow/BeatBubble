@@ -3,10 +3,9 @@
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import type { Translations } from "@/lib/i18n";
+import type { Visibility } from "@/hooks/useSongFeed";
 import { supabase } from "@/lib/supabase";
 import { MAX_TITLE_LENGTH, validateSongMeta } from "@/lib/validation";
-
-export type Visibility = "draft" | "unlisted" | "public";
 
 interface Props {
   id: string;

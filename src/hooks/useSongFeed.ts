@@ -7,6 +7,8 @@ import type { Song } from "@/core/types";
 
 export type FeedView = "all" | "mine" | "templates";
 
+export type Visibility = "draft" | "unlisted" | "public";
+
 export type FeedSong = {
   id: string;
   title: string;
@@ -16,7 +18,7 @@ export type FeedSong = {
   song_data: Song;
   user_id: string | null;
   is_template: boolean;
-  visibility: "draft" | "unlisted" | "public";
+  visibility: Visibility;
 };
 
 // How many songs to fetch per page. The feed loads more as you scroll.
@@ -176,7 +178,7 @@ export function useSongFeed(view: FeedView, user: User | null, filters: FeedFilt
     setSongs((prev) => prev.map((s) => (s.id === id ? { ...s, is_template: isTemplate } : s)));
   }, []);
 
-  const setSongVisibility = useCallback((id: string, visibility: FeedSong["visibility"]) => {
+  const setSongVisibility = useCallback((id: string, visibility: Visibility) => {
     setSongs((prev) => prev.map((s) => (s.id === id ? { ...s, visibility } : s)));
   }, []);
 
