@@ -63,6 +63,12 @@ export type Translations = {
   templateBadge: string;
   templateOn: string;
   templateOff: string;
+  visPublic: string;
+  visUnlisted: string;
+  visDraft: string;
+  visibilityLabel: string;
+  saveDraftHint: string;
+  savePublicHint: string;
   rename: string;
   deleteSong: string;
   confirmDeleteSong: string;
@@ -155,6 +161,12 @@ export const translations: Record<Locale, Translations> = {
     templateBadge: "Template",
     templateOn: "Make template",
     templateOff: "Unset template",
+    visPublic: "Public",
+    visUnlisted: "Unlisted",
+    visDraft: "Draft",
+    visibilityLabel: "Visibility",
+    saveDraftHint: "Saved as a draft. You can publish it later from Everyone's Songs.",
+    savePublicHint: "This will be published to Everyone's Songs.",
     rename: "Rename",
     deleteSong: "Delete",
     confirmDeleteSong: "Delete this song?",
@@ -243,6 +255,12 @@ export const translations: Record<Locale, Translations> = {
     templateBadge: "テンプレ",
     templateOn: "テンプレにする",
     templateOff: "テンプレ解除",
+    visPublic: "公開",
+    visUnlisted: "限定公開",
+    visDraft: "下書き",
+    visibilityLabel: "公開はんい",
+    saveDraftHint: "下書きとして保存します。あとで「みんなの曲」で公開できます。",
+    savePublicHint: "保存すると「みんなの曲」に公開されます。",
     rename: "なまえをかえる",
     deleteSong: "けす",
     confirmDeleteSong: "この曲を けしますか？",

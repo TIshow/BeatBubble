@@ -30,8 +30,10 @@ const SONG_COLUMNS =
 // immediately without waiting for a refetch.
 function matchesView(song: FeedSong, view: FeedView, user: User | null): boolean {
   if (view === "mine") return !!user && song.user_id === user.id;
-  if (view === "templates") return song.is_template;
-  return !song.is_template; // "all" excludes templates
+  // Public feeds show only public songs, so a song switched to draft/unlisted
+  // drops out immediately without waiting for a refetch.
+  if (view === "templates") return song.is_template && song.visibility === "public";
+  return !song.is_template && song.visibility === "public"; // "all" excludes templates
 }
 
 // Strip characters that would break the PostgREST `.or()` filter string
@@ -174,6 +176,10 @@ export function useSongFeed(view: FeedView, user: User | null, filters: FeedFilt
     setSongs((prev) => prev.map((s) => (s.id === id ? { ...s, is_template: isTemplate } : s)));
   }, []);
 
+  const setSongVisibility = useCallback((id: string, visibility: FeedSong["visibility"]) => {
+    setSongs((prev) => prev.map((s) => (s.id === id ? { ...s, visibility } : s)));
+  }, []);
+
   return {
     songs: songs.filter((s) => matchesView(s, view, user)),
     total,
@@ -185,5 +191,6 @@ export function useSongFeed(view: FeedView, user: User | null, filters: FeedFilt
     removeSong,
     renameSong,
     setSongTemplate,
+    setSongVisibility,
   };
 }

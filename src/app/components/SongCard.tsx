@@ -6,6 +6,8 @@ import type { Translations } from "@/lib/i18n";
 import { supabase } from "@/lib/supabase";
 import { MAX_TITLE_LENGTH, validateSongMeta } from "@/lib/validation";
 
+export type Visibility = "draft" | "unlisted" | "public";
+
 interface Props {
   id: string;
   title: string;
@@ -14,13 +16,17 @@ interface Props {
   gradient: string;
   isOwner: boolean;
   isTemplate: boolean;
+  visibility: Visibility;
   t: Translations;
   onDeleted: (id: string) => void;
   onRenamed: (id: string, title: string) => void;
   onTemplateToggled: (id: string, isTemplate: boolean) => void;
+  onVisibilityChanged: (id: string, visibility: Visibility) => void;
 }
 
 type Mode = "view" | "rename" | "confirmDelete";
+
+const VISIBILITY_ORDER: Visibility[] = ["public", "unlisted", "draft"];
 
 export function SongCard({
   id,
@@ -30,10 +36,12 @@ export function SongCard({
   gradient,
   isOwner,
   isTemplate,
+  visibility,
   t,
   onDeleted,
   onRenamed,
   onTemplateToggled,
+  onVisibilityChanged,
 }: Props) {
   const [mode, setMode] = useState<Mode>("view");
   const [draft, setDraft] = useState(title);
@@ -95,10 +103,28 @@ export function SongCard({
     if (!error) onTemplateToggled(id, next);
   };
 
+  const changeVisibility = async (next: Visibility) => {
+    setMenuOpen(false);
+    if (next === visibility) return;
+    setBusy(true);
+    const { error } = await supabase.from("songs").update({ visibility: next }).eq("id", id);
+    setBusy(false);
+    if (!error) onVisibilityChanged(id, next);
+  };
+
+  const visLabel = (v: Visibility) =>
+    v === "public" ? t.visPublic : v === "unlisted" ? t.visUnlisted : t.visDraft;
+
   return (
     <div className="song-card">
       <div className="song-card-art" style={{ background: gradient }}>
-        {isTemplate && <span className="song-card-template-badge">{t.templateBadge}</span>}
+        {isTemplate ? (
+          <span className="song-card-template-badge">{t.templateBadge}</span>
+        ) : visibility === "draft" ? (
+          <span className="song-card-vis-badge draft">{t.visDraft}</span>
+        ) : visibility === "unlisted" ? (
+          <span className="song-card-vis-badge unlisted">{t.visUnlisted}</span>
+        ) : null}
         {isOwner && (
           <div className="song-card-menu" ref={menuRef}>
             <button
@@ -112,6 +138,26 @@ export function SongCard({
             </button>
             {menuOpen && (
               <div className="song-card-menu-pop" role="menu">
+                {!isTemplate && (
+                  <>
+                    <span className="song-card-menu-label">{t.visibilityLabel}</span>
+                    {VISIBILITY_ORDER.map((v) => (
+                      <button
+                        key={v}
+                        role="menuitemradio"
+                        aria-checked={visibility === v}
+                        onClick={() => changeVisibility(v)}
+                        disabled={busy}
+                      >
+                        <span className="song-card-menu-check" aria-hidden="true">
+                          {visibility === v ? "✓" : ""}
+                        </span>
+                        {visLabel(v)}
+                      </button>
+                    ))}
+                    <div className="song-card-menu-divider" />
+                  </>
+                )}
                 <button role="menuitem" onClick={toggleTemplate} disabled={busy}>
                   {isTemplate ? `★ ${t.templateOff}` : `☆ ${t.templateOn}`}
                 </button>
