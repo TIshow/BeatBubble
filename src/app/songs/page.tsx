@@ -67,6 +67,7 @@ export default function SongsPage() {
     removeSong,
     renameSong,
     setSongTemplate,
+    setSongVisibility,
   } = useSongFeed(effectiveView, user, filters);
 
   // Identity line for the account menu, from whatever profile fields are set.
@@ -231,10 +232,12 @@ export default function SongsPage() {
                   gradient={CARD_GRADIENTS[i % CARD_GRADIENTS.length]}
                   isOwner={!!user && song.user_id === user.id}
                   isTemplate={song.is_template}
+                  visibility={song.visibility}
                   t={t}
                   onDeleted={removeSong}
                   onRenamed={renameSong}
                   onTemplateToggled={setSongTemplate}
+                  onVisibilityChanged={setSongVisibility}
                 />
               ))}
             </div>

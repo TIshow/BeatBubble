@@ -81,6 +81,9 @@ export function SaveModal({
         author: author.trim(),
         song_data: song,
         user_id: userId,
+        // Signed-in saves start private (publish later); anonymous saves have
+        // no owner to manage a draft, so they go straight to public.
+        visibility: userId ? "draft" : "public",
       })
     );
 
@@ -123,6 +126,9 @@ export function SaveModal({
             maxLength={MAX_AUTHOR_LENGTH}
           />
         </div>
+        {!existing && (
+          <p className="modal-hint">{userId ? t.saveDraftHint : t.savePublicHint}</p>
+        )}
         {error && <p className="modal-error">{error}</p>}
         <div className="modal-actions">
           <button className="modal-cancel" onClick={onClose}>

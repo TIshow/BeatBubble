@@ -110,6 +110,14 @@ select.modal-input {
   color: #ee5253;
 }
 
+.modal-hint {
+  margin: -4px 0 0;
+  font-size: 13px;
+  font-weight: 500;
+  opacity: 0.6;
+  line-height: 1.5;
+}
+
 .modal-save {
   padding: 8px 20px;
   border-radius: 12px;
