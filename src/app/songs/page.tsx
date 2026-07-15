@@ -233,6 +233,7 @@ export default function SongsPage() {
                   isOwner={!!user && song.user_id === user.id}
                   isTemplate={song.is_template}
                   visibility={song.visibility}
+                  isTeacher={!!profile?.isTeacher}
                   t={t}
                   onDeleted={removeSong}
                   onRenamed={renameSong}

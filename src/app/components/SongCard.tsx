@@ -16,6 +16,9 @@ interface Props {
   isOwner: boolean;
   isTemplate: boolean;
   visibility: Visibility;
+  // Whether the viewer (the owner) is a teacher — only teachers may make a
+  // song a template. Unsetting stays open to any owner.
+  isTeacher: boolean;
   t: Translations;
   onDeleted: (id: string) => void;
   onRenamed: (id: string, title: string) => void;
@@ -36,6 +39,7 @@ export function SongCard({
   isOwner,
   isTemplate,
   visibility,
+  isTeacher,
   t,
   onDeleted,
   onRenamed,
@@ -157,9 +161,17 @@ export function SongCard({
                     <div className="song-card-menu-divider" />
                   </>
                 )}
-                <button role="menuitem" onClick={toggleTemplate} disabled={busy}>
-                  {isTemplate ? `★ ${t.templateOff}` : `☆ ${t.templateOn}`}
-                </button>
+                {isTemplate ? (
+                  <button role="menuitem" onClick={toggleTemplate} disabled={busy}>
+                    ★ {t.templateOff}
+                  </button>
+                ) : isTeacher && visibility === "public" ? (
+                  // Only teachers can make a template, and only from a public
+                  // song (templates must be public — see the DB check).
+                  <button role="menuitem" onClick={toggleTemplate} disabled={busy}>
+                    ☆ {t.templateOn}
+                  </button>
+                ) : null}
                 <button
                   role="menuitem"
                   onClick={() => {
