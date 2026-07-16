@@ -92,6 +92,14 @@ export function GridScrollbar({ containerRef, controlsId, totalSteps }: Props) {
     measure();
   }, [totalSteps, measure]);
 
+  // Scroll the container to x (clamped in range) and sync the thumb at once.
+  const scrollContainerTo = (x: number) => {
+    const c = containerRef.current;
+    if (!c) return;
+    c.scrollLeft = Math.max(0, Math.min(c.scrollWidth - c.clientWidth, x));
+    measure();
+  };
+
   const onThumbPointerDown = (e: React.PointerEvent) => {
     const c = containerRef.current;
     const track = trackRef.current;
@@ -113,13 +121,10 @@ export function GridScrollbar({ containerRef, controlsId, totalSteps }: Props) {
 
   const onThumbPointerMove = (e: React.PointerEvent) => {
     const d = dragRef.current;
-    const c = containerRef.current;
-    if (!d || !c || d.range <= 0) return;
-    const scrollDelta = ((e.clientX - d.startX) / d.range) * d.maxScroll;
-    c.scrollLeft = Math.max(0, Math.min(d.maxScroll, d.startScroll + scrollDelta));
-    // Reflect it on the thumb right away — glued to the finger, without waiting
-    // on the (rAF-throttled) scroll listener.
-    measure();
+    if (!d || d.range <= 0) return;
+    // scrollContainerTo re-syncs the thumb right away — glued to the finger,
+    // without waiting on the (rAF-throttled) scroll listener.
+    scrollContainerTo(d.startScroll + ((e.clientX - d.startX) / d.range) * d.maxScroll);
   };
 
   const onThumbPointerUp = (e: React.PointerEvent) => {
@@ -136,13 +141,10 @@ export function GridScrollbar({ containerRef, controlsId, totalSteps }: Props) {
     const c = containerRef.current;
     const track = trackRef.current;
     if (!c || !track || !thumb.draggable) return;
-    const rect = track.getBoundingClientRect();
-    const target = e.clientX - rect.left - thumb.width / 2;
     const range = track.clientWidth - thumb.width;
-    const maxScroll = c.scrollWidth - c.clientWidth;
     if (range <= 0) return;
-    c.scrollLeft = Math.max(0, Math.min(maxScroll, (target / range) * maxScroll));
-    measure();
+    const target = e.clientX - track.getBoundingClientRect().left - thumb.width / 2;
+    scrollContainerTo((target / range) * (c.scrollWidth - c.clientWidth));
   };
 
   return (
