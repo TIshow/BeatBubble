@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect } from "react";
 import type { RefObject } from "react";
 import type { DrumId, MelodyNote, NoteName, Song } from "@/core/types";
 import type { Locale } from "@/lib/i18n";
@@ -36,6 +37,37 @@ export function Grid({
 }: Props) {
   const noteRows = buildNoteRows(song);
   const stepsArray = Array.from({ length: totalSteps(song) }, (_, i) => i);
+
+  // Follow the playhead during playback: once it advances past an anchor
+  // (~40% across the usable width), scroll the grid so the highlighted column
+  // stays put and the sheet flows underneath it — like a scrolling score. The
+  // start of the song stays visible until the playhead reaches the anchor.
+  useEffect(() => {
+    if (playheadStep == null) return;
+    const container = gridContainerRef.current;
+    const grid = gridRef.current;
+    // Nothing to follow if the whole song already fits in view.
+    if (!container || !grid || container.scrollWidth <= container.clientWidth) return;
+    const cell = grid.querySelector<HTMLElement>(".cell.playhead");
+    if (!cell) return;
+
+    // The label column is sticky at the left, so the usable area starts past it.
+    const labels = container.querySelector<HTMLElement>(".labels");
+    const inset = (labels?.offsetWidth ?? 0) + 8; // label width + gap
+    const view = container.clientWidth;
+    const cellLeft = cell.getBoundingClientRect().left - container.getBoundingClientRect().left;
+    const anchor = inset + (view - inset) * 0.4;
+
+    // Scroll instantly (not CSS smooth): the per-step nudge is ~one cell, so
+    // stepping it in sync with the beat reads as the sheet flowing under a
+    // fixed playhead — and it works everywhere (some webviews ignore
+    // behavior:"smooth").
+    if (playheadStep === 0) {
+      container.scrollLeft = 0; // loop restart → back to the start
+    } else if (cellLeft > anchor) {
+      container.scrollLeft += cellLeft - anchor;
+    }
+  }, [playheadStep, gridContainerRef, gridRef]);
 
   const renderBubble = (note: MelodyNote, step: number) => {
     const position = getNotePosition(note, step);
