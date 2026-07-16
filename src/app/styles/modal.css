@@ -118,6 +118,19 @@ select.modal-input {
   line-height: 1.5;
 }
 
+/* Prominent warning (e.g. anonymous save can't be deleted later). */
+.modal-warn {
+  margin: -4px 0 0;
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1.5px solid #ef9f27;
+  background: rgba(239, 159, 39, 0.12);
+  color: var(--foreground);
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.5;
+}
+
 .modal-save {
   padding: 8px 20px;
   border-radius: 12px;

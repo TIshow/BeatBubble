@@ -176,9 +176,14 @@ export function SaveModal({
             maxLength={MAX_AUTHOR_LENGTH}
           />
         </div>
-        {!existing && (
-          <p className="modal-hint">{userId ? t.saveChoiceHint : t.savePublicHint}</p>
-        )}
+        {!existing &&
+          (userId ? (
+            <p className="modal-hint">{t.saveChoiceHint}</p>
+          ) : (
+            // Not signed in: an anonymous save has no owner, so the child can't
+            // delete it later. Warn prominently before they publish.
+            <p className="modal-warn">{t.saveAnonWarn}</p>
+          ))}
         {error && <p className="modal-error">{error}</p>}
         <div className="modal-actions">
           <button className="modal-cancel" onClick={onClose}>
