@@ -70,7 +70,7 @@ export type Translations = {
   visDraft: string;
   visibilityLabel: string;
   saveChoiceHint: string;
-  savePublicHint: string;
+  saveAnonWarn: string;
   saveDraftBtn: string;
   savePublicBtn: string;
   savedDraftMsg: string;
@@ -176,7 +176,7 @@ export const translations: Record<Locale, Translations> = {
     visDraft: "Draft",
     visibilityLabel: "Visibility",
     saveChoiceHint: "A draft can be published anytime later.",
-    savePublicHint: "This will be published to Everyone's Songs.",
+    saveAnonWarn: "You're not logged in. If you save now it goes public and you won't be able to delete it yourself later.",
     saveDraftBtn: "Save as draft",
     savePublicBtn: "Save & publish",
     savedDraftMsg: "Saved as a draft! Find it under \"Mine\" in Everyone's Songs.",
@@ -278,7 +278,7 @@ export const translations: Record<Locale, Translations> = {
     visDraft: "下書き",
     visibilityLabel: "公開はんい",
     saveChoiceHint: "下書きは あとから いつでも 公開できるよ。",
-    savePublicHint: "保存すると「みんなの曲」に公開されます。",
+    saveAnonWarn: "ログインしていないよ。このまま ほぞんすると「みんなの曲」に こうかいされて、あとで じぶんで けせなくなるよ。",
     saveDraftBtn: "下書きほぞん",
     savePublicBtn: "公開してほぞん",
     savedDraftMsg: "下書きに ほぞんしたよ！「みんなの曲」の「じぶん」から 見られるよ。",
