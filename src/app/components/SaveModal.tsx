@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import type { Song } from "@/core/types";
-import type { Locale } from "@/lib/i18n";
+import type { Locale, Translations } from "@/lib/i18n";
 import { translations } from "@/lib/i18n";
 import { supabase } from "@/lib/supabase";
 import {
@@ -11,6 +11,28 @@ import {
   validateSongMeta,
   songWithinSizeLimit,
 } from "@/lib/validation";
+
+// Map a Supabase save error to a message a child can act on. The raw error is
+// also logged (see run) so a recurrence can be diagnosed from the console.
+// - auth/session (expired JWT, RLS uid mismatch) → tell them to re-login
+// - rate limit (429, shared school IP under load) → tell them to wait
+// - size check slipping past the client guard → the too-large message
+function saveErrorMessage(error: unknown, t: Translations): string {
+  const e = (error ?? {}) as { code?: string; message?: string; status?: number };
+  const code = e.code ?? "";
+  const msg = (e.message ?? "").toLowerCase();
+  const status = e.status;
+  if (code === "PGRST301" || code === "42501" || msg.includes("jwt") || status === 401 || status === 403) {
+    return t.saveErrorAuth;
+  }
+  if (status === 429 || msg.includes("rate limit") || msg.includes("too many")) {
+    return t.saveErrorRateLimit;
+  }
+  if (code === "23514" || msg.includes("song_data")) {
+    return t.saveErrorTooLarge;
+  }
+  return t.saveErrorFailed;
+}
 
 interface Props {
   song: Song;
@@ -62,13 +84,15 @@ export function SaveModal({
     try {
       const { error: dbError } = await op();
       if (dbError) {
-        setError(t.saveErrorFailed);
+        console.error("[BeatBubble] save failed:", dbError);
+        setError(saveErrorMessage(dbError, t));
         return;
       }
       onSuccess?.();
       onClose();
-    } catch {
-      setError(t.saveErrorFailed);
+    } catch (err) {
+      console.error("[BeatBubble] save threw:", err);
+      setError(saveErrorMessage(err, t));
     } finally {
       setSaving(false);
     }
