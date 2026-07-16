@@ -11,6 +11,70 @@
   overflow-x: auto;
   overflow-y: hidden;
   padding-bottom: 8px;
+  /* Hide the native bar — we render our own always-visible one (.grid-scrollbar)
+     because the native bar is thin, auto-hiding on tablets, and can't be
+     thickened on iPad Safari. Scrolling itself stays enabled. */
+  scrollbar-width: none; /* Firefox */
+}
+
+.grid-container::-webkit-scrollbar {
+  display: none; /* Chrome/Safari/Edge */
+}
+
+/* Custom horizontal scrollbar: always visible, chunky, one-finger draggable.
+   Kids slide the thumb (or tap the track) to move a long sheet — no two-finger
+   gesture needed, and it doesn't collide with the note-editing touch handlers.
+   It only reads/writes container.scrollLeft, so it stays in sync with the
+   two-finger drag and the playhead-follow auto-scroll. */
+.grid-scrollbar {
+  position: relative;
+  height: 18px;
+  margin: 6px 0 2px;
+  border-radius: 999px;
+  background: var(--grid-line);
+  touch-action: none;
+  cursor: pointer;
+}
+
+.grid-scrollbar-thumb {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  min-width: 48px;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.32);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.18);
+  cursor: grab;
+  touch-action: none;
+  transition: background 0.12s ease;
+}
+
+.grid-scrollbar-thumb:hover {
+  background: rgba(0, 0, 0, 0.45);
+}
+
+.grid-scrollbar-thumb:active {
+  cursor: grabbing;
+  background: rgba(0, 0, 0, 0.55);
+}
+
+/* Whole song already fits — thumb fills the track and isn't draggable. */
+.grid-scrollbar-thumb--full {
+  cursor: default;
+  opacity: 0.5;
+}
+
+@media (prefers-color-scheme: dark) {
+  .grid-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.38);
+  }
+  .grid-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.5);
+  }
+  .grid-scrollbar-thumb:active {
+    background: rgba(255, 255, 255, 0.62);
+  }
 }
 
 .labels {
