@@ -8,6 +8,7 @@ import { totalSteps } from "@/core/utils";
 import { colorForDrum, colorForNote } from "@/ui/color";
 import { noteLabel } from "@/ui/noteLabel";
 import { buildNoteRows, findMelodyNoteAt, getNotePosition } from "@/ui/grid";
+import { GridScrollbar } from "./GridScrollbar";
 
 const DRUM_ROWS: DrumId[] = ["hihat", "snare", "kick"];
 
@@ -36,7 +37,8 @@ export function Grid({
   getDrumCellHandlers,
 }: Props) {
   const noteRows = buildNoteRows(song);
-  const stepsArray = Array.from({ length: totalSteps(song) }, (_, i) => i);
+  const steps = totalSteps(song);
+  const stepsArray = Array.from({ length: steps }, (_, i) => i);
 
   // Follow the playhead during playback: once it advances past an anchor
   // (~40% across the usable width), scroll the grid so the highlighted column
@@ -135,7 +137,7 @@ export function Grid({
 
   return (
     <main className="main">
-      <div className="grid-container" ref={gridContainerRef}>
+      <div className="grid-container" id="grid-scroll-area" ref={gridContainerRef}>
         <div className="labels grid">
           {noteRows.map((noteName) => (
             <div key={noteName} className="label-row">
@@ -165,6 +167,11 @@ export function Grid({
           ))}
         </div>
       </div>
+      <GridScrollbar
+        containerRef={gridContainerRef}
+        controlsId="grid-scroll-area"
+        totalSteps={steps}
+      />
     </main>
   );
 }
