@@ -7,9 +7,11 @@ import { migrateSong } from "@/core/legacy";
 // (e.g. to /songs and back — the editor unmounts) or reloading doesn't blank
 // the grid. Session-scoped on purpose: it dies with the tab, so it can't
 // resurrect a weeks-old draft, and two tabs don't fight over one key.
+// All storage access goes through these helpers — each swallows its own
+// failure, so the hook body stays free of try/catch.
 const WORK_KEY = "beatbubble-work";
 
-function restoreWork(): Song | null {
+function readStoredWork(): Song | null {
   try {
     const raw = sessionStorage.getItem(WORK_KEY);
     // Persisted songs are versioned — always revive through migrateSong so a
@@ -19,6 +21,22 @@ function restoreWork(): Song | null {
     // Corrupt/unreadable stored work — fall back to a fresh song.
   }
   return null;
+}
+
+function writeStoredWork(song: Song): void {
+  try {
+    sessionStorage.setItem(WORK_KEY, JSON.stringify(song));
+  } catch {
+    // Storage full/unavailable — persistence is best-effort.
+  }
+}
+
+function clearStoredWork(): void {
+  try {
+    sessionStorage.removeItem(WORK_KEY);
+  } catch {
+    // Storage unavailable — nothing to clear.
+  }
 }
 
 // Owns the song document plus its undo history.
@@ -35,7 +53,7 @@ export function useSong() {
   useEffect(() => {
     let active = true;
     async function restore() {
-      const saved = restoreWork();
+      const saved = readStoredWork();
       if (active && saved) setSong(saved);
     }
     restore();
@@ -50,12 +68,7 @@ export function useSong() {
     // holds DEFAULT_SONG itself, and writing it here would clobber the stored
     // work before/between the restore effect's runs (StrictMode re-runs
     // effects). Any real edit/load produces a new object, which persists.
-    if (song === DEFAULT_SONG) return;
-    try {
-      sessionStorage.setItem(WORK_KEY, JSON.stringify(song));
-    } catch {
-      // Storage full/unavailable — persistence is best-effort.
-    }
+    if (song !== DEFAULT_SONG) writeStoredWork(song);
   }, [song]);
 
   const pushHistory = useCallback((snapshot: Song) => {
@@ -73,11 +86,7 @@ export function useSong() {
     setHistory([]);
     // The persist effect skips DEFAULT_SONG, so drop the stored work here —
     // otherwise navigating away and back would resurrect the pre-reset song.
-    try {
-      sessionStorage.removeItem(WORK_KEY);
-    } catch {
-      // Storage unavailable — nothing to clear.
-    }
+    clearStoredWork();
   }, []);
 
   return {
