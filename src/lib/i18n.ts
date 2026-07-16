@@ -69,8 +69,13 @@ export type Translations = {
   visUnlisted: string;
   visDraft: string;
   visibilityLabel: string;
-  saveDraftHint: string;
+  saveChoiceHint: string;
   savePublicHint: string;
+  saveDraftBtn: string;
+  savePublicBtn: string;
+  savedDraftMsg: string;
+  savedPublicMsg: string;
+  close: string;
   rename: string;
   deleteSong: string;
   confirmDeleteSong: string;
@@ -169,8 +174,13 @@ export const translations: Record<Locale, Translations> = {
     visUnlisted: "Unlisted",
     visDraft: "Draft",
     visibilityLabel: "Visibility",
-    saveDraftHint: "Saved as a draft. You can publish it later from Everyone's Songs.",
+    saveChoiceHint: "A draft can be published anytime later.",
     savePublicHint: "This will be published to Everyone's Songs.",
+    saveDraftBtn: "Save as draft",
+    savePublicBtn: "Save & publish",
+    savedDraftMsg: "Saved as a draft! Find it under \"Mine\" in Everyone's Songs.",
+    savedPublicMsg: "Published to Everyone's Songs!",
+    close: "Close",
     rename: "Rename",
     deleteSong: "Delete",
     confirmDeleteSong: "Delete this song?",
@@ -265,8 +275,13 @@ export const translations: Record<Locale, Translations> = {
     visUnlisted: "限定公開",
     visDraft: "下書き",
     visibilityLabel: "公開はんい",
-    saveDraftHint: "下書きとして保存します。あとで「みんなの曲」で公開できます。",
+    saveChoiceHint: "下書きは あとから いつでも 公開できるよ。",
     savePublicHint: "保存すると「みんなの曲」に公開されます。",
+    saveDraftBtn: "下書きほぞん",
+    savePublicBtn: "公開してほぞん",
+    savedDraftMsg: "下書きに ほぞんしたよ！「みんなの曲」の「じぶん」から 見られるよ。",
+    savedPublicMsg: "「みんなの曲」に 公開したよ！",
+    close: "とじる",
     rename: "なまえをかえる",
     deleteSong: "けす",
     confirmDeleteSong: "この曲を けしますか？",

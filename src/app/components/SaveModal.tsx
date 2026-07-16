@@ -61,6 +61,9 @@ export function SaveModal({
   const [author, setAuthor] = useState(existing ? existing.author : defaultAuthor);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  // After a successful new save, show a confirmation telling the child what
+  // happened and where the song went, instead of silently closing.
+  const [savedAs, setSavedAs] = useState<"draft" | "public" | null>(null);
 
   const guard = (): boolean => {
     const meta = validateSongMeta({ title, author });
@@ -77,7 +80,7 @@ export function SaveModal({
     return true;
   };
 
-  const run = async (op: () => Promise<{ error: unknown }>, onSuccess?: () => void) => {
+  const run = async (op: () => Promise<{ error: unknown }>, onSuccess: () => void) => {
     if (!guard()) return;
     setSaving(true);
     setError(null);
@@ -88,8 +91,7 @@ export function SaveModal({
         setError(saveErrorMessage(dbError, t));
         return;
       }
-      onSuccess?.();
-      onClose();
+      onSuccess();
     } catch (err) {
       console.error("[BeatBubble] save threw:", err);
       setError(saveErrorMessage(err, t));
@@ -98,17 +100,20 @@ export function SaveModal({
     }
   };
 
-  const handleInsert = () =>
-    run(async () =>
-      supabase.from("songs").insert({
-        title: title.trim(),
-        author: author.trim(),
-        song_data: song,
-        user_id: userId,
-        // Signed-in saves start private (publish later); anonymous saves have
-        // no owner to manage a draft, so they go straight to public.
-        visibility: userId ? "draft" : "public",
-      })
+  // New saves pick their visibility explicitly (the child chooses; nothing is
+  // decided silently). Anonymous saves are always public — there is no owner
+  // to manage a draft.
+  const handleInsert = (visibility: "draft" | "public") =>
+    run(
+      async () =>
+        supabase.from("songs").insert({
+          title: title.trim(),
+          author: author.trim(),
+          song_data: song,
+          user_id: userId,
+          visibility,
+        }),
+      () => setSavedAs(visibility)
     );
 
   const handleOverwrite = () =>
@@ -118,10 +123,31 @@ export function SaveModal({
           .from("songs")
           .update({ title: title.trim(), author: author.trim(), song_data: song })
           .eq("id", existing!.id),
-      () => onOverwritten?.(title.trim(), author.trim())
+      () => {
+        onOverwritten?.(title.trim(), author.trim());
+        onClose();
+      }
     );
 
   const canSave = !saving && !!title.trim() && !!author.trim();
+
+  // Post-save confirmation: say what happened and where the song went.
+  if (savedAs) {
+    return (
+      <div className="modal-overlay" onClick={onClose}>
+        <div className="modal" onClick={(e) => e.stopPropagation()}>
+          <h2 className="modal-title">
+            {savedAs === "draft" ? t.savedDraftMsg : t.savedPublicMsg}
+          </h2>
+          <div className="modal-actions">
+            <button className="modal-save" onClick={onClose} autoFocus>
+              {t.close}
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="modal-overlay" onClick={onClose}>
@@ -151,7 +177,7 @@ export function SaveModal({
           />
         </div>
         {!existing && (
-          <p className="modal-hint">{userId ? t.saveDraftHint : t.savePublicHint}</p>
+          <p className="modal-hint">{userId ? t.saveChoiceHint : t.savePublicHint}</p>
         )}
         {error && <p className="modal-error">{error}</p>}
         <div className="modal-actions">
@@ -160,15 +186,42 @@ export function SaveModal({
           </button>
           {existing ? (
             <>
-              <button className="modal-cancel" onClick={handleInsert} disabled={!canSave}>
+              <button
+                className="modal-cancel"
+                onClick={() => handleInsert("draft")}
+                disabled={!canSave}
+              >
                 {t.saveAsNew}
               </button>
               <button className="modal-save" onClick={handleOverwrite} disabled={!canSave}>
                 {saving ? t.saving : t.overwrite}
               </button>
             </>
+          ) : userId ? (
+            // Signed in: the child picks the visibility — draft (primary,
+            // safe default) or publish right away. Nothing decided silently.
+            <>
+              <button
+                className="modal-cancel"
+                onClick={() => handleInsert("public")}
+                disabled={!canSave}
+              >
+                {t.savePublicBtn}
+              </button>
+              <button
+                className="modal-save"
+                onClick={() => handleInsert("draft")}
+                disabled={!canSave}
+              >
+                {saving ? t.saving : t.saveDraftBtn}
+              </button>
+            </>
           ) : (
-            <button className="modal-save" onClick={handleInsert} disabled={!canSave}>
+            <button
+              className="modal-save"
+              onClick={() => handleInsert("public")}
+              disabled={!canSave}
+            >
               {saving ? t.saving : t.save}
             </button>
           )}
