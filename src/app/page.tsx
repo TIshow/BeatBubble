@@ -55,6 +55,7 @@ export default function Home() {
   const [isConfirmingReset, setIsConfirmingReset] = useState(false);
   const [isSaveModalOpen, setIsSaveModalOpen] = useState(false);
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
+  const [loadFailed, setLoadFailed] = useState(false);
   const [isLockMode, setIsLockMode] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
   // The song loaded via ?load=<id>, so its owner can overwrite it on save.
@@ -92,7 +93,7 @@ export default function Home() {
       .select("id, title, author, song_data, user_id, is_template")
       .eq("id", loadId)
       .single()
-      .then(({ data }) => {
+      .then(({ data, error }) => {
         if (data?.song_data) {
           setSong(migrateSong(data.song_data));
           setLoadedSong({
@@ -103,6 +104,13 @@ export default function Home() {
             isTemplate: data.is_template ?? false,
           });
           window.history.replaceState({}, "", "/");
+        } else {
+          // Not found or not readable (e.g. someone else's draft, or the
+          // session isn't restored yet). Say so instead of silently showing
+          // an empty grid, and keep ?load in the URL so reloading after a
+          // login retries the fetch.
+          console.error("[BeatBubble] load failed:", error);
+          setLoadFailed(true);
         }
       });
   }, [setSong]);
@@ -352,6 +360,19 @@ export default function Home() {
         onSignOut={signOut}
         onOpenProfile={() => setIsProfileModalOpen(true)}
       />
+
+      {loadFailed && (
+        <div className="editor-notice" role="alert">
+          <span>{t.loadFailed}</span>
+          <button
+            className="editor-notice-close"
+            onClick={() => setLoadFailed(false)}
+            aria-label={t.close}
+          >
+            ×
+          </button>
+        </div>
+      )}
 
       {isSettingsOpen && (
         <SettingsPanel

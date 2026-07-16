@@ -76,6 +76,7 @@ export type Translations = {
   savedDraftMsg: string;
   savedPublicMsg: string;
   close: string;
+  loadFailed: string;
   rename: string;
   deleteSong: string;
   confirmDeleteSong: string;
@@ -181,6 +182,7 @@ export const translations: Record<Locale, Translations> = {
     savedDraftMsg: "Saved as a draft! Find it under \"Mine\" in Everyone's Songs.",
     savedPublicMsg: "Published to Everyone's Songs!",
     close: "Close",
+    loadFailed: "Couldn't open this song. Check that you're logged in, then reload to try again.",
     rename: "Rename",
     deleteSong: "Delete",
     confirmDeleteSong: "Delete this song?",
@@ -282,6 +284,7 @@ export const translations: Record<Locale, Translations> = {
     savedDraftMsg: "下書きに ほぞんしたよ！「みんなの曲」の「じぶん」から 見られるよ。",
     savedPublicMsg: "「みんなの曲」に 公開したよ！",
     close: "とじる",
+    loadFailed: "この曲を ひらけなかったよ。ログインしているか たしかめて、ページを さいよみこみ してみてね。",
     rename: "なまえをかえる",
     deleteSong: "けす",
     confirmDeleteSong: "この曲を けしますか？",

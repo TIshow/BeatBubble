@@ -70,3 +70,37 @@ a[href],
 .dragging {
   user-select: none;
 }
+
+/* Editor notice bar (e.g. a ?load= that couldn't be opened) */
+.editor-notice {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 12px 16px 0;
+  padding: 10px 16px;
+  border-radius: 12px;
+  border: 1.5px solid #ee5253;
+  background: rgba(238, 82, 83, 0.1);
+  color: var(--foreground);
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.editor-notice-close {
+  flex-shrink: 0;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: none;
+  background: transparent;
+  color: var(--foreground);
+  font-size: 18px;
+  line-height: 1;
+  cursor: pointer;
+  opacity: 0.7;
+}
+
+.editor-notice-close:hover {
+  opacity: 1;
+}
