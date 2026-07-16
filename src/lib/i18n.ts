@@ -36,6 +36,8 @@ export type Translations = {
   saveErrorBlockedWord: string;
   saveErrorTooLarge: string;
   saveErrorFailed: string;
+  saveErrorAuth: string;
+  saveErrorRateLimit: string;
   overwrite: string;
   saveAsNew: string;
   // Songs page
@@ -135,6 +137,8 @@ export const translations: Record<Locale, Translations> = {
     saveErrorBlockedWord: "That title or name can't be used.",
     saveErrorTooLarge: "This song is too large to save.",
     saveErrorFailed: "Couldn't save. Please try again.",
+    saveErrorAuth: "Your login may have expired. Please log out and log in again.",
+    saveErrorRateLimit: "It's busy right now. Please wait a moment and try again.",
     overwrite: "Update",
     saveAsNew: "Save as new",
     backToCreate: "← Create",
@@ -229,6 +233,8 @@ export const translations: Record<Locale, Translations> = {
     saveErrorBlockedWord: "つかえない ことばが はいっています。",
     saveErrorTooLarge: "きょくが おおきすぎて ほぞんできません。",
     saveErrorFailed: "ほぞんに しっぱいしました。もういちど ためしてね。",
+    saveErrorAuth: "ログインの ゆうこうきげんが きれたかも。一度 ログアウトして、もう一度 ログインしてね。",
+    saveErrorRateLimit: "いま こんざつしています。少し 時間を おいてから もう一度 ためしてね。",
     overwrite: "うわがき保存",
     saveAsNew: "新しく保存",
     backToCreate: "← つくる",
