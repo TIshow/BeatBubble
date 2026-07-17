@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { migrateSong } from "./legacy";
-import { DEFAULT_SONG } from "./defaults";
+import { BLOCKS_MAX, DEFAULT_SONG } from "./defaults";
 
 describe("migrateSong", () => {
   it("passes a current (v2/blocks) song through unchanged", () => {
@@ -66,7 +66,7 @@ describe("migrateSong", () => {
 
   it("clamps an over-long migrated length to the max", () => {
     const out = migrateSong({ version: 1, bars: 100, stepsPerBeat: 4 });
-    expect(out.blocks).toBe(32); // BLOCKS_MAX
+    expect(out.blocks).toBe(BLOCKS_MAX);
   });
 
   it("falls back to the default length when none is present", () => {
