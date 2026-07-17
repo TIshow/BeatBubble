@@ -82,7 +82,11 @@ export default function SongsPage() {
   return (
     <div className="songs-page">
       <header className="songs-header">
-        <Link href="/" className="songs-back-btn">
+        {/* つくる means "make a new song": ?new=1 tells the editor to start
+            from a plain sheet instead of restoring the previous work.
+            Browser back / reload carry no ?new, so accidental navigation
+            still restores the in-progress song (#78). */}
+        <Link href="/?new=1" className="songs-back-btn">
           {t.backToCreate}
         </Link>
         <h1 className="songs-heading">{t.pageTitle}</h1>
