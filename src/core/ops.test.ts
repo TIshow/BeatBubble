@@ -13,7 +13,7 @@ import {
   setAllowedNotes,
   clearAllowedNotes,
 } from "./ops";
-import { DEFAULT_SONG } from "./defaults";
+import { BLOCKS_MAX, DEFAULT_SONG } from "./defaults";
 import type { Song } from "./types";
 
 const base = (): Song => structuredClone(DEFAULT_SONG); // C4..C5, blocks 16 (total 64)
@@ -138,9 +138,19 @@ describe("adjustPitchBound", () => {
   });
 });
 
+describe("BLOCKS_MAX", () => {
+  // Guards the *value* of the ceiling (96 blocks = 384 cells wide), separate
+  // from the clamp-behaviour tests below which reference the constant. Raising
+  // the max blows up the grid's DOM width, so it has to be done consciously
+  // here rather than slipping in unnoticed.
+  it("caps the grid at a sane width", () => {
+    expect(BLOCKS_MAX).toBeLessThanOrEqual(96);
+  });
+});
+
 describe("setBlocks", () => {
   it("clamps to the allowed range", () => {
-    expect(setBlocks(base(), 999).blocks).toBe(32);
+    expect(setBlocks(base(), 999).blocks).toBe(BLOCKS_MAX);
     expect(setBlocks(base(), 0).blocks).toBe(1);
   });
 
