@@ -5,7 +5,7 @@ export const BPM_MAX = 200;
 export const BPM_STEP = 5;
 // Grid length in blocks (1 block = 1 beat = stepsPerBeat cells).
 export const BLOCKS_MIN = 1;
-export const BLOCKS_MAX = 32;
+export const BLOCKS_MAX = 96;
 export const HISTORY_LIMIT = 50;
 
 export const DEFAULT_SONG: Song = {
