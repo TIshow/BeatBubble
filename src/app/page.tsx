@@ -83,6 +83,17 @@ export default function Home() {
     preloadPianoSamples();
   }, []);
 
+  // ?new=1 —「つくる」from /songs: start from a plain sheet. reset() clears
+  // the song, the undo history, and the stored work, so the previous sheet
+  // isn't restored (that restore is #78's protection against *accidental*
+  // navigation — browser back / reload — which carries no ?new).
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (!params.has("new")) return;
+    reset();
+    window.history.replaceState({}, "", "/");
+  }, [reset]);
+
   // ?load=<id> で曲を読み込む
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
