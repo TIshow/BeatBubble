@@ -107,7 +107,6 @@ export type Translations = {
   profileSaved: string;
   profileSaveFailed: string;
   profileSchoolPlaceholder: string;
-  profileClassPlaceholder: string;
   profileNamePlaceholder: string;
 };
 
@@ -211,7 +210,6 @@ export const translations: Record<Locale, Translations> = {
     profileSaved: "Saved!",
     profileSaveFailed: "Couldn't save. Please try again.",
     profileSchoolPlaceholder: "School name",
-    profileClassPlaceholder: "e.g. 1, A",
     profileNamePlaceholder: "Your name or nickname",
   },
   ja: {
@@ -313,7 +311,6 @@ export const translations: Record<Locale, Translations> = {
     profileSaved: "ほぞんしました！",
     profileSaveFailed: "ほぞんに しっぱいしました。もういちど ためしてね。",
     profileSchoolPlaceholder: "がっこうのなまえ",
-    profileClassPlaceholder: "れい: 1、A",
     profileNamePlaceholder: "なまえ か ニックネーム",
   },
 };

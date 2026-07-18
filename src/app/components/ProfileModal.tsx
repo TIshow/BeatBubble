@@ -6,9 +6,14 @@ import type { Gender, Profile, ProfileEdits } from "@/hooks/useProfile";
 
 const GENDERS: Gender[] = ["male", "female", "other", "undisclosed"];
 const GRADES = [1, 2, 3, 4, 5, 6];
+// Class is a fixed picker (numbers then letters) so the same class can't be
+// typed in variants (半角/全角/「組」つき) that split it into separate tabs.
+const CLASS_OPTIONS = [
+  ...Array.from({ length: 10 }, (_, i) => String(i + 1)), // 1..10
+  ..."ABCDEFG".split(""), // A..G
+];
 const MAX_NAME = 60;
 const MAX_SCHOOL = 100;
-const MAX_CLASS = 40;
 
 interface Props {
   t: Translations;
@@ -44,6 +49,13 @@ export function ProfileModal({ t, profile, onSave, onClose }: Props) {
   const [gender, setGender] = useState<Gender | null>(profile?.gender ?? null);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // Keep an already-stored class visible even if it predates this fixed list
+  // (e.g. a legacy value the normalization left as-is), so saving can't drop it.
+  const classOptions =
+    className && !CLASS_OPTIONS.includes(className)
+      ? [className, ...CLASS_OPTIONS]
+      : CLASS_OPTIONS;
 
   const handleSave = async () => {
     setSaving(true);
@@ -113,13 +125,18 @@ export function ProfileModal({ t, profile, onSave, onClose }: Props) {
 
           <label className="modal-field">
             <span className="modal-label">{t.profileClass}</span>
-            <input
+            <select
               className="modal-input"
-              placeholder={t.profileClassPlaceholder}
               value={className}
               onChange={(e) => setClassName(e.target.value)}
-              maxLength={MAX_CLASS}
-            />
+            >
+              <option value="">{t.profileNotSet}</option>
+              {classOptions.map((c) => (
+                <option key={c} value={c}>
+                  {c}
+                </option>
+              ))}
+            </select>
           </label>
 
           <label className="modal-field">
