@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import type { Song } from "@/core/types";
 import type { Locale, Translations } from "@/lib/i18n";
 import { translations } from "@/lib/i18n";
@@ -10,6 +10,7 @@ import {
   MAX_AUTHOR_LENGTH,
   validateSongMeta,
   songWithinSizeLimit,
+  containsSensitiveWord,
 } from "@/lib/validation";
 
 // Map a Supabase save error to a message a child can act on. The raw error is
@@ -64,6 +65,13 @@ export function SaveModal({
   // After a successful new save, show a confirmation telling the child what
   // happened and where the song went, instead of silently closing.
   const [savedAs, setSavedAs] = useState<"draft" | "public" | null>(null);
+  // Reflection nudge: when the title/author holds a sensitive (not blocked)
+  // word, pause once and ask the child to reconsider before the save runs.
+  const [reflecting, setReflecting] = useState(false);
+  // The save to run if they proceed past the nudge, and a latch so we only
+  // nudge once per name (reset when they edit the title/author).
+  const pendingSaveRef = useRef<(() => void) | null>(null);
+  const reflectionAckedRef = useRef(false);
 
   const guard = (): boolean => {
     const meta = validateSongMeta({ title, author });
@@ -80,8 +88,8 @@ export function SaveModal({
     return true;
   };
 
-  const run = async (op: () => Promise<{ error: unknown }>, onSuccess: () => void) => {
-    if (!guard()) return;
+  // The DB call itself, with no pre-checks — used once the nudge is cleared.
+  const execute = async (op: () => Promise<{ error: unknown }>, onSuccess: () => void) => {
     setSaving(true);
     setError(null);
     try {
@@ -98,6 +106,37 @@ export function SaveModal({
     } finally {
       setSaving(false);
     }
+  };
+
+  const run = (op: () => Promise<{ error: unknown }>, onSuccess: () => void) => {
+    if (!guard()) return;
+    // Sensitive (not blocked) word → reflection nudge. Blocked words never get
+    // here: guard() rejects them first. Stash the save and let the child decide.
+    if (
+      !reflectionAckedRef.current &&
+      (containsSensitiveWord(title) || containsSensitiveWord(author))
+    ) {
+      pendingSaveRef.current = () => execute(op, onSuccess);
+      setReflecting(true);
+      return;
+    }
+    execute(op, onSuccess);
+  };
+
+  // "このままで ほぞん" — proceed with the stashed save; don't nudge again for
+  // this name.
+  const proceedPastReflection = () => {
+    reflectionAckedRef.current = true;
+    setReflecting(false);
+    const pending = pendingSaveRef.current;
+    pendingSaveRef.current = null;
+    pending?.();
+  };
+
+  // "なまえを かえる" — back to the form without saving.
+  const cancelReflection = () => {
+    pendingSaveRef.current = null;
+    setReflecting(false);
   };
 
   // New saves pick their visibility explicitly (the child chooses; nothing is
@@ -131,6 +170,29 @@ export function SaveModal({
 
   const canSave = !saving && !!title.trim() && !!author.trim();
 
+  // Reflection nudge: a kind, one-question pause before a sensitive name is
+  // saved. "Change the name" is the primary (green) action; "save anyway" is
+  // the quiet secondary. We never show which word tripped it — the point is to
+  // prompt a moment of thought, not to teach the word or play banned-word bingo.
+  if (reflecting) {
+    return (
+      <div className="modal-overlay" onClick={onClose}>
+        <div className="modal" onClick={(e) => e.stopPropagation()}>
+          <h2 className="modal-title">{t.reflectTitle}</h2>
+          <p className="modal-warn">{t.reflectBody}</p>
+          <div className="modal-actions">
+            <button className="modal-cancel" onClick={proceedPastReflection}>
+              {t.reflectSaveAnyway}
+            </button>
+            <button className="modal-save" onClick={cancelReflection} autoFocus>
+              {t.reflectChangeName}
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   // Post-save confirmation: say what happened and where the song went.
   if (savedAs) {
     return (
@@ -161,6 +223,7 @@ export function SaveModal({
             onChange={(e) => {
               setTitle(e.target.value);
               if (error) setError(null);
+              reflectionAckedRef.current = false; // a new name gets a fresh nudge
             }}
             maxLength={MAX_TITLE_LENGTH}
             autoFocus
@@ -172,6 +235,7 @@ export function SaveModal({
             onChange={(e) => {
               setAuthor(e.target.value);
               if (error) setError(null);
+              reflectionAckedRef.current = false; // a new name gets a fresh nudge
             }}
             maxLength={MAX_AUTHOR_LENGTH}
           />

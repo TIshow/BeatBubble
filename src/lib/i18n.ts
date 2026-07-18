@@ -34,6 +34,10 @@ export type Translations = {
   cancel: string;
   saving: string;
   saveErrorBlockedWord: string;
+  reflectTitle: string;
+  reflectBody: string;
+  reflectChangeName: string;
+  reflectSaveAnyway: string;
   saveErrorTooLarge: string;
   saveErrorFailed: string;
   saveErrorAuth: string;
@@ -139,7 +143,12 @@ export const translations: Record<Locale, Translations> = {
     authorPlaceholder: "Your name",
     cancel: "Cancel",
     saving: "Saving...",
-    saveErrorBlockedWord: "That title or name can't be used.",
+    saveErrorBlockedWord: "This name can't be used. Please pick another one.",
+    reflectTitle: "Wait a sec",
+    reflectBody:
+      "Could this name make a friend feel sad or upset? Take another look before you save.",
+    reflectChangeName: "Change the name",
+    reflectSaveAnyway: "Save anyway",
     saveErrorTooLarge: "This song is too large to save.",
     saveErrorFailed: "Couldn't save. Please try again.",
     saveErrorAuth: "Your login may have expired. Please log out and log in again.",
@@ -240,7 +249,12 @@ export const translations: Record<Locale, Translations> = {
     authorPlaceholder: "あなたのなまえ",
     cancel: "キャンセル",
     saving: "ほぞんちゅう...",
-    saveErrorBlockedWord: "つかえない ことばが はいっています。",
+    saveErrorBlockedWord: "この なまえは つかえないよ。ちがう なまえに してね。",
+    reflectTitle: "ちょっと まってね",
+    reflectBody:
+      "その なまえを 見た ともだちが、いやな きもちに なったり、かなしく ならないかな？ もういちど かんがえてみよう。",
+    reflectChangeName: "なまえを かえる",
+    reflectSaveAnyway: "このままで ほぞん",
     saveErrorTooLarge: "きょくが おおきすぎて ほぞんできません。",
     saveErrorFailed: "ほぞんに しっぱいしました。もういちど ためしてね。",
     saveErrorAuth: "ログインの ゆうこうきげんが きれたかも。一度 ログアウトして、もう一度 ログインしてね。",
