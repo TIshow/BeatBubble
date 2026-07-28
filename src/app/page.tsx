@@ -78,10 +78,14 @@ export default function Home() {
   }, []);
 
   // Warm the piano-sample cache before the first user gesture so the first
-  // Play/preview sounds the sampled piano, not the 8bit fallback.
+  // Play/preview sounds the sampled piano, not the 8bit fallback. Keyed on the
+  // pitch range: only the samples this song can sound are fetched, and widening
+  // the range (or loading a wider song) pulls the added ones before the child
+  // can play a note in them.
+  const { minNote, maxNote } = song.constraints;
   useEffect(() => {
-    preloadPianoSamples();
-  }, []);
+    preloadPianoSamples(minNote, maxNote);
+  }, [minNote, maxNote]);
 
   // ?new=1 —「つくる」from /songs: start from a plain sheet. reset() clears
   // the song, the undo history, and the stored work, so the previous sheet

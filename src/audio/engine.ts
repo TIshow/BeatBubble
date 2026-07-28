@@ -1,6 +1,6 @@
 import { Scheduler, SplendidGrandPiano, pianoToPreset } from "smplr";
 import type { SampleLoader, Storage } from "smplr";
-import type { DrumId, InstrumentId, Song } from "@/core/types";
+import type { DrumId, InstrumentId, NoteName, Song } from "@/core/types";
 import { noteNameToMidi, totalSteps, PITCH_RANGE_MIN, PITCH_RANGE_MAX } from "@/core/utils";
 
 export type TransportState = "stopped" | "playing";
@@ -32,25 +32,64 @@ const PIANO_WAIT_PLAY_MS = 4000;
 const PIANO_WAIT_PREVIEW_MS = 2000;
 const PIANO_WAIT_EXPORT_MS = 15000;
 
-function pianoNotesToLoad(): number[] {
-  const min = noteNameToMidi(PITCH_RANGE_MIN);
-  const max = noteNameToMidi(PITCH_RANGE_MAX);
+// The pitch range whose samples we load, as MIDI numbers.
+//
+// A song's notes can never leave its own constraints, so loading that range is
+// enough — and much cheaper than the app maximum: the default C4–C5 song needs
+// 8 sample files where C2–C7 needs 44. It only ever GROWS (widening the range,
+// or opening a wider song, adds files; narrowing keeps what's loaded), so a
+// piano already built for a wider range stays valid.
+//
+// Correctness note: smplr plays *silence* for a note whose sample wasn't
+// loaded, so this range must cover every note that can sound. Callers grow it
+// before playing — see preloadPianoSamples (driven by the song's constraints)
+// and renderOffline.
+type MidiRange = { min: number; max: number };
+
+let sampleRange: MidiRange | null = null;
+
+// Widen the range to cover a song's pitch constraints. Never narrows.
+function growSampleRange(minNote: NoteName, maxNote: NoteName): void {
+  const min = noteNameToMidi(minNote);
+  const max = noteNameToMidi(maxNote);
+  sampleRange = sampleRange
+    ? { min: Math.min(sampleRange.min, min), max: Math.max(sampleRange.max, max) }
+    : { min, max };
+}
+
+// The range to derive presets from: whatever callers have asked for, or the app
+// maximum if none has yet — heavier, but never silent.
+function currentSampleRange(): MidiRange {
+  return (
+    sampleRange ?? {
+      min: noteNameToMidi(PITCH_RANGE_MIN),
+      max: noteNameToMidi(PITCH_RANGE_MAX),
+    }
+  );
+}
+
+// Identifies the current range, so the engine can tell its piano is stale.
+function sampleRangeKey(): string {
+  const { min, max } = currentSampleRange();
+  return `${min}-${max}`;
+}
+
+// The preset-shaping options, shared by the piano instances and the preload so
+// they derive the same sample list (detune/decayTime are required by
+// pianoToPreset's type; the values are smplr's defaults).
+function pianoPresetOptions() {
+  const { min, max } = currentSampleRange();
   const notes: number[] = [];
   for (let midi = min; midi <= max; midi++) {
     notes.push(midi);
   }
-  return notes;
+  return {
+    baseUrl: PIANO_BASE_URL,
+    detune: 0,
+    decayTime: 0.5,
+    notesToLoad: { notes, velocityRange: PIANO_VELOCITY_RANGE },
+  };
 }
-
-// The preset-shaping options, shared by the piano instances and the preload
-// so they derive the same sample list (detune/decayTime are required by
-// pianoToPreset's type; the values are smplr's defaults).
-const PIANO_PRESET_OPTIONS = {
-  baseUrl: PIANO_BASE_URL,
-  detune: 0,
-  decayTime: 0.5,
-  notesToLoad: { notes: pianoNotesToLoad(), velocityRange: PIANO_VELOCITY_RANGE },
-};
 
 // Cache-API-backed storage for the piano samples. Unlike smplr's CacheStorage
 // it (a) never caches non-200 responses — a deploy window serving 404s must
@@ -85,7 +124,7 @@ function createSampledPiano(
     // Self-hosted (see public/samples/piano/README.md): school networks
     // whitelist the app's domain but not third-party CDNs — keep samples
     // same-origin.
-    ...PIANO_PRESET_OPTIONS,
+    ...pianoPresetOptions(),
     destination,
     storage: pianoStorage,
     velocity: PIANO_VELOCITY,
@@ -105,7 +144,7 @@ function createSampledPiano(
 // The sample names the piano will request, derived from the same preset
 // smplr builds internally so the preload URLs match the loader's exactly.
 function pianoSampleNames(): string[] {
-  const preset = pianoToPreset(PIANO_PRESET_OPTIONS);
+  const preset = pianoToPreset(pianoPresetOptions());
   const names = new Set<string>();
   for (const group of preset.groups) {
     for (const region of group.regions) {
@@ -130,12 +169,19 @@ function preferredPianoFormat(): string {
 // Warm the Cache API with the piano samples before any user gesture, so the
 // first Play/preview doesn't race the download (the first notes used to come
 // out as the 8bit fallback). Fetches through the same storage smplr reads
-// from; no AudioContext is created here. Safe to call on page mount; guarded
-// so React StrictMode's double-mounted effects don't fetch everything twice.
-let preloadStarted = false;
-export function preloadPianoSamples(): void {
-  if (typeof window === "undefined" || preloadStarted) return;
-  preloadStarted = true;
+// from; no AudioContext is created here.
+//
+// Takes the song's pitch constraints so only the samples that song can sound
+// are fetched (8 files for the default C4–C5, not the app maximum's 44). Call
+// it whenever that range changes — widening it pulls just the new files, and
+// the engine rebuilds its piano to match on the next init(). Every sample is
+// requested at most once per page (which also absorbs React StrictMode's
+// double-mounted effects).
+const requestedSampleUrls = new Set<string>();
+
+export function preloadPianoSamples(minNote: NoteName, maxNote: NoteName): void {
+  if (typeof window === "undefined") return;
+  growSampleRange(minNote, maxNote);
   const format = preferredPianoFormat();
   for (const name of pianoSampleNames()) {
     // Same escaping as smplr's loadAudioBuffer, so the cache keys match
@@ -144,6 +190,8 @@ export function preloadPianoSamples(): void {
       .replace(/#/g, "%23")
       .replace(/ /g, "%20")
       .replace(/([^:]\/)\/+/g, "$1");
+    if (requestedSampleUrls.has(url)) continue;
+    requestedSampleUrls.add(url);
     pianoStorage.fetch(url).catch(() => {});
   }
 }
@@ -200,6 +248,8 @@ export class AudioEngine {
   private noiseBuffer: AudioBuffer | null = null;
   private piano: SplendidGrandPiano | null = null;
   private pianoReady = false;
+  // The pitch range `piano` was built for, so init() can spot a stale one.
+  private pianoRangeKey: string | null = null;
   // Incremented by each play() call; see the epoch check in play().
   private playEpoch = 0;
 
@@ -221,13 +271,25 @@ export class AudioEngine {
     if (!this.noiseBuffer) {
       this.noiseBuffer = createNoiseBuffer(this.ctx);
     }
-    if (!this.piano) {
+    // Rebuild when the loaded pitch range has grown since this piano was made
+    // (the child widened the range, or opened a wider song): its preset has no
+    // samples for the new notes, and smplr renders those as silence. Both the
+    // play and preview paths call init() before sounding anything, so this runs
+    // in time; each then waits (bounded) on `ready`, falling back to the 8bit
+    // voice while the added samples load rather than going quiet.
+    const rangeKey = sampleRangeKey();
+    if (!this.piano || this.pianoRangeKey !== rangeKey) {
+      this.piano?.stop(); // silence any voices still held by the old instance
+      this.pianoReady = false;
+      this.pianoRangeKey = rangeKey;
       // Kick off sample loading without awaiting: playback falls back to the
       // synthesized piano until samples are ready, then switches over.
-      this.piano = createSampledPiano(this.ctx, this.masterGain);
-      this.piano.ready
+      const piano = createSampledPiano(this.ctx, this.masterGain);
+      this.piano = piano;
+      piano.ready
         .then(() => {
-          this.pianoReady = true;
+          // A later rebuild may have replaced it while this was loading.
+          if (this.piano === piano) this.pianoReady = true;
         })
         .catch((err) => {
           console.warn("Piano samples failed to load; using synthesized piano.", err);
@@ -351,6 +413,9 @@ export class AudioEngine {
     let piano: SplendidGrandPiano | null = null;
     if (usesSampledPiano(song)) {
       try {
+        // Export doesn't go through init(), so cover this song's range here —
+        // otherwise notes outside the loaded range would render as silence.
+        growSampleRange(song.constraints.minNote, song.constraints.maxNote);
         piano = createSampledPiano(offline, master, this.piano?.loader);
         await withTimeout(piano.ready, PIANO_WAIT_EXPORT_MS);
       } catch (err) {
