@@ -1,6 +1,6 @@
 import { Scheduler, SplendidGrandPiano, pianoToPreset } from "smplr";
 import type { SampleLoader, Storage } from "smplr";
-import type { DrumId, InstrumentId, Song } from "@/core/types";
+import type { DrumId, InstrumentId, NoteName, Song } from "@/core/types";
 import { noteNameToMidi, totalSteps, PITCH_RANGE_MIN, PITCH_RANGE_MAX } from "@/core/utils";
 
 export type TransportState = "stopped" | "playing";
@@ -46,33 +46,39 @@ const PIANO_WAIT_EXPORT_MS = 15000;
 // and renderOffline.
 type MidiRange = { min: number; max: number };
 
-let loadRange: MidiRange | null = null;
+let sampleRange: MidiRange | null = null;
 
-// Widen `loadRange` to cover `next`. Returns true if it changed.
-function growLoadRange(next: MidiRange): boolean {
-  const min = loadRange ? Math.min(loadRange.min, next.min) : next.min;
-  const max = loadRange ? Math.max(loadRange.max, next.max) : next.max;
-  if (loadRange && min === loadRange.min && max === loadRange.max) return false;
-  loadRange = { min, max };
-  return true;
+// Widen the range to cover a song's pitch constraints. Never narrows.
+function growSampleRange(minNote: NoteName, maxNote: NoteName): void {
+  const min = noteNameToMidi(minNote);
+  const max = noteNameToMidi(maxNote);
+  sampleRange = sampleRange
+    ? { min: Math.min(sampleRange.min, min), max: Math.max(sampleRange.max, max) }
+    : { min, max };
+}
+
+// The range to derive presets from: whatever callers have asked for, or the app
+// maximum if none has yet — heavier, but never silent.
+function currentSampleRange(): MidiRange {
+  return (
+    sampleRange ?? {
+      min: noteNameToMidi(PITCH_RANGE_MIN),
+      max: noteNameToMidi(PITCH_RANGE_MAX),
+    }
+  );
 }
 
 // Identifies the current range, so the engine can tell its piano is stale.
-function loadRangeKey(): string {
-  const { min, max } = loadRange ?? fullPitchRange();
+function sampleRangeKey(): string {
+  const { min, max } = currentSampleRange();
   return `${min}-${max}`;
-}
-
-function fullPitchRange(): MidiRange {
-  return { min: noteNameToMidi(PITCH_RANGE_MIN), max: noteNameToMidi(PITCH_RANGE_MAX) };
 }
 
 // The preset-shaping options, shared by the piano instances and the preload so
 // they derive the same sample list (detune/decayTime are required by
-// pianoToPreset's type; the values are smplr's defaults). Falls back to the app
-// maximum if nothing has set a range yet — heavier, but never silent.
+// pianoToPreset's type; the values are smplr's defaults).
 function pianoPresetOptions() {
-  const { min, max } = loadRange ?? fullPitchRange();
+  const { min, max } = currentSampleRange();
   const notes: number[] = [];
   for (let midi = min; midi <= max; midi++) {
     notes.push(midi);
@@ -173,9 +179,9 @@ function preferredPianoFormat(): string {
 // double-mounted effects).
 const requestedSampleUrls = new Set<string>();
 
-export function preloadPianoSamples(minNote: string, maxNote: string): void {
+export function preloadPianoSamples(minNote: NoteName, maxNote: NoteName): void {
   if (typeof window === "undefined") return;
-  growLoadRange({ min: noteNameToMidi(minNote), max: noteNameToMidi(maxNote) });
+  growSampleRange(minNote, maxNote);
   const format = preferredPianoFormat();
   for (const name of pianoSampleNames()) {
     // Same escaping as smplr's loadAudioBuffer, so the cache keys match
@@ -271,7 +277,7 @@ export class AudioEngine {
     // play and preview paths call init() before sounding anything, so this runs
     // in time; each then waits (bounded) on `ready`, falling back to the 8bit
     // voice while the added samples load rather than going quiet.
-    const rangeKey = loadRangeKey();
+    const rangeKey = sampleRangeKey();
     if (!this.piano || this.pianoRangeKey !== rangeKey) {
       this.piano?.stop(); // silence any voices still held by the old instance
       this.pianoReady = false;
@@ -409,10 +415,7 @@ export class AudioEngine {
       try {
         // Export doesn't go through init(), so cover this song's range here —
         // otherwise notes outside the loaded range would render as silence.
-        growLoadRange({
-          min: noteNameToMidi(song.constraints.minNote),
-          max: noteNameToMidi(song.constraints.maxNote),
-        });
+        growSampleRange(song.constraints.minNote, song.constraints.maxNote);
         piano = createSampledPiano(offline, master, this.piano?.loader);
         await withTimeout(piano.ready, PIANO_WAIT_EXPORT_MS);
       } catch (err) {
