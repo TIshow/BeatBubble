@@ -1,12 +1,12 @@
 import type { Translations } from '@/lib/i18n';
 
-interface Props {
+interface DiscoveryAlbumProgressProps {
   earned: number;
   total: number;
   t: Translations;
 }
 
-export function DiscoveryAlbumProgress({ earned, total, t }: Props) {
+export function DiscoveryAlbumProgress({ earned, total, t }: DiscoveryAlbumProgressProps) {
   const percentage = total === 0 ? 0 : Math.round((earned / total) * 100);
   return (
     <>

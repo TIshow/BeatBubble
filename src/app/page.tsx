@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useState, useCallback, useMemo } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import type { DrumId, InstrumentId, NoteName } from '@/core/types';
 import {
@@ -27,24 +27,16 @@ import { useSong } from '@/hooks/useSong';
 import { useAuth, authDisplayName } from '@/hooks/useAuth';
 import { useProfile } from '@/hooks/useProfile';
 import { useDiscoveries } from '@/hooks/useDiscoveries';
+import { useDiscoveryFeedback } from '@/hooks/useDiscoveryFeedback';
 import { supabase } from '@/lib/supabase';
-import { detectDiscoveries } from '@/discovery/detector';
 import { DISCOVERY_CARDS } from '@/discovery/catalog';
-import {
-  captureDiscoverySource,
-  hasUserContribution,
-  type DiscoverySourceSnapshot,
-} from '@/discovery/eligibility';
-import { revealItemsFor, type DiscoveryRevealItem } from '@/discovery/revealQueue';
-import type { DiscoveryMatch } from '@/discovery/types';
 import { SaveModal } from './components/SaveModal';
 import { ProfileModal } from './components/ProfileModal';
 import { NotePanel } from './components/NotePanel';
 import { Header } from './components/Header';
 import { SettingsPanel } from './components/SettingsPanel';
 import { Grid } from './components/Grid';
-import { DiscoveryEffectLayer, type DiscoveryEffectEvent } from './components/DiscoveryEffectLayer';
-import { DiscoveryQueue } from './components/DiscoveryQueue';
+import { DiscoveryFeedback } from './components/discovery/DiscoveryFeedback';
 
 export default function Home() {
   const { locale, t, changeLocale } = useLocale();
@@ -72,8 +64,6 @@ export default function Home() {
   const [loadFailed, setLoadFailed] = useState(false);
   const [isLockMode, setIsLockMode] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
-  const [discoveryEffects, setDiscoveryEffects] = useState<DiscoveryEffectEvent[]>([]);
-  const [discoveryRevealQueue, setDiscoveryRevealQueue] = useState<DiscoveryRevealItem[]>([]);
   // The song loaded via ?load=<id>, so its owner can overwrite it on save.
   const [loadedSong, setLoadedSong] = useState<{
     id: string;
@@ -86,20 +76,22 @@ export default function Home() {
   const gridRef = useRef<HTMLDivElement>(null);
   const gridContainerRef = useRef<HTMLDivElement>(null);
   const engineRef = useRef<AudioEngine | null>(null);
-  const discoveryEffectKeyRef = useRef(0);
-  const discoverySourceRef = useRef<DiscoverySourceSnapshot | null>(null);
-  const discoveryMatchesRef = useRef<Map<number, DiscoveryMatch[]>>(new Map());
-
-  const discoveryMatches = useMemo(() => detectDiscoveries(song), [song]);
-  useEffect(() => {
-    const byStep = new Map<number, DiscoveryMatch[]>();
-    for (const match of discoveryMatches) {
-      const atStep = byStep.get(match.triggerStep) ?? [];
-      atStep.push(match);
-      byStep.set(match.triggerStep, atStep);
-    }
-    discoveryMatchesRef.current = byStep;
-  }, [discoveryMatches]);
+  const {
+    effects: discoveryEffects,
+    revealQueue: discoveryRevealQueue,
+    captureSource: captureDiscoverySource,
+    clearSource: clearDiscoverySource,
+    onPlaybackStep: onDiscoveryPlaybackStep,
+    clearEffects: clearDiscoveryEffects,
+    dismissEffect: dismissDiscoveryEffect,
+    finishReveal: finishDiscoveryReveal,
+  } = useDiscoveryFeedback({
+    song,
+    songRef,
+    currentUserId: user?.id ?? null,
+    loadedSongOwnerId: loadedSong?.userId ?? null,
+    claimDiscoveries,
+  });
 
   // Tear down audio when the editor unmounts (e.g. tapping "みんなの曲" mid-play),
   // otherwise the scheduler keeps running and the song can't be stopped.
@@ -124,10 +116,10 @@ export default function Home() {
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     if (!params.has('new')) return;
-    discoverySourceRef.current = null;
+    clearDiscoverySource();
     reset();
     window.history.replaceState({}, '', '/');
-  }, [reset]);
+  }, [clearDiscoverySource, reset]);
 
   // ?load=<id> で曲を読み込む
   useEffect(() => {
@@ -142,7 +134,7 @@ export default function Home() {
       .then(({ data, error }) => {
         if (data?.song_data) {
           const migrated = migrateSong(data.song_data);
-          discoverySourceRef.current = captureDiscoverySource(migrated);
+          captureDiscoverySource(migrated);
           setSong(migrated);
           setLoadedSong({
             id: data.id,
@@ -161,7 +153,7 @@ export default function Home() {
           setLoadFailed(true);
         }
       });
-  }, [setSong]);
+  }, [captureDiscoverySource, setSong]);
 
   const getEngine = useCallback(() => {
     if (!engineRef.current) {
@@ -286,24 +278,7 @@ export default function Home() {
         () => songRef.current,
         (step) => {
           setPlayheadStep(step);
-          const matches = discoveryMatchesRef.current.get(step);
-          if (!matches || matches.length === 0) return;
-
-          const effectCardIds = [...new Set(matches.map((match) => match.cardId))];
-          const effects = effectCardIds.map((cardId) => ({
-            key: discoveryEffectKeyRef.current++,
-            cardId,
-          }));
-          setDiscoveryEffects((current) => [...current.slice(-12), ...effects]);
-
-          const source = user && loadedSong?.userId === user.id ? null : discoverySourceRef.current;
-          const earnable = matches
-            .filter((match) => hasUserContribution(match, songRef.current, source))
-            .map((match) => match.cardId);
-          const newlyEarned = claimDiscoveries(earnable);
-          if (newlyEarned.length > 0) {
-            setDiscoveryRevealQueue((current) => [...current, ...revealItemsFor(newlyEarned)]);
-          }
+          onDiscoveryPlaybackStep(step);
         },
       );
       // play() can bail without starting (stopped while waiting for samples,
@@ -323,7 +298,7 @@ export default function Home() {
     if (engineRef.current) engineRef.current.stop();
     setIsPlaying(false);
     setPlayheadStep(null);
-    setDiscoveryEffects([]);
+    clearDiscoveryEffects();
   };
 
   const handleExport = async () => {
@@ -350,7 +325,7 @@ export default function Home() {
 
   const handleReset = () => {
     handleStop();
-    discoverySourceRef.current = null;
+    clearDiscoverySource();
     reset();
     setIsConfirmingReset(false);
   };
@@ -494,16 +469,12 @@ export default function Home() {
         getDrumCellHandlers={getDrumCellHandlers}
       />
 
-      <DiscoveryEffectLayer
-        events={discoveryEffects}
-        onEffectEnd={(key) =>
-          setDiscoveryEffects((current) => current.filter((event) => event.key !== key))
-        }
-      />
-      <DiscoveryQueue
-        items={discoveryRevealQueue}
+      <DiscoveryFeedback
+        effects={discoveryEffects}
+        revealQueue={discoveryRevealQueue}
         t={t}
-        onDone={() => setDiscoveryRevealQueue((current) => current.slice(1))}
+        onEffectEnd={dismissDiscoveryEffect}
+        onRevealDone={finishDiscoveryReveal}
       />
 
       {isSaveModalOpen && (

@@ -1,6 +1,6 @@
 import type { DiscoveryId } from '@/discovery/types';
 
-export type DiscoveryEffectEvent = {
+type DiscoveryEffectEvent = {
   key: number;
   cardId: DiscoveryId;
 };

@@ -4,7 +4,7 @@ import { useEffect } from 'react';
 import type { DiscoveryRevealItem } from '@/discovery/revealQueue';
 import type { Translations } from '@/lib/i18n';
 
-interface Props {
+interface DiscoveryRevealProps {
   item: DiscoveryRevealItem;
   t: Translations;
   onDone: () => void;
@@ -12,7 +12,7 @@ interface Props {
 
 const REVEAL_DURATION_MS = 1900;
 
-export function DiscoveryReveal({ item, t, onDone }: Props) {
+export function DiscoveryReveal({ item, t, onDone }: DiscoveryRevealProps) {
   useEffect(() => {
     const timer = window.setTimeout(onDone, REVEAL_DURATION_MS);
     return () => window.clearTimeout(timer);

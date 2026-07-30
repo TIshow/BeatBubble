@@ -3,8 +3,8 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { AccountMenu } from '@/app/components/AccountMenu';
-import { DiscoveryAlbumProgress } from '@/app/components/DiscoveryAlbumProgress';
-import { DiscoveryCard } from '@/app/components/DiscoveryCard';
+import { DiscoveryAlbumProgress } from '@/app/components/discovery/DiscoveryAlbumProgress';
+import { DiscoveryCard } from '@/app/components/discovery/DiscoveryCard';
 import { ProfileModal } from '@/app/components/ProfileModal';
 import { DISCOVERY_CARDS } from '@/discovery/catalog';
 import { useAuth } from '@/hooks/useAuth';

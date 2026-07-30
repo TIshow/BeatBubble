@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { User } from '@supabase/supabase-js';
-import { DISCOVERY_CARDS, isDiscoveryId } from '@/discovery/catalog';
+import { DISCOVERY_CARDS } from '@/discovery/catalog';
 import {
   clearDiscoveries,
   GUEST_DISCOVERIES_KEY,
@@ -13,12 +13,7 @@ import {
   writeDiscoveries,
 } from '@/discovery/storage';
 import type { DiscoveryId } from '@/discovery/types';
-import { supabase } from '@/lib/supabase';
-
-type DiscoveryRow = {
-  card_id: string;
-  discovered_at: string;
-};
+import { fetchUserDiscoveries, insertUserDiscoveries } from '@/lib/discoveryRepository';
 
 function currentSessionStorage(): Storage | null {
   if (typeof window === 'undefined') return null;
@@ -46,21 +41,6 @@ function mergeIntoMap(
     }
   }
   return next;
-}
-
-async function upsertCards(userId: string, cards: readonly StoredDiscovery[]): Promise<unknown> {
-  if (cards.length === 0) return null;
-  const { error } = await supabase.from('user_discovery_cards').upsert(
-    cards.map((card) => ({
-      user_id: userId,
-      card_id: card.cardId,
-    })),
-    {
-      onConflict: 'user_id,card_id',
-      ignoreDuplicates: true,
-    },
-  );
-  return error;
 }
 
 export function useDiscoveries(user: User | null) {
@@ -93,7 +73,7 @@ export function useDiscoveries(user: User | null) {
     const key = pendingDiscoveriesKey(userId);
     const pending = readDiscoveries(storage, key);
     if (pending.length === 0) return true;
-    const error = await upsertCards(userId, pending);
+    const error = await insertUserDiscoveries(userId, pending);
     if (error) {
       setSyncError(true);
       return false;
@@ -134,21 +114,12 @@ export function useDiscoveries(user: User | null) {
       }
 
       replaceProgress(pending);
-      const { data, error } = await supabase
-        .from('user_discovery_cards')
-        .select('card_id, discovered_at')
-        .eq('user_id', userId);
+      const { cards: remote, error } = await fetchUserDiscoveries(userId);
       if (!active) return;
 
       if (error) {
         setSyncError(true);
       } else {
-        const remote = (data ?? []).flatMap((row) => {
-          const typed = row as DiscoveryRow;
-          return isDiscoveryId(typed.card_id)
-            ? [{ cardId: typed.card_id, discoveredAt: typed.discovered_at }]
-            : [];
-        });
         replaceProgress(mergeDiscoveries(remote, [...progressRef.current.values()]));
       }
       setIsLoading(false);
@@ -212,7 +183,7 @@ export function useDiscoveries(user: User | null) {
     const guest = readDiscoveries(storage, GUEST_DISCOVERIES_KEY);
     if (guest.length === 0) return true;
 
-    const error = await upsertCards(currentUser.id, guest);
+    const error = await insertUserDiscoveries(currentUser.id, guest);
     if (error) {
       setSyncError(true);
       return false;
@@ -235,21 +206,12 @@ export function useDiscoveries(user: User | null) {
     if (!currentUser) return true;
 
     const pendingSynced = await flushPending(currentUser.id);
-    const { data, error } = await supabase
-      .from('user_discovery_cards')
-      .select('card_id, discovered_at')
-      .eq('user_id', currentUser.id);
+    const { cards: remote, error } = await fetchUserDiscoveries(currentUser.id);
     if (error) {
       setSyncError(true);
       return false;
     }
 
-    const remote = (data ?? []).flatMap((row) => {
-      const typed = row as DiscoveryRow;
-      return isDiscoveryId(typed.card_id)
-        ? [{ cardId: typed.card_id, discoveredAt: typed.discovered_at }]
-        : [];
-    });
     replaceProgress(mergeDiscoveries(remote, [...progressRef.current.values()]));
     setSyncError(!pendingSynced);
     return pendingSynced;

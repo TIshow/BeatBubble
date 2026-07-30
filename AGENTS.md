@@ -29,12 +29,14 @@ Key differentiators:
 - `src/core/` : data model + pure ops + migration (types/defaults/utils/ops/id/legacy)
   - `legacy.ts` : `migrateSong()` (version upgrades) + old-format import
 - `src/analysis/` : research/analytics — pure `Song`→feature extraction (`metrics.ts`); consumes `src/core`, not used at app runtime
+- `src/discovery/` : pure discovery-card domain logic (catalog/timeline/detection/eligibility/storage validation)
+  - `rules/` : detection rules grouped by musical concern (harmony/melody/rhythm)
 - `src/audio/` : Web Audio scheduling + synthesis (`engine.ts`)
 - `src/ui/` : grid helpers, color mapping, `noteLabel.ts` (locale-aware ドレミ/ABC)
-- `src/hooks/` : custom hooks — `useSong` (song state + undo history), `useDragInteraction`, `useLocale`
-- `src/lib/` : Supabase client (`supabase.ts`), i18n translations (`i18n.ts`, exports `Translations`)
+- `src/hooks/` : custom hooks — song/edit/auth state plus discovery persistence and playback feedback
+- `src/lib/` : Supabase client/repositories and i18n translations (`i18n.ts`, exports `Translations`)
 - `src/app/` : Next.js pages/components and styles
-  - `components/` : `Header`, `SettingsPanel`, `Grid`, `NotePanel`, `SaveModal`
+  - `components/` : shared editor components; discovery-specific UI lives in `components/discovery/`
   - `styles/` : per-concern global CSS (`base/header/settings/grid/note-panel/modal/songs`), assembled by `globals.css` via `@import`
   - `page.tsx` : editor — wires state/handlers and composes the components
   - `songs/` : community songs feed page (`/songs`)

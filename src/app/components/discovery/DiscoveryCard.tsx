@@ -2,7 +2,7 @@ import type { DiscoveryDefinition } from '@/discovery/types';
 import type { StoredDiscovery } from '@/discovery/storage';
 import type { Locale, Translations } from '@/lib/i18n';
 
-interface Props {
+interface DiscoveryCardProps {
   definition: DiscoveryDefinition;
   progress: StoredDiscovery | null;
   locale: Locale;
@@ -17,7 +17,7 @@ function formatDiscoveryDate(value: string, locale: Locale): string {
   }).format(new Date(value));
 }
 
-export function DiscoveryCard({ definition, progress, locale, t }: Props) {
+export function DiscoveryCard({ definition, progress, locale, t }: DiscoveryCardProps) {
   const copy = t.discoveryCards[definition.id];
   const number = String(definition.sortOrder / 10).padStart(2, '0');
 
