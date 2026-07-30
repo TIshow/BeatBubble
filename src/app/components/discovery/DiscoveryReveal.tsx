@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from 'react';
 import type { DiscoveryRevealItem } from '@/discovery/revealQueue';
 import type { Translations } from '@/lib/i18n';
+import { usesSideDiscoveryDialog } from './discoveryLayout';
 
 interface DiscoveryRevealProps {
   item: DiscoveryRevealItem;
@@ -20,7 +21,7 @@ export function DiscoveryReveal({ item, t, onDone }: DiscoveryRevealProps) {
 
   useEffect(() => {
     const updatePlacement = () => {
-      if (window.innerWidth >= 900) {
+      if (usesSideDiscoveryDialog()) {
         setPlacement('right');
         return;
       }
@@ -48,6 +49,7 @@ export function DiscoveryReveal({ item, t, onDone }: DiscoveryRevealProps) {
   const card = t.discoveryCards[item.cardId];
   const titleId = `discovery-reveal-title-${item.cardId}`;
   const descriptionId = `discovery-reveal-description-${item.cardId}`;
+  const theoryId = `discovery-reveal-theory-${item.cardId}`;
 
   return (
     <div
@@ -64,7 +66,7 @@ export function DiscoveryReveal({ item, t, onDone }: DiscoveryRevealProps) {
         role="dialog"
         aria-modal="true"
         aria-labelledby={titleId}
-        aria-describedby={descriptionId}
+        aria-describedby={`${descriptionId} ${theoryId}`}
       >
         <div className="discovery-reveal-rays" aria-hidden="true" />
         <div className="discovery-reveal-label">{t.discoveryFound}</div>
@@ -82,6 +84,10 @@ export function DiscoveryReveal({ item, t, onDone }: DiscoveryRevealProps) {
           <span aria-hidden="true">◎</span>
           {t.discoveryFocusHint}
         </p>
+        <div className="discovery-reveal-theory" id={theoryId}>
+          <strong>{t.discoveryAhaLabel}</strong>
+          <p>{card.theory}</p>
+        </div>
         <button
           ref={acknowledgeRef}
           type="button"

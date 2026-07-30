@@ -9,9 +9,11 @@ import { totalSteps } from '@/core/utils';
 import { colorForDrum, colorForNote } from '@/ui/color';
 import { noteLabel } from '@/ui/noteLabel';
 import { buildNoteRows, findMelodyNoteAt, getNotePosition } from '@/ui/grid';
+import { usesSideDiscoveryDialog } from './discovery/discoveryLayout';
 import { GridScrollbar } from './GridScrollbar';
 
 const DRUM_ROWS: DrumId[] = ['hihat', 'snare', 'kick'];
+const DISCOVERY_DIALOG_GAP_PX = 16;
 
 interface CellHandlers {
   onMouseDown: (e: React.MouseEvent) => void;
@@ -106,7 +108,13 @@ export function Grid({
         container.scrollLeft;
       const labels = container.querySelector<HTMLElement>('.labels');
       const inset = (labels?.offsetWidth ?? 0) + 8;
-      const dialogInset = window.innerWidth >= 900 ? 400 : 0;
+      const dialog = usesSideDiscoveryDialog()
+        ? document.querySelector<HTMLElement>('.discovery-reveal--right .discovery-reveal-card')
+        : null;
+      const dialogRect = dialog?.getBoundingClientRect();
+      const dialogInset = dialogRect
+        ? Math.max(0, containerRect.right - dialogRect.left + DISCOVERY_DIALOG_GAP_PX)
+        : 0;
       const availableWidth = Math.max(0, container.clientWidth - inset - dialogInset);
       const evidenceWidth = contentRight - contentLeft;
       const centeringSpace = Math.max(8, (availableWidth - evidenceWidth) / 2);

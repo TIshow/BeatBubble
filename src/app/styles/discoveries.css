@@ -147,9 +147,10 @@
 .discovery-reveal-card {
   position: relative;
   isolation: isolate;
-  width: min(360px, calc(100vw - 28px));
+  width: min(400px, calc(100vw - 28px));
+  max-height: calc(100vh - 28px);
   padding: 24px;
-  overflow: hidden;
+  overflow: hidden auto;
   border: 3px solid var(--discovery-accent);
   border-radius: 28px;
   background: var(--discovery-card-bg);
@@ -194,7 +195,7 @@
   position: relative;
   z-index: 1;
   color: var(--foreground);
-  font-size: 13px;
+  font-size: 14px;
   line-height: 1.65;
 }
 
@@ -220,6 +221,31 @@
   flex-shrink: 0;
   color: var(--discovery-accent);
   font-size: 20px;
+}
+
+.discovery-reveal-theory {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  padding: 11px 13px;
+  border: 2px solid color-mix(in srgb, var(--discovery-accent) 58%, transparent);
+  border-radius: 14px;
+  background: color-mix(in srgb, var(--discovery-accent) 16%, var(--discovery-card-bg));
+  text-align: left;
+}
+
+.discovery-reveal-theory strong {
+  display: block;
+  margin-bottom: 4px;
+  color: var(--discovery-accent);
+  font-size: 14px;
+}
+
+.discovery-reveal-theory p {
+  margin: 0;
+  color: var(--foreground);
+  font-size: 13px;
+  line-height: 1.6;
 }
 
 .discovery-reveal-acknowledge {

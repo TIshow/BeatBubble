@@ -129,6 +129,7 @@ export type Translations = {
   discoveryProgress: (earned: number, total: number) => string;
   discoveryFound: string;
   discoveryFocusHint: string;
+  discoveryAhaLabel: string;
   discoveryAcknowledge: string;
   discoveryLocked: string;
   discoveryHintLabel: string;
@@ -254,6 +255,7 @@ export const translations: Record<Locale, Translations> = {
     discoveryProgress: (earned, total) => `${earned} / ${total} found`,
     discoveryFound: 'Discovery!',
     discoveryFocusHint: 'The glowing notes and beats made this discovery.',
+    discoveryAhaLabel: 'Oh, I get it!',
     discoveryAcknowledge: 'Got it!',
     discoveryLocked: '???',
     discoveryHintLabel: 'Try this',
@@ -268,58 +270,68 @@ export const translations: Record<Locale, Translations> = {
       interval_third: {
         name: 'Twin Stars',
         reveal: 'Two notes lit up together!',
-        description: 'Two different notes overlapped and made a gently blended sound.',
+        description: 'The two glowing notes are 3 or 4 half-steps apart.',
         hint: 'Move either note a little. Can you make the stars appear again?',
-        theory: 'The distance between these notes is called a third.',
+        theory:
+          'C to E and D to F are both called thirds: count the note names from the lower note, including both ends—C, D, E makes three. A third can span 3 or 4 half-steps.',
       },
       open_fifth: {
         name: 'Wide Sky',
         reveal: 'The sound opened up!',
-        description: 'Two far-apart notes made a broad, open sound.',
+        description: 'The glowing notes are separated by a wide, even-sounding distance.',
         hint: 'Try the same shape higher or lower.',
-        theory: 'Perfect fifths and octaves often sound open and stable.',
+        theory:
+          'C to G is a perfect fifth: count C, D, E, F, G, and the notes are 7 half-steps apart. C to the next C is an octave, 12 half-steps. Both often sound open and stable.',
       },
       close_tension: {
         name: 'Tingly Neighbors',
         reveal: 'The sound gave a little shiver!',
-        description: 'Two neighboring sounds rubbed together and made tension.',
+        description: 'The two glowing notes sit right next to each other on the keyboard.',
         hint: 'Use this sound when something strange or scary is about to happen.',
-        theory: 'Notes one semitone apart create strong musical tension.',
+        theory:
+          'The distance from one key to the very next key—white or black—is one half-step, also called a semitone. Playing those neighbors together creates strong tension.',
       },
       stepwise_run: {
         name: 'Sound Staircase',
         reveal: 'A staircase appeared!',
-        description: 'Four notes climbed or descended one small step at a time.',
+        description: 'Four glowing notes moved in one direction, each only 1 or 2 half-steps away.',
         hint: 'How long can you make the staircase?',
-        theory: 'Moving between nearby notes is called stepwise motion.',
+        theory:
+          'Moving from one nearby note to the next—like C, D, E, F—is called stepwise motion. Because there are no big jumps, the melody sounds smooth and easy to follow.',
       },
       call_and_response: {
         name: 'Call and Answer',
         reveal: 'The sounds answered each other!',
-        description: 'One musical shape returned like a reply from a friend.',
+        description:
+          'A three-note shape returned after a short pause, with the same rhythm and motion.',
         hint: 'Make the answer start on a different note.',
-        theory: 'Music can be organized as a call followed by a response.',
+        theory:
+          'The first shape is the call and the repeated shape is the response. The answer may start higher or lower, but keeping the same rhythm and up-and-down motion makes the connection audible.',
       },
       rest_then_burst: {
         name: 'Wait... Pop!',
         reveal: 'The quiet made the next sound burst!',
-        description: 'A full beat of silence made the following sounds feel bigger.',
+        description:
+          'One whole beat stayed silent, then at least three sounds began in the next beat.',
         hint: 'Try making the quiet part even longer.',
-        theory: 'Rests shape musical phrases just as much as sounding notes do.',
+        theory:
+          'Written silence is called a rest. A rest creates anticipation, so several sounds arriving just after it can feel stronger—like taking a breath before speaking.',
       },
       rhythm_loop: {
         name: 'Rhythm Engine',
         reveal: 'The rhythm started an engine!',
-        description: 'The same busy rhythm returned in the next beat.',
+        description: 'Two or more sounds used the same timing and lengths again in the next beat.',
         hint: 'Keep the rhythm but change the pitches.',
-        theory: 'A repeating rhythmic pattern is often called an ostinato.',
+        theory:
+          'Rhythm is the pattern of when sounds begin and how long they last. When that pattern repeats, it can become an ostinato—the steady engine underneath a song.',
       },
       sustain_contrast: {
         name: 'Comet Trail',
         reveal: 'A long sound left a sparkling trail!',
-        description: 'A long note was followed by quick, short notes.',
+        description: 'A note held for at least one beat was followed by two quick, one-cell notes.',
         hint: 'Swap the order: what happens when short notes come first?',
-        theory: 'Contrasting note lengths gives a phrase shape and motion.',
+        theory:
+          'A held note feels spacious, while short notes feel active. Putting different note lengths next to each other is called rhythmic contrast, and it gives a phrase shape and motion.',
       },
     },
   },
@@ -437,6 +449,7 @@ export const translations: Record<Locale, Translations> = {
     discoveryProgress: (earned, total) => `${earned} / ${total} はっけん`,
     discoveryFound: 'はっけん！',
     discoveryFocusHint: 'ひかっている音やリズムが、はっけんのもとだよ。',
+    discoveryAhaLabel: 'へぇ、なるほど！',
     discoveryAcknowledge: 'わかった！',
     discoveryLocked: '？？？',
     discoveryHintLabel: 'ためしてみよう',
@@ -451,58 +464,66 @@ export const translations: Record<Locale, Translations> = {
       interval_third: {
         name: 'ふたご星',
         reveal: 'ふたつの音が いっしょに光った！',
-        description: 'ちがう高さの音がかさなって、やさしくまざりあったよ。',
+        description: 'ひかった2音は、となりのけんばんへ1つずつ進むと、3歩か4歩のきょりだよ。',
         hint: 'どちらかの音をすこし動かして、もう一度 星を出せるかな？',
-        theory: 'この音どうしのきょりは「3度」とよばれるよ。',
+        theory:
+          'けんばんですぐとなりへ進む1歩を「半音」というよ。ド→ミ、レ→ファのように、低い音から両はしを入れて3つ数えるきょりが「3度」。3度には、半音3つぶんと4つぶんがあるんだ。',
       },
       open_fifth: {
         name: 'ひろがる空',
         reveal: '音のむこうに 空がひらいた！',
-        description: 'はなれたふたつの音が、ひろくてのびやかなひびきを作ったよ。',
+        description: 'ひかった2音が、ひろく安定して聞こえるきょりにあるよ。',
         hint: '同じかたちを、もっと高いところや低いところでためしてみよう。',
-        theory: '「完全5度」や「オクターブ」は、ひろく安定したひびきになりやすいよ。',
+        theory:
+          'ド→ソは「ド・レ・ミ・ファ・ソ」と5つ数えるので「完全5度」。けんばんでは7歩ぶんだよ。ド→高いドは12歩ぶんの「オクターブ」。どちらも、ひろく安定して聞こえやすいんだ。',
       },
       close_tension: {
         name: 'ちょっとドキドキ',
         reveal: '音が ぶるっとふるえた！',
-        description: 'となりあう音がぶつかって、ドキドキするひびきになったよ。',
+        description: 'ひかった2音は、けんばんですぐとなりどうしだよ。',
         hint: 'ふしぎなことや、こわいことが起こる前の音に使ってみよう。',
-        theory: '半音となりの音は、つよい緊張感を作ることがあるよ。',
+        theory:
+          '白いけんばんも黒いけんばんもふくめて、すぐとなりまでのきょりを「半音」というよ。半音となりの2音をいっしょに鳴らすと、つよい緊張感が生まれるんだ。',
       },
       stepwise_run: {
         name: '音のかいだん',
         reveal: '音のかいだんが あらわれた！',
-        description: '4つの音が、ちかい高さへ少しずつのぼったり、おりたりしたよ。',
+        description: 'ひかった4音が、けんばん1歩か2歩ずつ、同じ向きへ進んだよ。',
         hint: 'どこまで長いかいだんを作れるかな？',
-        theory: 'ちかい高さへ進む動きを「順次進行」とよぶよ。',
+        theory:
+          'ド・レ・ミ・ファのように、となりに近い音へ少しずつ進む動きを「順次進行」というよ。大きくジャンプしないので、なめらかなメロディーに聞こえるんだ。',
       },
       call_and_response: {
         name: 'よびかけとへんじ',
         reveal: '音どうしが おへんじした！',
-        description: 'さいしょの音のかたちに、もうひとつの音のかたちが答えたよ。',
+        description: '3音のかたちが少し間をあけて、同じリズムと動きでもう一度あらわれたよ。',
         hint: 'へんじのはじまりを、ちがう高さにしてみよう。',
-        theory: '音楽にも「よびかけ」と「こたえ」の組み立てかたがあるよ。',
+        theory:
+          'さいしょのかたちが「よびかけ」、つぎのかたちが「へんじ」。へんじの高さがちがっても、リズムとのぼりおりが同じなら、つながって聞こえるんだ。',
       },
       rest_then_burst: {
         name: 'ためて、ドン！',
         reveal: 'しずけさのあとで 音がはじけた！',
-        description: '1ぱくのしずけさが、つぎの音をもっと大きく感じさせたよ。',
+        description: 'まるまる1ぱく休んだあと、つぎの1ぱくで3つ以上の音がはじまったよ。',
         hint: 'しずかなところを、もっと長くしたらどうなるかな？',
-        theory: '休符も、音とおなじように音楽のまとまりを作っているよ。',
+        theory:
+          '音を鳴らさない時間を「休符」というよ。休符があると「つぎは何だろう？」と感じるので、そのあとに音が集まると、より強く聞こえるんだ。',
       },
       rhythm_loop: {
         name: 'リズムエンジン',
         reveal: 'リズムのエンジンが うごきだした！',
-        description: 'いそがしい同じリズムが、つぎのはくでもう一度あらわれたよ。',
+        description: '2つ以上の音のタイミングと長さが、つぎの1ぱくでも同じになったよ。',
         hint: 'リズムはそのままで、音の高さだけかえてみよう。',
-        theory: 'くりかえすリズムのかたちは「オスティナート」とよばれることがあるよ。',
+        theory:
+          '音が「いつ始まり、どれだけ続くか」のならびがリズム。そのかたちをくりかえすと、曲を動かすエンジンのような「オスティナート」になることがあるよ。',
       },
       sustain_contrast: {
         name: 'ながれ星',
         reveal: '長い音が きらきらのあとをのこした！',
-        description: '長くのびる音のあとに、すばやい短い音がつづいたよ。',
+        description: '1ぱく以上のばした音のあとに、1マスの短い音が2つつづいたよ。',
         hint: 'こんどは、短い音をさきにしたらどう聞こえるかな？',
-        theory: '音の長さをくらべると、音楽にかたちや動きが生まれるよ。',
+        theory:
+          '長い音はゆったり、短い音は活発に感じやすいよ。ちがう長さをとなり合わせる「リズムの対比」で、音楽にかたちや動きが生まれるんだ。',
       },
     },
   },
