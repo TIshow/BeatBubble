@@ -502,17 +502,6 @@
   line-height: 1.6;
 }
 
-.discovery-theory summary {
-  color: var(--foreground);
-  font-size: 13px;
-  font-weight: 800;
-  cursor: pointer;
-}
-
-.discovery-theory p {
-  margin-top: 7px;
-}
-
 .discovery-locked-mark {
   position: relative;
   z-index: 1;

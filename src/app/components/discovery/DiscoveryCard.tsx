@@ -46,10 +46,10 @@ export function DiscoveryCard({ definition, progress, locale, t }: DiscoveryCard
         <strong>{t.discoveryHintLabel}</strong>
         <p>{copy.hint}</p>
       </div>
-      <details className="discovery-card-section discovery-theory">
-        <summary>{t.discoveryTheoryLabel}</summary>
+      <div className="discovery-card-section">
+        <strong>{t.discoveryTheoryLabel}</strong>
         <p>{copy.theory}</p>
-      </details>
+      </div>
     </article>
   );
 }
