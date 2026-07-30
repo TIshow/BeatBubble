@@ -3,10 +3,11 @@
    in their original relative order — some overrides are source-order
    dependent (e.g. the base .control-slider intentionally wins over the
    mobile override). */
-@import "./styles/base.css";
-@import "./styles/header.css";
-@import "./styles/settings.css";
-@import "./styles/note-panel.css";
-@import "./styles/grid.css";
-@import "./styles/modal.css";
-@import "./styles/songs.css";
+@import './styles/base.css';
+@import './styles/header.css';
+@import './styles/settings.css';
+@import './styles/note-panel.css';
+@import './styles/grid.css';
+@import './styles/modal.css';
+@import './styles/discoveries.css';
+@import './styles/songs.css';

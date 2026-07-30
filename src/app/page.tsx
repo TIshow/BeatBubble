@@ -1,7 +1,8 @@
-"use client";
+'use client';
 
-import { useEffect, useRef, useState, useCallback } from "react";
-import type { DrumId, InstrumentId, NoteName } from "@/core/types";
+import { useCallback, useEffect, useRef, useState } from 'react';
+import Link from 'next/link';
+import type { DrumId, InstrumentId, NoteName } from '@/core/types';
 import {
   addMelodyNote,
   adjustPitchBound,
@@ -15,28 +16,33 @@ import {
   toggleDrumHit,
   toggleMelodyNoteLock,
   toggleDrumHitLock,
-} from "@/core/ops";
-import { migrateSong } from "@/core/legacy";
-import { buildRangeNotes, findMelodyNoteAt } from "@/ui/grid";
-import { AudioEngine, preloadPianoSamples } from "@/audio/engine";
-import { audioBufferToWavBlob } from "@/audio/wav";
-import { useDragInteraction } from "@/hooks/useDragInteraction";
-import { useLocale } from "@/hooks/useLocale";
-import { useSong } from "@/hooks/useSong";
-import { useAuth, authDisplayName } from "@/hooks/useAuth";
-import { useProfile } from "@/hooks/useProfile";
-import { supabase } from "@/lib/supabase";
-import { SaveModal } from "./components/SaveModal";
-import { ProfileModal } from "./components/ProfileModal";
-import { NotePanel } from "./components/NotePanel";
-import { Header } from "./components/Header";
-import { SettingsPanel } from "./components/SettingsPanel";
-import { Grid } from "./components/Grid";
+} from '@/core/ops';
+import { migrateSong } from '@/core/legacy';
+import { buildRangeNotes, findMelodyNoteAt } from '@/ui/grid';
+import { AudioEngine, preloadPianoSamples } from '@/audio/engine';
+import { audioBufferToWavBlob } from '@/audio/wav';
+import { useDragInteraction } from '@/hooks/useDragInteraction';
+import { useLocale } from '@/hooks/useLocale';
+import { useSong } from '@/hooks/useSong';
+import { useAuth, authDisplayName } from '@/hooks/useAuth';
+import { useProfile } from '@/hooks/useProfile';
+import { useDiscoveries } from '@/hooks/useDiscoveries';
+import { useDiscoveryFeedback } from '@/hooks/useDiscoveryFeedback';
+import { supabase } from '@/lib/supabase';
+import { DISCOVERY_CARDS } from '@/discovery/catalog';
+import { SaveModal } from './components/SaveModal';
+import { ProfileModal } from './components/ProfileModal';
+import { NotePanel } from './components/NotePanel';
+import { Header } from './components/Header';
+import { SettingsPanel } from './components/SettingsPanel';
+import { Grid } from './components/Grid';
+import { DiscoveryFeedback } from './components/discovery/DiscoveryFeedback';
 
 export default function Home() {
   const { locale, t, changeLocale } = useLocale();
   const { user, signInWithGoogle, signOut } = useAuth();
   const { profile, saveProfile } = useProfile(user);
+  const { progress: discoveryProgress, claimDiscoveries } = useDiscoveries(user);
 
   // Identity line for the account menu, from whatever profile fields are set.
   const profileSubtitle = [
@@ -45,7 +51,7 @@ export default function Home() {
     profile?.className,
   ]
     .filter(Boolean)
-    .join("・");
+    .join('・');
   const { song, setSong, songRef, canUndo, pushHistory, undo, reset } = useSong();
 
   const [isPlaying, setIsPlaying] = useState(false);
@@ -70,6 +76,23 @@ export default function Home() {
   const gridRef = useRef<HTMLDivElement>(null);
   const gridContainerRef = useRef<HTMLDivElement>(null);
   const engineRef = useRef<AudioEngine | null>(null);
+  const {
+    effects: discoveryEffects,
+    revealQueue: discoveryRevealQueue,
+    focus: discoveryFocus,
+    captureSource: captureDiscoverySource,
+    clearSource: clearDiscoverySource,
+    onPlaybackStep: onDiscoveryPlaybackStep,
+    clearEffects: clearDiscoveryEffects,
+    dismissEffect: dismissDiscoveryEffect,
+    finishReveal: finishDiscoveryReveal,
+  } = useDiscoveryFeedback({
+    song,
+    songRef,
+    currentUserId: user?.id ?? null,
+    loadedSongOwnerId: loadedSong?.userId ?? null,
+    claimDiscoveries,
+  });
 
   // Tear down audio when the editor unmounts (e.g. tapping "みんなの曲" mid-play),
   // otherwise the scheduler keeps running and the song can't be stopped.
@@ -93,24 +116,27 @@ export default function Home() {
   // navigation — browser back / reload — which carries no ?new).
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
-    if (!params.has("new")) return;
+    if (!params.has('new')) return;
+    clearDiscoverySource();
     reset();
-    window.history.replaceState({}, "", "/");
-  }, [reset]);
+    window.history.replaceState({}, '', '/');
+  }, [clearDiscoverySource, reset]);
 
   // ?load=<id> で曲を読み込む
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
-    const loadId = params.get("load");
+    const loadId = params.get('load');
     if (!loadId) return;
     supabase
-      .from("songs")
-      .select("id, title, author, song_data, user_id, is_template")
-      .eq("id", loadId)
+      .from('songs')
+      .select('id, title, author, song_data, user_id, is_template')
+      .eq('id', loadId)
       .single()
       .then(({ data, error }) => {
         if (data?.song_data) {
-          setSong(migrateSong(data.song_data));
+          const migrated = migrateSong(data.song_data);
+          captureDiscoverySource(migrated);
+          setSong(migrated);
           setLoadedSong({
             id: data.id,
             title: data.title,
@@ -118,17 +144,17 @@ export default function Home() {
             userId: data.user_id ?? null,
             isTemplate: data.is_template ?? false,
           });
-          window.history.replaceState({}, "", "/");
+          window.history.replaceState({}, '', '/');
         } else {
           // Not found or not readable (e.g. someone else's draft, or the
           // session isn't restored yet). Say so instead of silently showing
           // an empty grid, and keep ?load in the URL so reloading after a
           // login retries the fetch.
-          console.error("[BeatBubble] load failed:", error);
+          console.error('[BeatBubble] load failed:', error);
           setLoadFailed(true);
         }
       });
-  }, [setSong]);
+  }, [captureDiscoverySource, setSong]);
 
   const getEngine = useCallback(() => {
     if (!engineRef.current) {
@@ -145,19 +171,19 @@ export default function Home() {
         note: noteName,
       });
       const addedNote = newSong.melody.notes.find(
-        (n) => n.startStep === step && n.note === noteName
+        (n) => n.startStep === step && n.note === noteName,
       );
       if (addedNote) {
         pushHistory(song);
         setSong(newSong);
         getEngine()
           .playNotePreview(noteName, song.instrument)
-          .catch((error) => console.error("Note preview failed:", error));
+          .catch((error) => console.error('Note preview failed:', error));
         return addedNote.id;
       }
       return null;
     },
-    [song, setSong, getEngine, pushHistory]
+    [song, setSong, getEngine, pushHistory],
   );
 
   const handleNoteRemove = useCallback(
@@ -165,14 +191,14 @@ export default function Home() {
       pushHistory(song);
       setSong((prev) => removeMelodyNote(prev, noteId));
     },
-    [song, setSong, pushHistory]
+    [song, setSong, pushHistory],
   );
 
   const handleNoteDurationChange = useCallback(
     (noteId: string, duration: number) => {
       setSong((prev) => setMelodyNoteDuration(prev, noteId, duration));
     },
-    [setSong]
+    [setSong],
   );
 
   const handleDrumToggle = useCallback(
@@ -183,15 +209,15 @@ export default function Home() {
       if (!wasHit) {
         getEngine()
           .playDrumPreview(drumId)
-          .catch((error) => console.error("Drum preview failed:", error));
+          .catch((error) => console.error('Drum preview failed:', error));
       }
     },
-    [song, setSong, getEngine, pushHistory]
+    [song, setSong, getEngine, pushHistory],
   );
 
   const findNoteAt = useCallback(
     (noteName: NoteName, step: number) => findMelodyNoteAt(song, noteName, step),
-    [song]
+    [song],
   );
 
   const handleDragStart = useCallback(() => {
@@ -205,7 +231,7 @@ export default function Home() {
       pushHistory(song);
       setSong((prev) => toggleMelodyNoteLock(prev, note.id));
     },
-    [song, setSong, pushHistory]
+    [song, setSong, pushHistory],
   );
 
   const handleToggleDrumLock = useCallback(
@@ -215,7 +241,7 @@ export default function Home() {
       pushHistory(song);
       setSong((prev) => toggleDrumHitLock(prev, { step, drumId }));
     },
-    [song, setSong, pushHistory]
+    [song, setSong, pushHistory],
   );
 
   // Lock editing is blocked only for someone else's *template*: a student must
@@ -251,16 +277,22 @@ export default function Home() {
       setIsPlaying(true);
       await engine.play(
         () => songRef.current,
-        (step) => setPlayheadStep(step)
+        (step) => {
+          setPlayheadStep(step);
+          if (onDiscoveryPlaybackStep(step)) {
+            engine.stop();
+            setIsPlaying(false);
+          }
+        },
       );
       // play() can bail without starting (stopped while waiting for samples,
       // or the engine was disposed mid-wait) — don't leave the UI stuck.
-      if (engine.getState() !== "playing") {
+      if (engine.getState() !== 'playing') {
         setIsPlaying(false);
         setPlayheadStep(null);
       }
     } catch (error) {
-      console.error("Failed to start audio:", error);
+      console.error('Failed to start audio:', error);
       setIsPlaying(false);
       setPlayheadStep(null);
     }
@@ -270,6 +302,7 @@ export default function Home() {
     if (engineRef.current) engineRef.current.stop();
     setIsPlaying(false);
     setPlayheadStep(null);
+    clearDiscoveryEffects();
   };
 
   const handleExport = async () => {
@@ -279,16 +312,16 @@ export default function Home() {
       const buffer = await getEngine().renderOffline(songRef.current);
       const blob = audioBufferToWavBlob(buffer);
       const url = URL.createObjectURL(blob);
-      const base = (loadedSong?.title ?? "beatbubble").trim().replace(/[\\/:*?"<>|]/g, "_");
-      const a = document.createElement("a");
+      const base = (loadedSong?.title ?? 'beatbubble').trim().replace(/[\\/:*?"<>|]/g, '_');
+      const a = document.createElement('a');
       a.href = url;
-      a.download = `${base || "beatbubble"}.wav`;
+      a.download = `${base || 'beatbubble'}.wav`;
       document.body.appendChild(a);
       a.click();
       a.remove();
       URL.revokeObjectURL(url);
     } catch (error) {
-      console.error("Failed to export WAV:", error);
+      console.error('Failed to export WAV:', error);
     } finally {
       setIsExporting(false);
     }
@@ -296,6 +329,7 @@ export default function Home() {
 
   const handleReset = () => {
     handleStop();
+    clearDiscoverySource();
     reset();
     setIsConfirmingReset(false);
   };
@@ -305,12 +339,12 @@ export default function Home() {
     if (!isNaN(value)) setSong((prev) => ({ ...prev, bpm: value }));
   };
 
-  const handlePitchBoundChange = (bound: "min" | "max", direction: "up" | "down") => {
+  const handlePitchBoundChange = (bound: 'min' | 'max', direction: 'up' | 'down') => {
     setSong((prev) => adjustPitchBound(prev, bound, direction));
   };
 
-  const handleBlocksChange = (direction: "inc" | "dec") => {
-    setSong((prev) => setBlocks(prev, prev.blocks + (direction === "inc" ? 1 : -1)));
+  const handleBlocksChange = (direction: 'inc' | 'dec') => {
+    setSong((prev) => setBlocks(prev, prev.blocks + (direction === 'inc' ? 1 : -1)));
   };
 
   const handleInstrumentChange = (instrument: InstrumentId) => {
@@ -337,7 +371,7 @@ export default function Home() {
         setSong((prev) => toggleAllowedNote(prev, noteName));
       }
     },
-    [song, setSong]
+    [song, setSong],
   );
 
   const handleClearAllowedNotes = useCallback(() => {
@@ -346,7 +380,9 @@ export default function Home() {
 
   return (
     <div
-      className={`app ${isDragging ? "dragging" : ""} ${lockActive ? "lock-mode" : ""}`}
+      className={`app ${isDragging ? 'dragging' : ''} ${lockActive ? 'lock-mode' : ''} ${
+        discoveryFocus ? 'discovery-focus-active' : ''
+      }`}
       onMouseMove={containerHandlers.onMouseMove}
       onMouseUp={containerHandlers.onMouseUp}
       onMouseLeave={containerHandlers.onMouseLeave}
@@ -422,14 +458,33 @@ export default function Home() {
         />
       )}
 
+      <div className="discovery-chip-row">
+        <Link href="/discoveries" className="discovery-chip">
+          <span aria-hidden="true">✦</span>
+          {t.discoveryProgress(discoveryProgress.length, DISCOVERY_CARDS.length)}
+        </Link>
+      </div>
+
       <Grid
         song={song}
         playheadStep={playheadStep}
         locale={locale}
         gridRef={gridRef}
         gridContainerRef={gridContainerRef}
+        discoveryFocus={discoveryFocus}
         getMelodyCellHandlers={getMelodyCellHandlers}
         getDrumCellHandlers={getDrumCellHandlers}
+      />
+
+      <DiscoveryFeedback
+        effects={discoveryEffects}
+        revealQueue={discoveryRevealQueue}
+        t={t}
+        onEffectEnd={dismissDiscoveryEffect}
+        onRevealDone={() => {
+          setPlayheadStep(null);
+          finishDiscoveryReveal();
+        }}
       />
 
       {isSaveModalOpen && (

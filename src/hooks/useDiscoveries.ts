@@ -1,0 +1,200 @@
+'use client';
+
+import { useCallback, useEffect, useRef, useState } from 'react';
+import type { User } from '@supabase/supabase-js';
+import { DISCOVERY_CARDS } from '@/discovery/catalog';
+import {
+  clearDiscoveries,
+  GUEST_DISCOVERIES_KEY,
+  mergeDiscoveries,
+  pendingDiscoveriesKey,
+  readDiscoveries,
+  type StoredDiscovery,
+  writeDiscoveries,
+} from '@/discovery/storage';
+import type { DiscoveryId } from '@/discovery/types';
+import { fetchUserDiscoveries, insertUserDiscoveries } from '@/lib/discoveryRepository';
+
+function currentSessionStorage(): Storage | null {
+  if (typeof window === 'undefined') return null;
+  try {
+    return window.sessionStorage;
+  } catch {
+    return null;
+  }
+}
+
+function sortProgress(cards: readonly StoredDiscovery[]): StoredDiscovery[] {
+  const order = new Map(DISCOVERY_CARDS.map((card) => [card.id, card.sortOrder]));
+  return [...cards].sort((a, b) => (order.get(a.cardId) ?? 0) - (order.get(b.cardId) ?? 0));
+}
+
+function mergeIntoMap(
+  current: ReadonlyMap<DiscoveryId, StoredDiscovery>,
+  additions: readonly StoredDiscovery[],
+): Map<DiscoveryId, StoredDiscovery> {
+  const next = new Map(current);
+  for (const item of additions) {
+    const existing = next.get(item.cardId);
+    if (!existing || item.discoveredAt < existing.discoveredAt) {
+      next.set(item.cardId, item);
+    }
+  }
+  return next;
+}
+
+export function useDiscoveries(user: User | null) {
+  const [progress, setProgress] = useState<StoredDiscovery[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [syncError, setSyncError] = useState(false);
+  const progressRef = useRef<Map<DiscoveryId, StoredDiscovery>>(new Map());
+  const userRef = useRef(user);
+
+  useEffect(() => {
+    userRef.current = user;
+  }, [user]);
+
+  const replaceProgress = useCallback((cards: readonly StoredDiscovery[]) => {
+    const next = new Map(cards.map((card) => [card.cardId, card]));
+    progressRef.current = next;
+    setProgress(sortProgress([...next.values()]));
+  }, []);
+
+  const addProgress = useCallback((cards: readonly StoredDiscovery[]) => {
+    if (cards.length === 0) return;
+    const next = mergeIntoMap(progressRef.current, cards);
+    progressRef.current = next;
+    setProgress(sortProgress([...next.values()]));
+  }, []);
+
+  const flushPending = useCallback(async (userId: string): Promise<boolean> => {
+    const storage = currentSessionStorage();
+    const key = pendingDiscoveriesKey(userId);
+    const pending = readDiscoveries(storage, key);
+    if (pending.length === 0) return true;
+    const error = await insertUserDiscoveries(userId, pending);
+    if (error) {
+      setSyncError(true);
+      return false;
+    }
+    const uploadedIds = new Set(pending.map((card) => card.cardId));
+    const remaining = readDiscoveries(storage, key).filter((card) => !uploadedIds.has(card.cardId));
+    if (remaining.length > 0) {
+      writeDiscoveries(storage, key, remaining);
+    } else {
+      clearDiscoveries(storage, key);
+    }
+    setSyncError(false);
+    return true;
+  }, []);
+
+  useEffect(() => {
+    let active = true;
+
+    async function load() {
+      const storage = currentSessionStorage();
+      const guest = readDiscoveries(storage, GUEST_DISCOVERIES_KEY);
+      const userId = user?.id;
+      const pending = userId ? readDiscoveries(storage, pendingDiscoveriesKey(userId)) : [];
+
+      // Yield once so all initialization updates happen as the result of this
+      // asynchronous external-storage read rather than synchronously in the
+      // effect body.
+      await Promise.resolve();
+      if (!active) return;
+      setIsLoading(true);
+      setSyncError(false);
+
+      if (!userId) {
+        replaceProgress(guest);
+        setIsLoading(false);
+        return;
+      }
+
+      replaceProgress(pending);
+      const { cards: remote, error } = await fetchUserDiscoveries(userId);
+      if (!active) return;
+
+      if (error) {
+        setSyncError(true);
+      } else {
+        replaceProgress(mergeDiscoveries(remote, [...progressRef.current.values()]));
+      }
+      setIsLoading(false);
+      const pendingSynced = await flushPending(userId);
+      if (active && (error || !pendingSynced)) setSyncError(true);
+    }
+
+    void load();
+    return () => {
+      active = false;
+    };
+  }, [flushPending, replaceProgress, user]);
+
+  useEffect(() => {
+    if (!user) return;
+    const retry = () => {
+      void flushPending(user.id);
+    };
+    window.addEventListener('online', retry);
+    return () => window.removeEventListener('online', retry);
+  }, [flushPending, user]);
+
+  const claimDiscoveries = useCallback(
+    (cardIds: readonly DiscoveryId[]): DiscoveryId[] => {
+      const now = new Date().toISOString();
+      const additions = [...new Set(cardIds)]
+        .filter((cardId) => !progressRef.current.has(cardId))
+        .map((cardId) => ({ cardId, discoveredAt: now }));
+      if (additions.length === 0) return [];
+
+      addProgress(additions);
+      const storage = currentSessionStorage();
+      const currentUser = userRef.current;
+
+      if (!currentUser) {
+        writeDiscoveries(
+          storage,
+          GUEST_DISCOVERIES_KEY,
+          mergeDiscoveries(readDiscoveries(storage, GUEST_DISCOVERIES_KEY), additions),
+        );
+        return additions.map((item) => item.cardId);
+      }
+
+      const pendingKey = pendingDiscoveriesKey(currentUser.id);
+      writeDiscoveries(
+        storage,
+        pendingKey,
+        mergeDiscoveries(readDiscoveries(storage, pendingKey), additions),
+      );
+      void flushPending(currentUser.id);
+      return additions.map((item) => item.cardId);
+    },
+    [addProgress, flushPending],
+  );
+
+  const retrySync = useCallback(async (): Promise<boolean> => {
+    const currentUser = userRef.current;
+    if (!currentUser) return true;
+
+    const pendingSynced = await flushPending(currentUser.id);
+    const { cards: remote, error } = await fetchUserDiscoveries(currentUser.id);
+    if (error) {
+      setSyncError(true);
+      return false;
+    }
+
+    replaceProgress(mergeDiscoveries(remote, [...progressRef.current.values()]));
+    setSyncError(!pendingSynced);
+    return pendingSynced;
+  }, [flushPending, replaceProgress]);
+
+  return {
+    progress,
+    earnedIds: new Set(progress.map((item) => item.cardId)),
+    isLoading,
+    syncError,
+    claimDiscoveries,
+    retrySync,
+  };
+}
