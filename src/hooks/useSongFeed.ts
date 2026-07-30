@@ -3,19 +3,20 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { User } from "@supabase/supabase-js";
 import { supabase } from "@/lib/supabase";
-import type { Song } from "@/core/types";
 
 export type FeedView = "all" | "mine" | "templates";
 
 export type Visibility = "draft" | "unlisted" | "public";
 
+// Deliberately without song_data: the cards only show metadata, and the editor
+// re-fetches the song by id when one is opened. Carrying the note data through
+// the feed cost ~121KB per page of 24 (avg ~5KB/song) for bytes nobody read.
 export type FeedSong = {
   id: string;
   title: string;
   author: string;
   created_at: string;
   updated_at: string;
-  song_data: Song;
   user_id: string | null;
   is_template: boolean;
   visibility: Visibility;
@@ -25,7 +26,7 @@ export type FeedSong = {
 const PAGE_SIZE = 24;
 
 const SONG_COLUMNS =
-  "id, title, author, created_at, updated_at, song_data, user_id, is_template, visibility";
+  "id, title, author, created_at, updated_at, user_id, is_template, visibility";
 
 // Whether a song belongs to a view — mirrors the server-side filter, so a
 // locally-mutated song (template toggled, etc.) leaves/stays in the list
