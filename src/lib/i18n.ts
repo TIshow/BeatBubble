@@ -128,7 +128,8 @@ export type Translations = {
   discoveryAlbumIntro: string;
   discoveryProgress: (earned: number, total: number) => string;
   discoveryFound: string;
-  discoveryMoreFound: (n: number) => string;
+  discoveryFocusHint: string;
+  discoveryAcknowledge: string;
   discoveryLocked: string;
   discoveryHintLabel: string;
   discoveryTheoryLabel: string;
@@ -252,7 +253,8 @@ export const translations: Record<Locale, Translations> = {
     discoveryAlbumIntro: 'Make sounds, listen closely, and collect the musical surprises you find.',
     discoveryProgress: (earned, total) => `${earned} / ${total} found`,
     discoveryFound: 'Discovery!',
-    discoveryMoreFound: (n) => `${n} more discoveries!`,
+    discoveryFocusHint: 'The glowing notes and beats made this discovery.',
+    discoveryAcknowledge: 'Got it!',
     discoveryLocked: '???',
     discoveryHintLabel: 'Try this',
     discoveryTheoryLabel: 'Music words',
@@ -434,7 +436,8 @@ export const translations: Record<Locale, Translations> = {
     discoveryAlbumIntro: '音をつくって、よくきいて。見つけた音楽のふしぎを集めよう。',
     discoveryProgress: (earned, total) => `${earned} / ${total} はっけん`,
     discoveryFound: 'はっけん！',
-    discoveryMoreFound: (n) => `ほかにも ${n}まい みつけた！`,
+    discoveryFocusHint: 'ひかっている音やリズムが、はっけんのもとだよ。',
+    discoveryAcknowledge: 'わかった！',
     discoveryLocked: '？？？',
     discoveryHintLabel: 'ためしてみよう',
     discoveryTheoryLabel: '音楽のことば',

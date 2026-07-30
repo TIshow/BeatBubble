@@ -1,16 +1,26 @@
 import type { DiscoveryId } from './types';
+import type { DiscoveryMatch } from './types';
 
-export type DiscoveryRevealItem =
-  | { kind: 'card'; cardId: DiscoveryId }
-  | { kind: 'summary'; count: number };
+export type DiscoveryRevealItem = {
+  cardId: DiscoveryId;
+  evidenceNoteIds: string[];
+  evidenceHitIds: string[];
+};
 
-const MAX_INDIVIDUAL_REVEALS = 3;
+function sortedUnique(values: readonly string[]): string[] {
+  return [...new Set(values)].sort();
+}
 
-export function revealItemsFor(cardIds: readonly DiscoveryId[]): DiscoveryRevealItem[] {
-  const unique = [...new Set(cardIds)];
-  const cards = unique
-    .slice(0, MAX_INDIVIDUAL_REVEALS)
-    .map((cardId): DiscoveryRevealItem => ({ kind: 'card', cardId }));
-  const remaining = unique.length - cards.length;
-  return remaining > 0 ? [...cards, { kind: 'summary', count: remaining }] : cards;
+export function revealItemsFor(
+  cardIds: readonly DiscoveryId[],
+  matches: readonly DiscoveryMatch[],
+): DiscoveryRevealItem[] {
+  return [...new Set(cardIds)].map((cardId) => {
+    const cardMatches = matches.filter((match) => match.cardId === cardId);
+    return {
+      cardId,
+      evidenceNoteIds: sortedUnique(cardMatches.flatMap((match) => match.evidenceNoteIds)),
+      evidenceHitIds: sortedUnique(cardMatches.flatMap((match) => match.evidenceHitIds)),
+    };
+  });
 }

@@ -11,7 +11,7 @@
   --discovery-card-border: #e8d9a7;
   --discovery-muted: #6f6652;
   --discovery-accent: #f6b93b;
-  --discovery-overlay: rgba(255, 255, 255, 0.88);
+  --discovery-dim-bg: rgba(0, 0, 0, 0.58);
 }
 
 @media (prefers-color-scheme: dark) {
@@ -26,7 +26,6 @@
     --discovery-card-border: #665c3c;
     --discovery-muted: #c8bfa9;
     --discovery-accent: #ffd166;
-    --discovery-overlay: rgba(29, 29, 31, 0.9);
   }
 }
 

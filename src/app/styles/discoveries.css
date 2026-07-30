@@ -85,22 +85,38 @@
   }
 }
 
-/* First-time card reveal. It deliberately does not create a dimming backdrop:
-   playback and editing remain visible and interactive underneath. */
+/* First-time card reveal: playback is paused and the dialog stays open until
+   the child acknowledges it. The transparent full-screen layer blocks editing
+   while the grid itself provides the spotlight treatment below. */
 .discovery-reveal {
   position: fixed;
   inset: 0;
   z-index: 80;
-  display: grid;
-  place-items: center;
-  padding: 20px;
-  pointer-events: none;
-  animation: discovery-reveal-shell 1900ms ease-in-out forwards;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  padding: 32px;
+  pointer-events: auto;
+}
+
+.discovery-reveal--top {
+  align-items: flex-start;
+  justify-content: center;
+  padding: 14px;
+}
+
+.discovery-reveal--bottom {
+  align-items: flex-end;
+  justify-content: center;
+  padding: 14px;
 }
 
 .discovery-reveal-rays {
   position: absolute;
-  width: min(70vw, 420px);
+  top: 50%;
+  left: 50%;
+  z-index: 0;
+  width: 430px;
   aspect-ratio: 1;
   border-radius: 50%;
   background: repeating-conic-gradient(
@@ -108,28 +124,32 @@
     color-mix(in srgb, var(--discovery-accent) 42%, transparent) 0deg 8deg,
     transparent 8deg 20deg
   );
-  animation: discovery-rays-spin 1900ms ease-out forwards;
+  opacity: 0.38;
+  transform: translate(-50%, -50%);
+  animation: discovery-rays-spin 14s linear infinite;
+  pointer-events: none;
 }
 
 .discovery-reveal-label {
-  position: absolute;
-  top: max(12vh, 72px);
-  padding: 8px 24px;
+  position: relative;
+  z-index: 1;
+  padding: 7px 20px;
   border-radius: 999px;
   background: linear-gradient(135deg, #f7971e, #ffd200);
   color: #ffffff;
-  font-size: clamp(22px, 5vw, 42px);
+  font-size: 20px;
   font-weight: 900;
   letter-spacing: 0.08em;
   box-shadow: 0 8px 24px rgba(247, 151, 30, 0.35);
-  animation: discovery-label-drop 1900ms ease-in-out forwards;
+  animation: discovery-label-drop 420ms ease-out both;
 }
 
 .discovery-reveal-card {
   position: relative;
-  width: min(82vw, 330px);
-  min-height: 210px;
-  padding: 34px 28px 28px;
+  isolation: isolate;
+  width: min(360px, calc(100vw - 28px));
+  padding: 24px;
+  overflow: hidden;
   border: 3px solid var(--discovery-accent);
   border-radius: 28px;
   background: var(--discovery-card-bg);
@@ -141,106 +161,194 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 12px;
+  gap: 10px;
   text-align: center;
-  animation: discovery-card-arrive 1900ms cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+  animation: discovery-card-arrive 420ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
 }
 
 .discovery-reveal-card-mark {
+  position: relative;
+  z-index: 1;
   color: var(--discovery-accent);
-  font-size: 42px;
+  font-size: 34px;
   line-height: 1;
 }
 
 .discovery-reveal-name {
-  font-size: clamp(24px, 6vw, 36px);
+  position: relative;
+  z-index: 1;
+  font-size: clamp(24px, 5vw, 34px);
   font-weight: 900;
 }
 
 .discovery-reveal-message {
+  position: relative;
+  z-index: 1;
   color: var(--discovery-muted);
   font-size: 15px;
   font-weight: 650;
   line-height: 1.6;
 }
 
-.discovery-reveal--summary {
+.discovery-reveal-description {
+  position: relative;
+  z-index: 1;
   color: var(--foreground);
-  text-align: center;
+  font-size: 13px;
+  line-height: 1.65;
 }
 
-.discovery-reveal--summary .discovery-reveal-name {
-  padding: 18px 28px;
-  border: 2px solid var(--discovery-card-border);
-  border-radius: 24px;
-  background: var(--discovery-overlay);
-  box-shadow: 0 14px 35px rgba(0, 0, 0, 0.2);
+.discovery-reveal-focus-hint {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin-top: 2px;
+  padding: 8px 12px;
+  border: 1px solid var(--discovery-card-border);
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--discovery-accent) 10%, transparent);
+  color: var(--foreground);
+  font-size: 12px;
+  font-weight: 750;
+  line-height: 1.45;
+  text-align: left;
 }
 
-.discovery-reveal-burst {
-  position: absolute;
+.discovery-reveal-focus-hint span {
+  flex-shrink: 0;
   color: var(--discovery-accent);
-  font-size: min(70vw, 360px);
-  animation: discovery-rays-spin 1900ms ease-out forwards;
+  font-size: 20px;
 }
 
-@keyframes discovery-reveal-shell {
-  0%,
-  100% {
-    opacity: 0;
-  }
-  12%,
-  78% {
-    opacity: 1;
-  }
+.discovery-reveal-acknowledge {
+  position: relative;
+  z-index: 1;
+  min-width: 150px;
+  margin-top: 3px;
+  padding: 11px 24px;
+  border: none;
+  border-radius: 999px;
+  background: linear-gradient(135deg, #f7971e, #ffd200);
+  color: #ffffff;
+  font-size: 16px;
+  font-weight: 900;
+  box-shadow: 0 5px 16px rgba(247, 151, 30, 0.32);
+  transition:
+    transform 0.15s ease,
+    box-shadow 0.15s ease;
+}
+
+.discovery-reveal-acknowledge:hover,
+.discovery-reveal-acknowledge:focus-visible {
+  transform: translateY(-2px);
+  box-shadow: 0 7px 20px rgba(247, 151, 30, 0.42);
+  outline: 3px solid color-mix(in srgb, var(--discovery-accent) 40%, transparent);
+  outline-offset: 2px;
 }
 
 @keyframes discovery-card-arrive {
   0% {
     opacity: 0;
-    transform: translateY(80px) rotate(-8deg) scale(0.35);
+    transform: translateY(36px) rotate(-3deg) scale(0.82);
   }
-  18% {
+  70% {
     opacity: 1;
-    transform: translateY(0) rotate(2deg) scale(1.08);
-  }
-  30%,
-  72% {
-    transform: rotate(0) scale(1);
+    transform: translateY(-3px) rotate(1deg) scale(1.02);
   }
   100% {
-    opacity: 0;
-    transform: translate(38vw, -38vh) scale(0.15);
+    opacity: 1;
+    transform: translateY(0) rotate(0) scale(1);
   }
 }
 
 @keyframes discovery-label-drop {
   0% {
     opacity: 0;
-    transform: translateY(-30px) scale(0.7);
-  }
-  18%,
-  72% {
-    opacity: 1;
-    transform: translateY(0) scale(1);
+    transform: translateY(-16px) scale(0.8);
   }
   100% {
-    opacity: 0;
-    transform: translateY(-15px) scale(0.8);
+    opacity: 1;
+    transform: rotate(0) scale(1);
   }
 }
 
 @keyframes discovery-rays-spin {
-  0% {
-    opacity: 0;
-    transform: rotate(-30deg) scale(0.3);
+  from {
+    transform: translate(-50%, -50%) rotate(-30deg);
   }
-  25% {
-    opacity: 1;
+  to {
+    transform: translate(-50%, -50%) rotate(330deg);
   }
-  100% {
-    opacity: 0;
-    transform: rotate(45deg) scale(1.4);
+}
+
+/* Spotlight the musical evidence while the first-time dialog is open. */
+.discovery-focus-active > .header,
+.discovery-focus-active > .settings-panel,
+.discovery-focus-active > .note-panel,
+.discovery-focus-active > .editor-notice,
+.discovery-focus-active > .discovery-chip-row,
+.discovery-focus-active .grid-scrollbar {
+  opacity: 0.28;
+  filter: brightness(0.55);
+  pointer-events: none;
+}
+
+.discovery-focus-grid .cell,
+.discovery-focus-grid .label-cell {
+  transition:
+    opacity 0.2s ease,
+    filter 0.2s ease,
+    background 0.2s ease,
+    box-shadow 0.2s ease,
+    transform 0.2s ease;
+}
+
+.discovery-focus-grid .cell:not(.discovery-target) {
+  background: var(--discovery-dim-bg);
+  opacity: 0.3;
+  filter: saturate(0.25);
+}
+
+.discovery-focus-grid .label-cell:not(.discovery-target) {
+  opacity: 0.22;
+  filter: brightness(0.45) saturate(0.2);
+}
+
+.discovery-focus-grid .cell.discovery-target {
+  z-index: 5;
+  background: color-mix(in srgb, var(--discovery-accent) 18%, transparent);
+  opacity: 1;
+}
+
+.discovery-focus-grid .label-cell.discovery-target {
+  position: relative;
+  z-index: 5;
+  opacity: 1;
+  box-shadow:
+    0 0 0 3px var(--grid-bg),
+    0 0 0 6px var(--discovery-accent),
+    0 0 22px var(--discovery-accent);
+  transform: scale(1.04);
+}
+
+.discovery-focus-grid .cell.discovery-target .bubble,
+.discovery-focus-grid .cell.discovery-target .drum-bubble {
+  z-index: 6;
+  box-shadow:
+    0 0 0 3px var(--grid-bg),
+    0 0 0 6px var(--discovery-accent),
+    0 0 24px 8px color-mix(in srgb, var(--discovery-accent) 75%, transparent);
+  animation: discovery-target-pulse 850ms ease-in-out infinite alternate;
+}
+
+@keyframes discovery-target-pulse {
+  from {
+    transform: scale(1.02);
+  }
+  to {
+    transform: scale(1.13);
   }
 }
 
@@ -559,16 +667,18 @@
     animation: discovery-fade-only 700ms ease-out forwards;
   }
 
-  .discovery-reveal,
   .discovery-reveal-card,
   .discovery-reveal-label,
   .discovery-reveal-rays,
-  .discovery-reveal-burst {
-    animation: discovery-fade-only 1900ms ease-in-out forwards;
+  .discovery-focus-grid .cell.discovery-target .bubble,
+  .discovery-focus-grid .cell.discovery-target .drum-bubble {
+    animation: none;
   }
 
   .discoveries-progress-fill,
-  .discovery-chip {
+  .discovery-chip,
+  .discovery-focus-grid .cell,
+  .discovery-focus-grid .label-cell {
     transition: none;
   }
 }

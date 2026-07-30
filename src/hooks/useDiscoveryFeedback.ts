@@ -64,9 +64,9 @@ export function useDiscoveryFeedback({
   }, []);
 
   const onPlaybackStep = useCallback(
-    (step: number) => {
+    (step: number): boolean => {
       const matches = matchesRef.current.get(step);
-      if (!matches || matches.length === 0) return;
+      if (!matches || matches.length === 0) return false;
 
       const effectCardIds = [...new Set(matches.map((match) => match.cardId))];
       const nextEffects = effectCardIds.map((cardId) => ({
@@ -82,8 +82,10 @@ export function useDiscoveryFeedback({
         .map((match) => match.cardId);
       const newlyEarned = claimDiscoveries(earnable);
       if (newlyEarned.length > 0) {
-        setRevealQueue((current) => [...current, ...revealItemsFor(newlyEarned)]);
+        setRevealQueue((current) => [...current, ...revealItemsFor(newlyEarned, matches)]);
+        return true;
       }
+      return false;
     },
     [claimDiscoveries, currentUserId, loadedSongOwnerId, songRef],
   );
@@ -99,6 +101,7 @@ export function useDiscoveryFeedback({
   return {
     effects,
     revealQueue,
+    focus: revealQueue[0] ?? null,
     captureSource,
     clearSource,
     onPlaybackStep,

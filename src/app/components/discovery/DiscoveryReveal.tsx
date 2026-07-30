@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import type { DiscoveryRevealItem } from '@/discovery/revealQueue';
 import type { Translations } from '@/lib/i18n';
 
@@ -10,41 +10,87 @@ interface DiscoveryRevealProps {
   onDone: () => void;
 }
 
-const REVEAL_DURATION_MS = 1900;
-
 export function DiscoveryReveal({ item, t, onDone }: DiscoveryRevealProps) {
-  useEffect(() => {
-    const timer = window.setTimeout(onDone, REVEAL_DURATION_MS);
-    return () => window.clearTimeout(timer);
-  }, [item, onDone]);
+  const acknowledgeRef = useRef<HTMLButtonElement>(null);
+  const [placement, setPlacement] = useState<'top' | 'bottom' | 'right'>('right');
 
-  if (item.kind === 'summary') {
-    return (
-      <div className="discovery-reveal discovery-reveal--summary" role="status" aria-live="polite">
-        <div className="discovery-reveal-burst" aria-hidden="true">
-          ✦
-        </div>
-        <div className="discovery-reveal-name">{t.discoveryMoreFound(item.count)}</div>
-      </div>
-    );
-  }
+  useEffect(() => {
+    acknowledgeRef.current?.focus();
+  }, [item.cardId]);
+
+  useEffect(() => {
+    const updatePlacement = () => {
+      if (window.innerWidth >= 900) {
+        setPlacement('right');
+        return;
+      }
+      const targets = [...document.querySelectorAll<HTMLElement>('.cell.discovery-target')];
+      if (targets.length === 0) {
+        setPlacement('bottom');
+        return;
+      }
+      const rects = targets.map((target) => target.getBoundingClientRect());
+      const center =
+        (Math.min(...rects.map((rect) => rect.top)) +
+          Math.max(...rects.map((rect) => rect.bottom))) /
+        2;
+      setPlacement(center < window.innerHeight / 2 ? 'bottom' : 'top');
+    };
+
+    const frame = window.requestAnimationFrame(updatePlacement);
+    window.addEventListener('resize', updatePlacement);
+    return () => {
+      window.cancelAnimationFrame(frame);
+      window.removeEventListener('resize', updatePlacement);
+    };
+  }, [item]);
 
   const card = t.discoveryCards[item.cardId];
+  const titleId = `discovery-reveal-title-${item.cardId}`;
+  const descriptionId = `discovery-reveal-description-${item.cardId}`;
+
   return (
     <div
-      className={`discovery-reveal discovery-reveal--${item.cardId}`}
-      role="status"
-      aria-live="polite"
+      className={`discovery-reveal discovery-reveal--${placement}`}
+      onKeyDown={(event) => {
+        if (event.key === 'Tab') {
+          event.preventDefault();
+          acknowledgeRef.current?.focus();
+        }
+      }}
     >
-      <div className="discovery-reveal-rays" aria-hidden="true" />
-      <div className="discovery-reveal-label">{t.discoveryFound}</div>
-      <div className="discovery-reveal-card">
+      <section
+        className="discovery-reveal-card"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby={titleId}
+        aria-describedby={descriptionId}
+      >
+        <div className="discovery-reveal-rays" aria-hidden="true" />
+        <div className="discovery-reveal-label">{t.discoveryFound}</div>
         <span className="discovery-reveal-card-mark" aria-hidden="true">
           ✦
         </span>
-        <strong className="discovery-reveal-name">{card.name}</strong>
+        <strong className="discovery-reveal-name" id={titleId}>
+          {card.name}
+        </strong>
         <span className="discovery-reveal-message">{card.reveal}</span>
-      </div>
+        <p className="discovery-reveal-description" id={descriptionId}>
+          {card.description}
+        </p>
+        <p className="discovery-reveal-focus-hint">
+          <span aria-hidden="true">◎</span>
+          {t.discoveryFocusHint}
+        </p>
+        <button
+          ref={acknowledgeRef}
+          type="button"
+          className="discovery-reveal-acknowledge"
+          onClick={onDone}
+        >
+          {t.discoveryAcknowledge}
+        </button>
+      </section>
     </div>
   );
 }

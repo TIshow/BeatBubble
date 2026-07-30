@@ -79,6 +79,7 @@ export default function Home() {
   const {
     effects: discoveryEffects,
     revealQueue: discoveryRevealQueue,
+    focus: discoveryFocus,
     captureSource: captureDiscoverySource,
     clearSource: clearDiscoverySource,
     onPlaybackStep: onDiscoveryPlaybackStep,
@@ -278,7 +279,10 @@ export default function Home() {
         () => songRef.current,
         (step) => {
           setPlayheadStep(step);
-          onDiscoveryPlaybackStep(step);
+          if (onDiscoveryPlaybackStep(step)) {
+            engine.stop();
+            setIsPlaying(false);
+          }
         },
       );
       // play() can bail without starting (stopped while waiting for samples,
@@ -376,7 +380,9 @@ export default function Home() {
 
   return (
     <div
-      className={`app ${isDragging ? 'dragging' : ''} ${lockActive ? 'lock-mode' : ''}`}
+      className={`app ${isDragging ? 'dragging' : ''} ${lockActive ? 'lock-mode' : ''} ${
+        discoveryFocus ? 'discovery-focus-active' : ''
+      }`}
       onMouseMove={containerHandlers.onMouseMove}
       onMouseUp={containerHandlers.onMouseUp}
       onMouseLeave={containerHandlers.onMouseLeave}
@@ -465,6 +471,7 @@ export default function Home() {
         locale={locale}
         gridRef={gridRef}
         gridContainerRef={gridContainerRef}
+        discoveryFocus={discoveryFocus}
         getMelodyCellHandlers={getMelodyCellHandlers}
         getDrumCellHandlers={getDrumCellHandlers}
       />
@@ -474,7 +481,10 @@ export default function Home() {
         revealQueue={discoveryRevealQueue}
         t={t}
         onEffectEnd={dismissDiscoveryEffect}
-        onRevealDone={finishDiscoveryReveal}
+        onRevealDone={() => {
+          setPlayheadStep(null);
+          finishDiscoveryReveal();
+        }}
       />
 
       {isSaveModalOpen && (
