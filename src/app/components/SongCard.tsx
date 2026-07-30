@@ -245,7 +245,12 @@ export function SongCard({
           </div>
         ) : (
           <div className="song-card-actions">
-            <Link href={`/?load=${id}`} className="song-card-play">
+            {/* prefetch={false}: Next.js would preload every card in view, and
+                /?load=<id> is a dynamic RSC route served no-store — so each one
+                is an uncacheable request (plus a function invocation) for a song
+                the child probably won't open. A feed page was spending ~23 of
+                them to save one navigation (#104). */}
+            <Link href={`/?load=${id}`} className="song-card-play" prefetch={false}>
               {t.playBtn}
             </Link>
             <button
