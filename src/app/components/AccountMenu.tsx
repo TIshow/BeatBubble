@@ -1,9 +1,10 @@
-"use client";
+'use client';
 
-import { useEffect, useRef, useState } from "react";
-import type { User } from "@supabase/supabase-js";
-import type { Locale, Translations } from "@/lib/i18n";
-import { authDisplayName } from "@/hooks/useAuth";
+import { useEffect, useRef, useState } from 'react';
+import Link from 'next/link';
+import type { User } from '@supabase/supabase-js';
+import type { Locale, Translations } from '@/lib/i18n';
+import { authDisplayName } from '@/hooks/useAuth';
 
 interface Props {
   user: User | null;
@@ -40,9 +41,9 @@ export function AccountMenu({
   const [confirmingLogout, setConfirmingLogout] = useState(false);
   const rootRef = useRef<HTMLDivElement>(null);
 
-  const name = (displayName ?? "").trim() || authDisplayName(user);
+  const name = (displayName ?? '').trim() || authDisplayName(user);
   // Array.from keeps surrogate pairs (e.g. rare kanji, emoji) intact.
-  const initial = Array.from(name)[0] ?? "";
+  const initial = Array.from(name)[0] ?? '';
 
   // Close on outside click / Escape.
   useEffect(() => {
@@ -53,15 +54,15 @@ export function AccountMenu({
       }
     };
     const onKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "Escape") setOpen(false);
+      if (e.key === 'Escape') setOpen(false);
     };
-    document.addEventListener("mousedown", onPointerDown);
-    document.addEventListener("touchstart", onPointerDown);
-    document.addEventListener("keydown", onKeyDown);
+    document.addEventListener('mousedown', onPointerDown);
+    document.addEventListener('touchstart', onPointerDown);
+    document.addEventListener('keydown', onKeyDown);
     return () => {
-      document.removeEventListener("mousedown", onPointerDown);
-      document.removeEventListener("touchstart", onPointerDown);
-      document.removeEventListener("keydown", onKeyDown);
+      document.removeEventListener('mousedown', onPointerDown);
+      document.removeEventListener('touchstart', onPointerDown);
+      document.removeEventListener('keydown', onKeyDown);
     };
   }, [open]);
 
@@ -73,7 +74,7 @@ export function AccountMenu({
   return (
     <div className="account-menu" ref={rootRef}>
       <button
-        className={`account-trigger ${user ? "" : "anon"}`}
+        className={`account-trigger ${user ? '' : 'anon'}`}
         onClick={() => setOpen((prev) => !prev)}
         aria-haspopup="menu"
         aria-expanded={open}
@@ -100,36 +101,41 @@ export function AccountMenu({
           )}
 
           {user && (
-            <button
-              className="account-item"
-              role="menuitem"
-              onClick={() => pick(onOpenProfile)}
-            >
+            <button className="account-item" role="menuitem" onClick={() => pick(onOpenProfile)}>
               {t.profile}
             </button>
           )}
+
+          <Link
+            href="/discoveries"
+            className="account-item"
+            role="menuitem"
+            onClick={() => setOpen(false)}
+          >
+            {t.discoveriesLink}
+          </Link>
 
           <div className="account-section-label">{t.languageLabel}</div>
           {/* Each language is named in itself so it's readable either way. */}
           <button
             className="account-item"
             role="menuitemradio"
-            aria-checked={locale === "ja"}
-            onClick={() => pick(() => onSetLocale("ja"))}
+            aria-checked={locale === 'ja'}
+            onClick={() => pick(() => onSetLocale('ja'))}
           >
             <span className="account-check" aria-hidden="true">
-              {locale === "ja" ? "✓" : ""}
+              {locale === 'ja' ? '✓' : ''}
             </span>
             にほんご
           </button>
           <button
             className="account-item"
             role="menuitemradio"
-            aria-checked={locale === "en"}
-            onClick={() => pick(() => onSetLocale("en"))}
+            aria-checked={locale === 'en'}
+            onClick={() => pick(() => onSetLocale('en'))}
           >
             <span className="account-check" aria-hidden="true">
-              {locale === "en" ? "✓" : ""}
+              {locale === 'en' ? '✓' : ''}
             </span>
             English
           </button>
