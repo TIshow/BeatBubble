@@ -16,17 +16,8 @@ export default function DiscoveriesPage() {
   const { locale, t, changeLocale } = useLocale();
   const { user, signInWithGoogle, signOut } = useAuth();
   const { profile, saveProfile } = useProfile(user);
-  const {
-    progress,
-    isLoading,
-    syncError,
-    guestCount,
-    importGuestDiscoveries,
-    discardGuestDiscoveries,
-    retrySync,
-  } = useDiscoveries(user);
+  const { progress, isLoading, syncError, retrySync } = useDiscoveries(user);
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
-  const [isImporting, setIsImporting] = useState(false);
 
   const profileSubtitle = [
     profile?.school,
@@ -36,12 +27,6 @@ export default function DiscoveriesPage() {
     .filter(Boolean)
     .join('・');
   const progressById = new Map(progress.map((item) => [item.cardId, item]));
-
-  const handleImport = async () => {
-    setIsImporting(true);
-    await importGuestDiscoveries();
-    setIsImporting(false);
-  };
 
   return (
     <div className="discoveries-page">
@@ -77,25 +62,6 @@ export default function DiscoveriesPage() {
             <div className="discoveries-notice-actions">
               <button className="modal-save" onClick={signInWithGoogle}>
                 {t.login}
-              </button>
-            </div>
-          </div>
-        )}
-
-        {user && guestCount > 0 && (
-          <div className="discoveries-notice" role="status">
-            <strong>{t.discoveryImportTitle}</strong>
-            <p>{t.discoveryImportBody(guestCount)}</p>
-            <div className="discoveries-notice-actions">
-              <button className="modal-save" onClick={handleImport} disabled={isImporting}>
-                {isImporting ? t.saving : t.discoveryImportYes}
-              </button>
-              <button
-                className="modal-cancel"
-                onClick={discardGuestDiscoveries}
-                disabled={isImporting}
-              >
-                {t.discoveryImportNo}
               </button>
             </div>
           </div>

@@ -47,7 +47,6 @@ export function useDiscoveries(user: User | null) {
   const [progress, setProgress] = useState<StoredDiscovery[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [syncError, setSyncError] = useState(false);
-  const [guestCount, setGuestCount] = useState(0);
   const progressRef = useRef<Map<DiscoveryId, StoredDiscovery>>(new Map());
   const userRef = useRef(user);
 
@@ -103,7 +102,6 @@ export function useDiscoveries(user: User | null) {
       // effect body.
       await Promise.resolve();
       if (!active) return;
-      setGuestCount(guest.length);
       setIsLoading(true);
       setSyncError(false);
 
@@ -155,12 +153,11 @@ export function useDiscoveries(user: User | null) {
       const currentUser = userRef.current;
 
       if (!currentUser) {
-        const saved = writeDiscoveries(
+        writeDiscoveries(
           storage,
           GUEST_DISCOVERIES_KEY,
           mergeDiscoveries(readDiscoveries(storage, GUEST_DISCOVERIES_KEY), additions),
         );
-        setGuestCount(saved.length);
         return additions.map((item) => item.cardId);
       }
 
@@ -175,31 +172,6 @@ export function useDiscoveries(user: User | null) {
     },
     [addProgress, flushPending],
   );
-
-  const importGuestDiscoveries = useCallback(async (): Promise<boolean> => {
-    const currentUser = userRef.current;
-    if (!currentUser) return false;
-    const storage = currentSessionStorage();
-    const guest = readDiscoveries(storage, GUEST_DISCOVERIES_KEY);
-    if (guest.length === 0) return true;
-
-    const error = await insertUserDiscoveries(currentUser.id, guest);
-    if (error) {
-      setSyncError(true);
-      return false;
-    }
-
-    addProgress(guest);
-    clearDiscoveries(storage, GUEST_DISCOVERIES_KEY);
-    setGuestCount(0);
-    setSyncError(false);
-    return true;
-  }, [addProgress]);
-
-  const discardGuestDiscoveries = useCallback(() => {
-    clearDiscoveries(currentSessionStorage(), GUEST_DISCOVERIES_KEY);
-    setGuestCount(0);
-  }, []);
 
   const retrySync = useCallback(async (): Promise<boolean> => {
     const currentUser = userRef.current;
@@ -222,10 +194,7 @@ export function useDiscoveries(user: User | null) {
     earnedIds: new Set(progress.map((item) => item.cardId)),
     isLoading,
     syncError,
-    guestCount,
     claimDiscoveries,
-    importGuestDiscoveries,
-    discardGuestDiscoveries,
     retrySync,
   };
 }

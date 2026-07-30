@@ -135,10 +135,6 @@ export type Translations = {
   discoveryDate: (date: string) => string;
   discoveryGuestNotice: string;
   discoveryLoginToKeep: string;
-  discoveryImportTitle: string;
-  discoveryImportBody: (n: number) => string;
-  discoveryImportYes: string;
-  discoveryImportNo: string;
   discoverySyncError: string;
   discoveryRetry: string;
   discoveryCards: Record<DiscoveryId, DiscoveryCardTranslation>;
@@ -262,12 +258,8 @@ export const translations: Record<Locale, Translations> = {
     discoveryTheoryLabel: 'Music words',
     discoveryDate: (date) => `Found ${date}`,
     discoveryGuestNotice: 'These discoveries are saved for this browser session.',
-    discoveryLoginToKeep: 'Log in to keep them and see them on another device.',
-    discoveryImportTitle: 'Keep these discoveries?',
-    discoveryImportBody: (n) =>
-      `This browser session has ${n} discovery ${n === 1 ? 'card' : 'cards'}. Add them to your account?`,
-    discoveryImportYes: 'Add to my album',
-    discoveryImportNo: "Don't add them",
+    discoveryLoginToKeep:
+      'Discoveries you find after logging in are saved to your account and other devices.',
     discoverySyncError: "Some discoveries haven't synced yet.",
     discoveryRetry: 'Try again',
     discoveryCards: {
@@ -448,12 +440,8 @@ export const translations: Record<Locale, Translations> = {
     discoveryTheoryLabel: '音楽のことば',
     discoveryDate: (date) => `${date} に はっけん`,
     discoveryGuestNotice: 'このブラウザをひらいているあいだ、はっけんをおぼえているよ。',
-    discoveryLoginToKeep: 'ログインすると、つぎにひらいたときや別の端末でも見られるよ。',
-    discoveryImportTitle: 'はっけんを のこす？',
-    discoveryImportBody: (n) =>
-      `このブラウザで見つけた ${n}まいのカードを、アカウントのアルバムに入れますか？`,
-    discoveryImportYes: 'アルバムに入れる',
-    discoveryImportNo: '入れない',
+    discoveryLoginToKeep:
+      'ログインしてから見つけたカードは、つぎにひらいたときや別の端末でも見られるよ。',
     discoverySyncError: 'まだ ほぞんできていないカードがあるよ。',
     discoveryRetry: 'もういちど',
     discoveryCards: {
