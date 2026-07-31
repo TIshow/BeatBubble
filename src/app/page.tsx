@@ -28,6 +28,7 @@ import { useAuth, authDisplayName } from '@/hooks/useAuth';
 import { useProfile } from '@/hooks/useProfile';
 import { useDiscoveries } from '@/hooks/useDiscoveries';
 import { useDiscoveryFeedback } from '@/hooks/useDiscoveryFeedback';
+import { useChallengeMode } from '@/hooks/useChallengeMode';
 import { supabase } from '@/lib/supabase';
 import { DISCOVERY_CARDS } from '@/discovery/catalog';
 import { SaveModal } from './components/SaveModal';
@@ -37,6 +38,9 @@ import { Header } from './components/Header';
 import { SettingsPanel } from './components/SettingsPanel';
 import { Grid } from './components/Grid';
 import { DiscoveryFeedback } from './components/discovery/DiscoveryFeedback';
+import { ChallengePicker } from './components/challenges/ChallengePicker';
+import { ChallengeStage } from './components/challenges/ChallengeStage';
+import { ChallengeCompleteModal } from './components/challenges/ChallengeCompleteModal';
 
 export default function Home() {
   const { locale, t, changeLocale } = useLocale();
@@ -53,6 +57,21 @@ export default function Home() {
     .filter(Boolean)
     .join('・');
   const { song, setSong, songRef, canUndo, pushHistory, undo, reset } = useSong();
+  const {
+    activeChallengeId,
+    reaction: challengeReaction,
+    completed: completedChallenge,
+    isPickerOpen: isChallengePickerOpen,
+    openPicker: openChallengePicker,
+    closePicker: closeChallengePicker,
+    startChallenge,
+    startRandomChallenge,
+    onPlaybackStep: onChallengePlaybackStep,
+    stopPlayback: stopChallengePlayback,
+    completeChallenge,
+    dismissCompletion: dismissChallengeCompletion,
+    exitChallenge,
+  } = useChallengeMode(song);
 
   const [isPlaying, setIsPlaying] = useState(false);
   const [playheadStep, setPlayheadStep] = useState<number | null>(null);
@@ -279,9 +298,11 @@ export default function Home() {
         () => songRef.current,
         (step) => {
           setPlayheadStep(step);
+          onChallengePlaybackStep(step);
           if (onDiscoveryPlaybackStep(step)) {
             engine.stop();
             setIsPlaying(false);
+            stopChallengePlayback();
           }
         },
       );
@@ -303,6 +324,7 @@ export default function Home() {
     setIsPlaying(false);
     setPlayheadStep(null);
     clearDiscoveryEffects();
+    stopChallengePlayback();
   };
 
   const handleExport = async () => {
@@ -459,11 +481,40 @@ export default function Home() {
       )}
 
       <div className="discovery-chip-row">
+        <button
+          type="button"
+          className={`challenge-open-chip ${activeChallengeId ? 'active' : ''}`}
+          aria-pressed={activeChallengeId !== null}
+          onClick={() => {
+            handleStop();
+            openChallengePicker();
+          }}
+        >
+          <span aria-hidden="true">✦</span>
+          {t.challengeOpen}
+        </button>
         <Link href="/discoveries" className="discovery-chip">
           <span aria-hidden="true">✦</span>
           {t.discoveryProgress(discoveryProgress.length, DISCOVERY_CARDS.length)}
         </Link>
       </div>
+
+      {activeChallengeId && (
+        <ChallengeStage
+          challengeId={activeChallengeId}
+          reaction={challengeReaction}
+          isPlaying={isPlaying}
+          t={t}
+          onDone={() => {
+            handleStop();
+            completeChallenge();
+          }}
+          onExit={() => {
+            handleStop();
+            exitChallenge();
+          }}
+        />
+      )}
 
       <Grid
         song={song}
@@ -486,6 +537,30 @@ export default function Home() {
           finishDiscoveryReveal();
         }}
       />
+
+      {isChallengePickerOpen && (
+        <ChallengePicker
+          t={t}
+          onSelect={(id) => {
+            handleStop();
+            startChallenge(id);
+          }}
+          onRandom={() => {
+            handleStop();
+            startRandomChallenge();
+          }}
+          onClose={closeChallengePicker}
+        />
+      )}
+
+      {completedChallenge && (
+        <ChallengeCompleteModal
+          completed={completedChallenge}
+          t={t}
+          onKeepCreating={dismissChallengeCompletion}
+          onChooseAnother={openChallengePicker}
+        />
+      )}
 
       {isSaveModalOpen && (
         <SaveModal

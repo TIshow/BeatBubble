@@ -1,4 +1,5 @@
 import type { DiscoveryId } from '@/discovery/types';
+import type { ChallengeId, ChallengeTechniqueId } from '@/challenges/types';
 
 export type Locale = 'en' | 'ja';
 
@@ -8,6 +9,12 @@ export type DiscoveryCardTranslation = {
   description: string;
   hint: string;
   theory: string;
+};
+
+export type ChallengeCardTranslation = {
+  title: string;
+  prompt: string;
+  sceneLabel: string;
 };
 
 export type Translations = {
@@ -140,6 +147,23 @@ export type Translations = {
   discoverySyncError: string;
   discoveryRetry: string;
   discoveryCards: Record<DiscoveryId, DiscoveryCardTranslation>;
+  // Open-ended challenges
+  challengeOpen: string;
+  challengePickerTitle: string;
+  challengePickerIntro: string;
+  challengeRandom: string;
+  challengeActive: string;
+  challengeDone: string;
+  challengeExit: string;
+  challengeWorldWaiting: string;
+  challengeCompleteTitle: string;
+  challengeCompleteIntro: string;
+  challengeIdeasTitle: string;
+  challengeIdeasEmpty: string;
+  challengeKeepCreating: string;
+  challengeChooseAnother: string;
+  challengeCards: Record<ChallengeId, ChallengeCardTranslation>;
+  challengeTechniques: Record<ChallengeTechniqueId, string>;
 };
 
 export const translations: Record<Locale, Translations> = {
@@ -334,6 +358,57 @@ export const translations: Record<Locale, Translations> = {
           'A held note feels spacious, while short notes feel active. Putting different note lengths next to each other is called rhythmic contrast, and it gives a phrase shape and motion.',
       },
     },
+    challengeOpen: 'Try a prompt',
+    challengePickerTitle: 'Choose a sound world',
+    challengePickerIntro:
+      'There is no single right answer. Pick the scene that makes you want to create.',
+    challengeRandom: 'Surprise me',
+    challengeActive: 'Your prompt',
+    challengeDone: 'Done!',
+    challengeExit: 'Leave prompt',
+    challengeWorldWaiting: 'Press Play and the world will answer your sounds.',
+    challengeCompleteTitle: 'You made your sound world!',
+    challengeCompleteIntro:
+      'Here are some of the musical ideas your song was using. They are clues, not a score.',
+    challengeIdeasTitle: 'Ideas in your music',
+    challengeIdeasEmpty:
+      'This world is still quiet. You can keep it that way, or add a sound and listen again.',
+    challengeKeepCreating: 'Keep creating',
+    challengeChooseAnother: 'Try another prompt',
+    challengeCards: {
+      rain: {
+        title: 'Sounds of Rain',
+        prompt: 'What kind of rain is falling? Move the sky and puddles with sound.',
+        sceneLabel: 'A rainy world that responds to the music',
+      },
+      ghost: {
+        title: 'A Ghost Is Coming',
+        prompt: 'You cannot see it yet. How does your ghost come closer?',
+        sceneLabel: 'A ghostly world that responds to the music',
+      },
+      run: {
+        title: 'On the Run',
+        prompt: 'Where are they going, and how are they moving? Make the path come alive.',
+        sceneLabel: 'A running world that responds to the music',
+      },
+    },
+    challengeTechniques: {
+      rain_droplets: 'High, short notes made little raindrops.',
+      rain_downpour: 'Layered sounds made the rain grow stronger.',
+      rain_ripples: 'Long notes spread rings across the water.',
+      rain_thunder: 'Kick-drum sounds rolled like thunder.',
+      rain_clearing: 'Quiet spaces opened gaps in the clouds.',
+      rain_wind: 'Notes moving upward lifted the wind.',
+      ghost_shadow: 'Low notes made the shadow grow.',
+      ghost_shiver: 'Neighboring notes sounding together made the world shiver.',
+      ghost_approach: 'Layered sounds brought the ghost closer.',
+      ghost_surprise: 'A sound after silence made the ghost appear suddenly.',
+      run_stride: 'Evenly repeating sounds created a steady stride.',
+      run_fast: 'A quick tempo sped up the journey.',
+      run_footsteps: 'Drum sounds became footsteps on the path.',
+      run_uphill: 'Notes moving upward turned the path uphill.',
+      run_jump: 'Long notes lifted the runner into a jump.',
+    },
   },
   ja: {
     play: 'えんそう',
@@ -525,6 +600,56 @@ export const translations: Record<Locale, Translations> = {
         theory:
           '長い音はゆったり、短い音は活発に感じやすいよ。ちがう長さをとなり合わせる「リズムの対比」で、音楽にかたちや動きが生まれるんだ。',
       },
+    },
+    challengeOpen: 'お題にちょうせん',
+    challengePickerTitle: '音のせかいを えらぼう',
+    challengePickerIntro: 'せいかいは ひとつじゃないよ。音にしてみたい せかいをえらんでね。',
+    challengeRandom: 'おまかせで ひく',
+    challengeActive: 'いまのお題',
+    challengeDone: 'できた！',
+    challengeExit: 'お題をやめる',
+    challengeWorldWaiting: 'えんそうすると、せかいが音にこたえるよ。',
+    challengeCompleteTitle: '音のせかいが できた！',
+    challengeCompleteIntro:
+      'この曲でつかっていた 音のくふうを見つけたよ。点数ではなく、曲をもう一度きくためのヒントだよ。',
+    challengeIdeasTitle: 'この曲にあった 音のくふう',
+    challengeIdeasEmpty:
+      'いまは しずかなせかいだね。このままでも、音をたして もう一度きいてもいいよ。',
+    challengeKeepCreating: 'もうすこし つくる',
+    challengeChooseAnother: 'べつのお題へ',
+    challengeCards: {
+      rain: {
+        title: 'あめの音',
+        prompt: 'どんな雨が ふっている？ 音で空と水たまりを うごかそう。',
+        sceneLabel: '音にこたえて うごく雨のせかい',
+      },
+      ghost: {
+        title: 'おばけが ちかづいてくる',
+        prompt: 'まだ見えない おばけ。どんなふうに ちかづいてくる？',
+        sceneLabel: '音にこたえて うごくおばけのせかい',
+      },
+      run: {
+        title: '走っている感じ',
+        prompt: 'どこへ、どんなふうに走る？ 音で道を うごかそう。',
+        sceneLabel: '音にこたえて うごく走るせかい',
+      },
+    },
+    challengeTechniques: {
+      rain_droplets: '高い短い音で、小さな雨つぶを作っていたね。',
+      rain_downpour: '音をかさねて、雨をつよくしていたね。',
+      rain_ripples: '長い音で、水のわを広げていたね。',
+      rain_thunder: 'キックの音で、かみなりを鳴らしていたね。',
+      rain_clearing: '音のないところで、雲のすきまを作っていたね。',
+      rain_wind: '音を上へ動かして、風を起こしていたね。',
+      ghost_shadow: '低い音で、おばけの影を大きくしていたね。',
+      ghost_shiver: 'となりあう音をかさねて、せかいを ぶるっとさせていたね。',
+      ghost_approach: '音をかさねて、おばけを近づけていたね。',
+      ghost_surprise: 'しずけさのあとの音で、おばけを急に出していたね。',
+      run_stride: '同じ間かくの音で、走る足どりを作っていたね。',
+      run_fast: 'はやいテンポで、走る速さを上げていたね。',
+      run_footsteps: 'ドラムの音を、道をける足音にしていたね。',
+      run_uphill: '音を上へ動かして、のぼり道を作っていたね。',
+      run_jump: '長い音で、走る人をジャンプさせていたね。',
     },
   },
 };

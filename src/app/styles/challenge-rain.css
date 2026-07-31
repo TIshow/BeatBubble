@@ -1,0 +1,276 @@
+/* Rain-world reactions */
+.challenge-rain-world {
+  background: linear-gradient(
+    180deg,
+    var(--challenge-rain-sky),
+    color-mix(in srgb, var(--challenge-rain-sky) 42%, var(--challenge-rain-water))
+  );
+  transition: filter 0.25s ease;
+}
+
+.challenge-sun {
+  position: absolute;
+  top: 25px;
+  right: 14%;
+  width: 58px;
+  height: 58px;
+  border-radius: 50%;
+  background: var(--challenge-sun);
+  box-shadow: 0 0 28px color-mix(in srgb, var(--challenge-sun) 68%, transparent);
+  opacity: 0.12;
+  transform: scale(0.7);
+  transition:
+    opacity 0.25s ease,
+    transform 0.25s ease;
+}
+
+.challenge-cloud {
+  position: absolute;
+  z-index: 2;
+  width: 140px;
+  height: 44px;
+  border-radius: 999px;
+  background: var(--challenge-rain-cloud);
+  box-shadow: 0 7px 0 color-mix(in srgb, var(--challenge-rain-cloud-shadow) 60%, transparent);
+  transition:
+    opacity 0.25s ease,
+    transform 0.25s ease;
+}
+
+.challenge-cloud::before,
+.challenge-cloud::after {
+  content: '';
+  position: absolute;
+  bottom: 10px;
+  border-radius: 50%;
+  background: inherit;
+}
+
+.challenge-cloud::before {
+  left: 24px;
+  width: 62px;
+  height: 62px;
+}
+
+.challenge-cloud::after {
+  right: 20px;
+  width: 48px;
+  height: 48px;
+}
+
+.challenge-cloud--one {
+  top: 38px;
+  left: 12%;
+}
+
+.challenge-cloud--two {
+  top: 61px;
+  right: 7%;
+  transform: scale(0.76);
+  opacity: 0.85;
+}
+
+.challenge-rain-drops {
+  position: absolute;
+  inset: 82px 4% 38px;
+  z-index: 3;
+}
+
+.challenge-rain-drops i {
+  position: absolute;
+  top: -16px;
+  left: calc((var(--drop-index, 1) - 1) * 7.2%);
+  width: 4px;
+  height: 17px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--challenge-rain-water) 76%, var(--challenge-scene-light));
+  opacity: 0;
+}
+
+.challenge-rain-drops i:nth-child(1) {
+  --drop-index: 1;
+}
+.challenge-rain-drops i:nth-child(2) {
+  --drop-index: 2;
+}
+.challenge-rain-drops i:nth-child(3) {
+  --drop-index: 3;
+}
+.challenge-rain-drops i:nth-child(4) {
+  --drop-index: 4;
+}
+.challenge-rain-drops i:nth-child(5) {
+  --drop-index: 5;
+}
+.challenge-rain-drops i:nth-child(6) {
+  --drop-index: 6;
+}
+.challenge-rain-drops i:nth-child(7) {
+  --drop-index: 7;
+}
+.challenge-rain-drops i:nth-child(8) {
+  --drop-index: 8;
+}
+.challenge-rain-drops i:nth-child(9) {
+  --drop-index: 9;
+}
+.challenge-rain-drops i:nth-child(10) {
+  --drop-index: 10;
+}
+.challenge-rain-drops i:nth-child(11) {
+  --drop-index: 11;
+}
+.challenge-rain-drops i:nth-child(12) {
+  --drop-index: 12;
+}
+.challenge-rain-drops i:nth-child(13) {
+  --drop-index: 13;
+}
+.challenge-rain-drops i:nth-child(14) {
+  --drop-index: 14;
+}
+
+.has-rain_droplets .challenge-rain-drops i:nth-child(-n + 7),
+.has-rain_downpour .challenge-rain-drops i {
+  opacity: 0.9;
+  animation: challenge-rain-fall 520ms linear infinite;
+  animation-delay: calc(var(--drop-index) * -61ms);
+}
+
+.has-rain_downpour .challenge-rain-world {
+  filter: saturate(1.25) brightness(0.82);
+}
+
+.challenge-puddle {
+  position: absolute;
+  right: 8%;
+  bottom: 21px;
+  left: 8%;
+  height: 18px;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--challenge-rain-water) 62%, transparent);
+}
+
+.challenge-puddle i {
+  position: absolute;
+  top: 50%;
+  left: calc(30% + var(--ring-offset, 0%));
+  width: 40px;
+  height: 12px;
+  border: 2px solid color-mix(in srgb, var(--challenge-rain-cloud) 82%, transparent);
+  border-radius: 50%;
+  opacity: 0;
+}
+
+.challenge-puddle i:nth-child(2) {
+  --ring-offset: 25%;
+}
+
+.challenge-puddle i:nth-child(3) {
+  --ring-offset: 48%;
+}
+
+.has-rain_ripples .challenge-puddle i {
+  animation: challenge-ripple 900ms ease-out infinite;
+}
+
+.has-rain_ripples .challenge-puddle i:nth-child(2) {
+  animation-delay: 180ms;
+}
+
+.has-rain_ripples .challenge-puddle i:nth-child(3) {
+  animation-delay: 360ms;
+}
+
+.challenge-lightning {
+  position: absolute;
+  top: 76px;
+  left: 42%;
+  z-index: 4;
+  color: var(--challenge-lightning);
+  font-size: 74px;
+  font-weight: 900;
+  opacity: 0;
+  text-shadow: 0 0 24px var(--challenge-scene-light);
+}
+
+.has-rain_thunder .challenge-lightning {
+  animation: challenge-lightning 430ms ease-out both;
+}
+
+.challenge-wind {
+  position: absolute;
+  top: 108px;
+  left: 12%;
+  z-index: 4;
+  color: color-mix(in srgb, var(--challenge-rain-cloud) 88%, transparent);
+  font-size: 60px;
+  opacity: 0;
+}
+
+.has-rain_wind .challenge-wind {
+  animation: challenge-wind-rise 720ms ease-out both;
+}
+
+.has-rain_clearing .challenge-sun {
+  opacity: 0.92;
+  transform: scale(1);
+}
+
+.has-rain_clearing .challenge-cloud {
+  opacity: 0.42;
+}
+
+.has-rain_clearing .challenge-cloud--one {
+  transform: translateX(-26px);
+}
+
+.has-rain_clearing .challenge-cloud--two {
+  transform: translateX(28px) scale(0.76);
+}
+
+@keyframes challenge-rain-fall {
+  from {
+    transform: translateY(0) rotate(8deg);
+  }
+  to {
+    transform: translateY(150px) rotate(8deg);
+  }
+}
+
+@keyframes challenge-ripple {
+  from {
+    opacity: 0.8;
+    transform: translate(-50%, -50%) scale(0.3);
+  }
+  to {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(2.1);
+  }
+}
+
+@keyframes challenge-lightning {
+  0%,
+  100% {
+    opacity: 0;
+  }
+  18%,
+  42%,
+  66% {
+    opacity: 1;
+  }
+}
+
+@keyframes challenge-wind-rise {
+  from {
+    opacity: 0;
+    transform: translate(-30px, 32px) rotate(-8deg);
+  }
+  40% {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+    transform: translate(110px, -34px) rotate(8deg);
+  }
+}

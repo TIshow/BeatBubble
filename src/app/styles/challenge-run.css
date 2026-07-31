@@ -1,0 +1,160 @@
+/* Running-world reactions */
+.challenge-run-world {
+  background: linear-gradient(
+    180deg,
+    var(--challenge-run-sky) 0 58%,
+    var(--challenge-run-track) 58%
+  );
+}
+
+.challenge-run-sun {
+  position: absolute;
+  top: 23px;
+  right: 12%;
+  width: 49px;
+  height: 49px;
+  border-radius: 50%;
+  background: var(--challenge-sun);
+  box-shadow: 0 0 24px color-mix(in srgb, var(--challenge-sun) 55%, transparent);
+}
+
+.challenge-hills {
+  position: absolute;
+  right: -8%;
+  left: -8%;
+  border-radius: 50% 50% 0 0;
+  transform-origin: right bottom;
+  transition: transform 0.3s ease;
+}
+
+.challenge-hills--back {
+  bottom: 74px;
+  height: 88px;
+  background: var(--challenge-run-hill-back);
+  opacity: 0.75;
+}
+
+.challenge-hills--front {
+  bottom: 52px;
+  height: 64px;
+  background: var(--challenge-run-hill-front);
+}
+
+.has-run_uphill .challenge-hills {
+  transform: rotate(-6deg) scaleY(1.14);
+}
+
+.challenge-track {
+  position: absolute;
+  right: -8%;
+  bottom: 24px;
+  left: -8%;
+  height: 40px;
+  border-top: 4px dashed color-mix(in srgb, var(--challenge-card-bg) 70%, transparent);
+  transform: rotate(-1deg);
+}
+
+.challenge-runner {
+  position: absolute;
+  left: 28%;
+  bottom: 46px;
+  z-index: 4;
+  font-size: 58px;
+  filter: drop-shadow(0 7px 8px rgba(0, 0, 0, 0.25));
+  transition: bottom 0.22s ease;
+}
+
+.has-run_stride .challenge-runner {
+  animation: challenge-runner-stride 380ms ease-in-out infinite alternate;
+}
+
+.has-run_fast .challenge-run-world {
+  animation: challenge-running-world 620ms linear infinite;
+}
+
+.has-run_fast.has-run_stride .challenge-runner {
+  animation-duration: 220ms;
+}
+
+.has-run_jump .challenge-runner {
+  bottom: 92px;
+  animation: challenge-runner-jump 620ms ease-out both;
+}
+
+.challenge-footprints {
+  position: absolute;
+  bottom: 43px;
+  left: 9%;
+  display: flex;
+  gap: 25px;
+  transform: rotate(-5deg);
+}
+
+.challenge-footprints i {
+  width: 13px;
+  height: 23px;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--challenge-run-track) 46%, transparent);
+  opacity: 0;
+  transform: rotate(42deg);
+}
+
+.has-run_footsteps .challenge-footprints i {
+  animation: challenge-footprints 650ms ease-out infinite;
+}
+
+.has-run_footsteps .challenge-footprints i:nth-child(2) {
+  animation-delay: 120ms;
+}
+
+.has-run_footsteps .challenge-footprints i:nth-child(3) {
+  animation-delay: 240ms;
+}
+
+.has-run_footsteps .challenge-footprints i:nth-child(4) {
+  animation-delay: 360ms;
+}
+
+@keyframes challenge-runner-stride {
+  from {
+    transform: translateY(0) rotate(-4deg);
+  }
+  to {
+    transform: translateY(-7px) rotate(4deg);
+  }
+}
+
+@keyframes challenge-running-world {
+  from {
+    filter: saturate(1);
+  }
+  50% {
+    filter: saturate(1.18) brightness(1.05);
+  }
+  to {
+    filter: saturate(1);
+  }
+}
+
+@keyframes challenge-runner-jump {
+  from {
+    transform: translateY(25px) rotate(-5deg);
+  }
+  50% {
+    transform: translateY(-14px) rotate(7deg);
+  }
+  to {
+    transform: translateY(0) rotate(0);
+  }
+}
+
+@keyframes challenge-footprints {
+  from {
+    opacity: 0.85;
+    transform: translateX(0) rotate(42deg) scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: translateX(-25px) rotate(42deg) scale(0.65);
+  }
+}

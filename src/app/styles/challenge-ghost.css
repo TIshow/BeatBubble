@@ -1,0 +1,160 @@
+/* Ghost-world reactions */
+.challenge-ghost-world {
+  background:
+    radial-gradient(
+      circle at 74% 22%,
+      color-mix(in srgb, var(--challenge-ghost-glow) 32%, transparent),
+      transparent 24%
+    ),
+    linear-gradient(180deg, var(--challenge-ghost-sky), var(--challenge-ghost-ground));
+}
+
+.challenge-moon {
+  position: absolute;
+  top: 24px;
+  right: 13%;
+  width: 54px;
+  height: 54px;
+  border-radius: 50%;
+  background: var(--challenge-ghost-glow);
+  box-shadow: 0 0 32px color-mix(in srgb, var(--challenge-ghost-glow) 65%, transparent);
+  opacity: 0.8;
+}
+
+.challenge-ghost {
+  position: absolute;
+  right: 44%;
+  bottom: 52px;
+  z-index: 3;
+  font-size: 62px;
+  filter: drop-shadow(0 8px 15px rgba(0, 0, 0, 0.34));
+  transform: translateX(50%) scale(0.76);
+  transition:
+    right 0.28s ease,
+    bottom 0.28s ease,
+    transform 0.28s ease;
+}
+
+.is-playing .challenge-ghost {
+  animation: challenge-ghost-float 1.5s ease-in-out infinite alternate;
+}
+
+.challenge-ghost-shadow {
+  position: absolute;
+  right: 44%;
+  bottom: 36px;
+  width: 58px;
+  height: 14px;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--challenge-ghost-ground) 78%, transparent);
+  transform: translateX(50%) scale(0.7);
+  transition: transform 0.25s ease;
+}
+
+.has-ghost_shadow .challenge-ghost-shadow {
+  transform: translateX(50%) scale(2.1);
+}
+
+.has-ghost_shadow .challenge-ghost {
+  transform: translateX(50%) scale(1.05);
+}
+
+.has-ghost_approach .challenge-ghost {
+  right: 32%;
+  bottom: 41px;
+  transform: translateX(50%) scale(1.35);
+}
+
+.has-ghost_approach .challenge-ghost-shadow {
+  right: 32%;
+  transform: translateX(50%) scale(1.65);
+}
+
+.has-ghost_shiver .challenge-ghost-world {
+  animation: challenge-world-shiver 180ms linear 2;
+}
+
+.challenge-ghost-surprise {
+  position: absolute;
+  top: 35px;
+  left: 24%;
+  z-index: 5;
+  color: var(--challenge-ghost-glow);
+  font-size: 74px;
+  font-weight: 900;
+  opacity: 0;
+}
+
+.has-ghost_surprise .challenge-ghost-surprise {
+  animation: challenge-surprise 450ms ease-out both;
+}
+
+.challenge-ghost-ground {
+  position: absolute;
+  right: 10%;
+  bottom: 20px;
+  left: 10%;
+  display: flex;
+  justify-content: center;
+  gap: 38px;
+}
+
+.challenge-ghost-ground i {
+  width: 14px;
+  height: 7px;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--challenge-ghost-glow) 34%, transparent);
+  opacity: 0.28;
+}
+
+.has-ghost_approach .challenge-ghost-ground i {
+  animation: challenge-footstep-near 500ms ease-in-out infinite alternate;
+}
+
+@keyframes challenge-ghost-float {
+  from {
+    margin-bottom: -3px;
+  }
+  to {
+    margin-bottom: 5px;
+  }
+}
+
+@keyframes challenge-world-shiver {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  35% {
+    transform: translateX(-7px);
+  }
+  70% {
+    transform: translateX(7px);
+  }
+}
+
+@keyframes challenge-surprise {
+  from {
+    opacity: 0;
+    transform: translateY(22px) scale(0.4) rotate(-12deg);
+  }
+  45% {
+    opacity: 1;
+    transform: translateY(0) scale(1.2) rotate(4deg);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(-15px) scale(1) rotate(0);
+  }
+}
+
+@keyframes challenge-footstep-near {
+  from {
+    opacity: 0.22;
+    transform: scale(0.7);
+  }
+  to {
+    opacity: 0.8;
+    transform: scale(1.25);
+  }
+}

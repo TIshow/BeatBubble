@@ -1,0 +1,9 @@
+/* Challenge styles are split by responsibility. Import order is intentional:
+   common structure first, scene-specific reactions next, then completion and
+   responsive/accessibility overrides. */
+@import './challenge-base.css';
+@import './challenge-rain.css';
+@import './challenge-ghost.css';
+@import './challenge-run.css';
+@import './challenge-completion.css';
+@import './challenge-responsive.css';
