@@ -19,10 +19,6 @@ interface Props {
   // Whether the viewer (the owner) is a teacher — only teachers may make a
   // song a template. Unsetting stays open to any owner.
   isTeacher: boolean;
-  // Teacher-only: the account that owns this song, already resolved by the
-  // page. `differs` marks a typed author that doesn't match the account — the
-  // signal a teacher actually needs. Undefined for everyone else.
-  accountLine?: { text: string; differs: boolean };
   t: Translations;
   onDeleted: (id: string) => void;
   onRenamed: (id: string, title: string) => void;
@@ -44,7 +40,6 @@ export function SongCard({
   isTemplate,
   visibility,
   isTeacher,
-  accountLine,
   t,
   onDeleted,
   onRenamed,
@@ -235,18 +230,6 @@ export function SongCard({
         <p className="song-card-meta">
           {author} ・ {time}
         </p>
-
-        {/* Teachers only (see useSongAuthors / migration 0011): the account
-            behind the song. The name above is free text the child typed, so it
-            can't identify anyone — this can. */}
-        {accountLine && (
-          <p className={`song-card-account ${accountLine.differs ? "differs" : ""}`}>
-            <span aria-hidden="true">👤</span> {t.authorAccountLabel}: {accountLine.text}
-            {accountLine.differs && (
-              <span className="song-card-account-warn"> ({t.authorAccountDiffers})</span>
-            )}
-          </p>
-        )}
 
         {mode === "confirmDelete" ? (
           <div className="song-card-confirm">

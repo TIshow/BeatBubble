@@ -89,6 +89,30 @@ export type Translations = {
   authorAccountNone: string;
   authorAccountDiffers: string;
   saveVisibleToTeacher: string;
+  // Teacher dashboard (/teacher)
+  teacherLink: string;
+  teacherTitle: string;
+  teacherIntro: string;
+  teacherSearch: string;
+  teacherFilterAll: string;
+  teacherFilterReview: string;
+  teacherFilterHidden: string;
+  teacherReviewCount: (n: number) => string;
+  teacherReasonNameMismatch: string;
+  teacherReasonAnonymous: string;
+  teacherColTitle: string;
+  teacherColAccount: string;
+  teacherColClass: string;
+  teacherColUpdated: string;
+  teacherColActions: string;
+  teacherTypedAs: (name: string) => string;
+  teacherOpen: string;
+  teacherHide: string;
+  teacherUnhide: string;
+  teacherHiddenBadge: string;
+  teacherEmpty: string;
+  teacherLoadError: string;
+  teacherSongCount: (n: number) => string;
   templateOn: string;
   templateOff: string;
   visPublic: string;
@@ -238,6 +262,29 @@ export const translations: Record<Locale, Translations> = {
     authorAccountNone: 'No account (not identifiable)',
     authorAccountDiffers: 'differs from the typed name',
     saveVisibleToTeacher: 'Your teacher can see who made each song.',
+    teacherLink: 'Teacher view',
+    teacherTitle: 'Teacher view',
+    teacherIntro: 'Published songs only — drafts stay private to each child.',
+    teacherSearch: 'Search title, name or account',
+    teacherFilterAll: 'All',
+    teacherFilterReview: 'Needs a look',
+    teacherFilterHidden: 'Hidden',
+    teacherReviewCount: (n) => `${n} to look at`,
+    teacherReasonNameMismatch: "Name doesn't match the account",
+    teacherReasonAnonymous: 'No account',
+    teacherColTitle: 'Song',
+    teacherColAccount: 'Account',
+    teacherColClass: 'Class',
+    teacherColUpdated: 'Updated',
+    teacherColActions: '',
+    teacherTypedAs: (name) => `typed as "${name}"`,
+    teacherOpen: 'Open',
+    teacherHide: 'Hide',
+    teacherUnhide: 'Unhide',
+    teacherHiddenBadge: 'Hidden',
+    teacherEmpty: 'No songs match.',
+    teacherLoadError: "Couldn't load the songs. Please reload.",
+    teacherSongCount: (n) => `${n} songs`,
     templateOn: 'Make template',
     templateOff: 'Unset template',
     visPublic: 'Public',
@@ -486,6 +533,29 @@ export const translations: Record<Locale, Translations> = {
     authorAccountNone: 'アカウントなし（だれか わかりません）',
     authorAccountDiffers: '入力された なまえと ちがいます',
     saveVisibleToTeacher: '先生には、だれが つくったか 見えるよ。',
+    teacherLink: '先生ページ',
+    teacherTitle: '先生ページ',
+    teacherIntro: '公開された曲のみ表示しています（下書きは児童の私的な作業のため含みません）。',
+    teacherSearch: '曲名・なまえ・アカウントで さがす',
+    teacherFilterAll: 'すべて',
+    teacherFilterReview: '要確認',
+    teacherFilterHidden: '非表示にした曲',
+    teacherReviewCount: (n) => `要確認 ${n}件`,
+    teacherReasonNameMismatch: '入力名がアカウントと一致しません',
+    teacherReasonAnonymous: 'アカウントなし（特定できません）',
+    teacherColTitle: '曲',
+    teacherColAccount: 'アカウント',
+    teacherColClass: 'クラス',
+    teacherColUpdated: '更新',
+    teacherColActions: '',
+    teacherTypedAs: (name) => `入力名「${name}」`,
+    teacherOpen: '開く',
+    teacherHide: '非表示にする',
+    teacherUnhide: '再表示する',
+    teacherHiddenBadge: '非表示',
+    teacherEmpty: '該当する曲がありません。',
+    teacherLoadError: '曲を読み込めませんでした。ページを再読み込みしてください。',
+    teacherSongCount: (n) => `${n}曲`,
     templateOn: 'テンプレにする',
     templateOff: 'テンプレ解除',
     visPublic: '公開',

@@ -7,8 +7,6 @@ import { useAuth } from "@/hooks/useAuth";
 import { useProfile } from "@/hooks/useProfile";
 import { useSongFeed, type FeedView } from "@/hooks/useSongFeed";
 import { useSongFilters } from "@/hooks/useSongFilters";
-import { useSongAuthors } from "@/hooks/useSongAuthors";
-import { accountLineFor } from "@/lib/songAuthor";
 import { AccountMenu } from "@/app/components/AccountMenu";
 import { ProfileModal } from "@/app/components/ProfileModal";
 import { SongCard } from "@/app/components/SongCard";
@@ -74,24 +72,6 @@ export default function SongsPage() {
     setSongVisibility,
   } = useSongFeed(effectiveView, user, filters);
 
-  // Teachers only: resolve each song's owner account, so an inappropriate title
-  // can be traced to a child. RLS (migration 0011) is what actually gates this;
-  // the flag just avoids a pointless request for everyone else.
-  const authors = useSongAuthors(
-    songs.map((s) => s.user_id),
-    isTeacher
-  );
-
-  // Teachers only; everyone else gets undefined and the card stays as it was.
-  const accountLine = (song: { user_id: string | null; author: string }) =>
-    isTeacher
-      ? accountLineFor(song, authors, {
-          none: t.authorAccountNone,
-          notSet: t.profileNotSet,
-          gradeUnit: t.profileGradeUnit,
-        })
-      : undefined;
-
   // Identity line for the account menu, from whatever profile fields are set.
   const profileSubtitle = [
     profile?.school,
@@ -113,6 +93,7 @@ export default function SongsPage() {
         </Link>
         <h1 className="songs-heading">{t.pageTitle}</h1>
         <AccountMenu
+          isTeacher={!!profile?.isTeacher}
           user={user}
           t={t}
           locale={locale}
@@ -260,7 +241,6 @@ export default function SongsPage() {
                   isTemplate={song.is_template}
                   visibility={song.visibility}
                   isTeacher={isTeacher}
-                  accountLine={accountLine(song)}
                   t={t}
                   onDeleted={removeSong}
                   onRenamed={renameSong}

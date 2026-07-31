@@ -1,0 +1,188 @@
+/* Teacher view (/teacher) — a moderation table, deliberately plainer than the
+   children's feed: this is for scanning and acting, not for browsing. */
+.teacher-main {
+  padding: 16px 24px 48px;
+  max-width: 1100px;
+  margin: 0 auto;
+}
+
+.teacher-intro {
+  margin: 0 0 16px;
+  font-size: 13px;
+  opacity: 0.7;
+}
+
+.teacher-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+  margin-bottom: 14px;
+}
+
+.teacher-search {
+  flex: 1 1 240px;
+  padding: 9px 14px;
+  border-radius: 20px;
+  border: 1px solid var(--grid-line);
+  background: var(--grid-bg);
+  color: var(--foreground);
+  font-size: 14px;
+  outline: none;
+}
+
+.teacher-search:focus {
+  border-color: #667eea;
+}
+
+.teacher-tabs {
+  display: flex;
+  gap: 6px;
+}
+
+.teacher-tab {
+  padding: 7px 14px;
+  border-radius: 20px;
+  border: 1px solid var(--grid-line);
+  background: transparent;
+  color: var(--foreground);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  opacity: 0.7;
+}
+
+.teacher-tab.active {
+  opacity: 1;
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  border-color: transparent;
+  color: #fff;
+}
+
+/* Only the "needs a look" tab is tinted, and only when it has something. */
+.teacher-tab.flag:not(.active) {
+  color: #ef9f27;
+  border-color: #ef9f27;
+  opacity: 1;
+}
+
+.teacher-count {
+  font-size: 12px;
+  opacity: 0.6;
+  margin-left: auto;
+}
+
+.teacher-table-wrap {
+  overflow-x: auto;
+  border-radius: 12px;
+  border: 1px solid var(--grid-line);
+}
+
+.teacher-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+.teacher-table th,
+.teacher-table td {
+  padding: 10px 12px;
+  text-align: left;
+  vertical-align: top;
+  border-bottom: 1px solid var(--grid-line);
+}
+
+.teacher-table th {
+  font-size: 11px;
+  font-weight: 700;
+  opacity: 0.6;
+  white-space: nowrap;
+}
+
+.teacher-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.teacher-table tr.flagged {
+  background: rgba(239, 159, 39, 0.08);
+}
+
+.teacher-song-title {
+  font-weight: 600;
+}
+
+.teacher-reason,
+.teacher-typed,
+.teacher-hidden-badge {
+  display: block;
+  font-size: 11px;
+  margin-top: 3px;
+}
+
+.teacher-reason {
+  color: #ef9f27;
+  font-weight: 600;
+}
+
+.teacher-typed {
+  opacity: 0.65;
+}
+
+.teacher-hidden-badge {
+  display: inline-block;
+  margin-left: 6px;
+  padding: 1px 7px;
+  border-radius: 10px;
+  background: var(--grid-line);
+  font-size: 10px;
+  font-weight: 700;
+  opacity: 0.8;
+}
+
+.teacher-actions {
+  white-space: nowrap;
+}
+
+.teacher-btn {
+  display: inline-block;
+  padding: 5px 12px;
+  margin-right: 6px;
+  border-radius: 14px;
+  border: 1px solid var(--grid-line);
+  background: transparent;
+  color: var(--foreground);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.teacher-btn:hover:not(:disabled) {
+  border-color: #667eea;
+}
+
+.teacher-btn.danger:hover:not(:disabled) {
+  border-color: #ee5253;
+  color: #ee5253;
+}
+
+.teacher-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.teacher-empty {
+  padding: 40px 0;
+  text-align: center;
+  font-size: 14px;
+  opacity: 0.6;
+}
+
+@media (max-width: 600px) {
+  .teacher-main {
+    padding: 12px 12px 40px;
+  }
+  .teacher-count {
+    margin-left: 0;
+  }
+}

@@ -45,3 +45,24 @@ export function accountLineFor(
     differs: !!account.displayName && account.displayName !== song.author,
   };
 }
+
+// Why a song is worth a teacher's second look, or null when nothing stands out.
+//
+// Both reasons are facts about the row, not judgements of the music: a save
+// with no account can't be traced to anyone, and a typed name that doesn't
+// match the account is how a child publishes under someone else's name. The
+// title itself is deliberately NOT judged here — flagging songs by their words
+// would turn the view into a correctness system (see #97).
+export function reviewReasonFor(
+  song: { user_id: string | null; author: string },
+  authors: Map<string, SongAuthor>,
+  labels: { anonymous: string; nameMismatch: string }
+): string | null {
+  if (!song.user_id) return labels.anonymous;
+  const account = authors.get(song.user_id);
+  if (!account) return null; // unknown while loading — don't flag on no evidence
+  if (account.displayName && account.displayName !== song.author) {
+    return labels.nameMismatch;
+  }
+  return null;
+}

@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { accountLineFor, type SongAuthor } from "@/lib/songAuthor";
+import { accountLineFor, reviewReasonFor, type SongAuthor } from "@/lib/songAuthor";
 
 const labels = {
   none: "アカウントなし",
@@ -55,5 +55,31 @@ describe("accountLineFor", () => {
 
   it("returns undefined while the account is still loading", () => {
     expect(line({ user_id: "unknown", author: "たろう" })).toBeUndefined();
+  });
+});
+
+describe("reviewReasonFor", () => {
+  const reasons = { anonymous: "ANON", nameMismatch: "MISMATCH" };
+  const reason = (song: { user_id: string | null; author: string }) =>
+    reviewReasonFor(song, authors, reasons);
+
+  it("flags a save with no account (nobody can be asked about it)", () => {
+    expect(reason({ user_id: null, author: "たろう" })).toBe("ANON");
+  });
+
+  it("flags a typed name that doesn't match the account", () => {
+    expect(reason({ user_id: "u1", author: "堀川湊望" })).toBe("MISMATCH");
+  });
+
+  it("stays quiet when the typed name matches", () => {
+    expect(reason({ user_id: "u1", author: "上島寧々" })).toBeNull();
+  });
+
+  it("stays quiet when the account has no name to compare", () => {
+    expect(reason({ user_id: "u3", author: "だれか" })).toBeNull();
+  });
+
+  it("does not flag on missing evidence (account still loading)", () => {
+    expect(reason({ user_id: "unknown", author: "たろう" })).toBeNull();
   });
 });
