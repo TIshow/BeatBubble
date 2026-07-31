@@ -2,49 +2,33 @@
 
 import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
-import type { User } from '@supabase/supabase-js';
-import type { Locale, Translations } from '@/lib/i18n';
 import { authDisplayName } from '@/hooks/useAuth';
-
-interface Props {
-  user: User | null;
-  t: Translations;
-  locale: Locale;
-  // Preferred display name (profile) — falls back to the OAuth name/email.
-  displayName?: string | null;
-  // Secondary identity line, e.g. "○○小・3年・2". Omitted when empty.
-  subtitle?: string | null;
-  onSetLocale: (locale: Locale) => void;
-  onSignIn: () => void;
-  onSignOut: () => void;
-  // Shown as a menu item when signed in.
-  onOpenProfile: () => void;
-  // Adds the teacher view to the menu. Not an access boundary — RLS is.
-  isTeacher?: boolean;
-}
+import { useLocale } from '@/hooks/useLocale';
+import { useAccount } from '@/app/components/AccountProvider';
 
 // Account dropdown shared by the editor and songs headers: identity, profile,
 // language, login/logout. The trigger is a Google-style avatar circle — the
 // pattern kids already know from Classroom/Docs on GIGA devices. The initial
 // is drawn locally (no external avatar image: school networks may block
 // googleusercontent.com).
-export function AccountMenu({
-  user,
-  t,
-  locale,
-  displayName,
-  subtitle,
-  onSetLocale,
-  onSignIn,
-  onSignOut,
-  onOpenProfile,
-  isTeacher,
-}: Props) {
+export function AccountMenu() {
+  const { locale, t, changeLocale } = useLocale();
+  const { user, profile, isTeacher, signIn, signOut, openProfile } = useAccount();
   const [open, setOpen] = useState(false);
   const [confirmingLogout, setConfirmingLogout] = useState(false);
   const rootRef = useRef<HTMLDivElement>(null);
 
-  const name = (displayName ?? '').trim() || authDisplayName(user);
+  const name = (profile?.displayName ?? '').trim() || authDisplayName(user);
+  // The identity line under the name — school・grade・class, skipping blanks.
+  // Built here rather than by each page, which is where it used to be copied.
+  const subtitle =
+    [
+      profile?.school,
+      profile?.grade != null ? t.profileGradeUnit(profile.grade) : null,
+      profile?.className,
+    ]
+      .filter(Boolean)
+      .join('・') || null;
   // Array.from keeps surrogate pairs (e.g. rare kanji, emoji) intact.
   const initial = Array.from(name)[0] ?? '';
 
@@ -104,7 +88,7 @@ export function AccountMenu({
           )}
 
           {user && (
-            <button className="account-item" role="menuitem" onClick={() => pick(onOpenProfile)}>
+            <button className="account-item" role="menuitem" onClick={() => pick(openProfile)}>
               {t.profile}
             </button>
           )}
@@ -135,7 +119,7 @@ export function AccountMenu({
             className="account-item"
             role="menuitemradio"
             aria-checked={locale === 'ja'}
-            onClick={() => pick(() => onSetLocale('ja'))}
+            onClick={() => pick(() => changeLocale('ja'))}
           >
             <span className="account-check" aria-hidden="true">
               {locale === 'ja' ? '✓' : ''}
@@ -146,7 +130,7 @@ export function AccountMenu({
             className="account-item"
             role="menuitemradio"
             aria-checked={locale === 'en'}
-            onClick={() => pick(() => onSetLocale('en'))}
+            onClick={() => pick(() => changeLocale('en'))}
           >
             <span className="account-check" aria-hidden="true">
               {locale === 'en' ? '✓' : ''}
@@ -164,7 +148,7 @@ export function AccountMenu({
               {t.logout}
             </button>
           ) : (
-            <button className="account-item" role="menuitem" onClick={() => pick(onSignIn)}>
+            <button className="account-item" role="menuitem" onClick={() => pick(signIn)}>
               {t.login}
             </button>
           )}
@@ -183,7 +167,7 @@ export function AccountMenu({
                 className="modal-save"
                 onClick={() => {
                   setConfirmingLogout(false);
-                  onSignOut();
+                  signOut();
                 }}
               >
                 {t.logout}
