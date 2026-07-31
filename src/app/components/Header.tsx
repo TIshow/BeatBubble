@@ -22,6 +22,8 @@ interface Props {
   user: User | null;
   profileName?: string | null;
   profileSubtitle?: string | null;
+  // Adds the teacher view to the account menu. Not an access boundary — RLS is.
+  isTeacher?: boolean;
   onSignIn: () => void;
   onSignOut: () => void;
   onOpenProfile: () => void;
@@ -47,6 +49,7 @@ export function Header({
   onSignIn,
   onSignOut,
   onOpenProfile,
+  isTeacher,
 }: Props) {
   return (
     <header className="header">
@@ -91,6 +94,7 @@ export function Header({
         {t.songsLink}
       </Link>
       <AccountMenu
+        isTeacher={isTeacher}
         user={user}
         t={t}
         locale={locale}

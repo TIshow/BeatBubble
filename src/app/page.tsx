@@ -440,6 +440,7 @@ export default function Home() {
         user={user}
         profileName={profile?.displayName}
         profileSubtitle={profileSubtitle || null}
+        isTeacher={!!profile?.isTeacher}
         onSignIn={signInWithGoogle}
         onSignOut={signOut}
         onOpenProfile={() => setIsProfileModalOpen(true)}

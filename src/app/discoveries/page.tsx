@@ -36,6 +36,7 @@ export default function DiscoveriesPage() {
         </Link>
         <h1 className="discoveries-heading">{t.discoveryAlbumTitle}</h1>
         <AccountMenu
+          isTeacher={!!profile?.isTeacher}
           user={user}
           t={t}
           locale={locale}
