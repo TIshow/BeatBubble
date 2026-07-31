@@ -119,6 +119,17 @@ export default function Home() {
     return () => engineRef.current?.dispose();
   }, []);
 
+  // The settings panel is inserted above the editor content. Wait until React
+  // has committed it before scrolling, otherwise production scroll anchoring
+  // can restore the old position and leave the new panel behind the header.
+  useEffect(() => {
+    if (!isSettingsOpen) return;
+    const frame = window.requestAnimationFrame(() => {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    });
+    return () => window.cancelAnimationFrame(frame);
+  }, [isSettingsOpen]);
+
   // Warm the piano-sample cache before the first user gesture so the first
   // Play/preview sounds the sampled piano, not the 8bit fallback. Keyed on the
   // pitch range: only the samples this song can sound are fetched, and widening
@@ -378,12 +389,8 @@ export default function Home() {
   };
 
   const handleToggleSettings = () => {
-    const willOpen = !isSettingsOpen;
-    setIsSettingsOpen(willOpen);
+    setIsSettingsOpen((prev) => !prev);
     setIsConfirmingReset(false);
-    if (willOpen) {
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    }
   };
 
   const handleNoteChipClick = useCallback(
