@@ -378,8 +378,12 @@ export default function Home() {
   };
 
   const handleToggleSettings = () => {
-    setIsSettingsOpen((prev) => !prev);
+    const willOpen = !isSettingsOpen;
+    setIsSettingsOpen(willOpen);
     setIsConfirmingReset(false);
+    if (willOpen) {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
   };
 
   const handleNoteChipClick = useCallback(
