@@ -110,7 +110,9 @@ a[href],
   min-height: 100vh;
   display: flex;
   flex-direction: column;
-  overflow-x: hidden;
+  /* Unlike hidden, clip does not create a scroll container that prevents
+     the editor header's position: sticky from following the viewport. */
+  overflow-x: clip;
 }
 
 /* Dragging state */
