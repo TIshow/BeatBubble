@@ -125,7 +125,7 @@ export default function Home() {
   useEffect(() => {
     if (!isSettingsOpen) return;
     const frame = window.requestAnimationFrame(() => {
-      window.scrollTo({ top: 0, behavior: 'smooth' });
+      window.scrollTo(0, 0);
     });
     return () => window.cancelAnimationFrame(frame);
   }, [isSettingsOpen]);
