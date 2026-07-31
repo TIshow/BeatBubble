@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
 
 // Resolves accounts to their school email addresses, for teachers.
@@ -12,35 +12,26 @@ import { supabase } from "@/lib/supabase";
 // the teacher hides the column and nothing is requested at all.
 export function useUserEmails(userIds: (string | null)[], enabled: boolean): Map<string, string> {
   const [emails, setEmails] = useState<Map<string, string>>(new Map());
-  const fetchedRef = useRef<Set<string>>(new Set());
 
-  // Every id on screen, sorted; which are still missing is decided in the
-  // effect (reading a ref during render breaks concurrent rendering).
+  // Every id on screen, sorted into a stable key. The song list is fetched in
+  // one go rather than paged, so this settles after the first load and the
+  // lookup runs once — no incremental bookkeeping to keep.
   const idsKey = enabled
     ? [...new Set(userIds.filter((id): id is string => !!id))].sort().join(",")
     : "";
 
   useEffect(() => {
     if (!enabled || idsKey === "") return;
-    const ids = idsKey.split(",").filter((id) => !fetchedRef.current.has(id));
-    if (ids.length === 0) return;
+    const ids = idsKey.split(",");
     let active = true;
     async function load() {
-      ids.forEach((id) => fetchedRef.current.add(id));
       const { data, error } = await supabase.rpc("teacher_user_emails", { user_ids: ids });
       if (error) {
-        ids.forEach((id) => fetchedRef.current.delete(id));
         console.error("[BeatBubble] email lookup failed:", error);
         return;
       }
       if (!active || !data) return;
-      setEmails((prev) => {
-        const next = new Map(prev);
-        for (const row of data as { id: string; email: string }[]) {
-          next.set(row.id, row.email);
-        }
-        return next;
-      });
+      setEmails(new Map((data as { id: string; email: string }[]).map((r) => [r.id, r.email])));
     }
     load();
     return () => {

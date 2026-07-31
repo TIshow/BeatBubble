@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import Link from "next/link";
 import { useLocale } from "@/hooks/useLocale";
 import { useAuth } from "@/hooks/useAuth";
@@ -15,7 +15,7 @@ type Filter = "all" | "review" | "hidden";
 export default function TeacherPage() {
   const { locale, t } = useLocale();
   const { user } = useAuth();
-  const { profile } = useProfile(user);
+  const { profile, loading: profileLoading } = useProfile(user);
   const isTeacher = !!profile?.isTeacher;
 
   const { songs, loading, error, setHidden } = useTeacherSongs(isTeacher);
@@ -44,11 +44,16 @@ export default function TeacherPage() {
     [t]
   );
 
-  const reasonFor = (song: TeacherSong) =>
-    reviewReasonFor(song, authors, {
-      anonymous: t.teacherReasonAnonymous,
-      nameMismatch: t.teacherReasonNameMismatch,
-    });
+  // useCallback so the memos below can depend on it honestly, instead of
+  // listing its captures by hand and silencing the lint rule.
+  const reasonFor = useCallback(
+    (song: TeacherSong) =>
+      reviewReasonFor(song, authors, {
+        anonymous: t.teacherReasonAnonymous,
+        nameMismatch: t.teacherReasonNameMismatch,
+      }),
+    [authors, t]
+  );
 
   const rows = useMemo(() => {
     const term = search.trim().toLowerCase();
@@ -63,14 +68,11 @@ export default function TeacherPage() {
         v.toLowerCase().includes(term)
       );
     });
-    // reasonFor depends on `authors`, which is in the dep list.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [songs, authors, emails, search, filter, t]);
+  }, [songs, authors, emails, search, filter, reasonFor]);
 
   const reviewCount = useMemo(
     () => songs.filter((s) => !s.hidden && reasonFor(s)).length,
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [songs, authors, t]
+    [songs, reasonFor]
   );
 
   const toggleHidden = async (song: TeacherSong) => {
@@ -78,6 +80,24 @@ export default function TeacherPage() {
     await setHidden(song.id, !song.hidden);
     setBusyId(null);
   };
+
+  if (user && profileLoading) {
+    // Don't show the no-access view before we know: a teacher opening this page
+    // would otherwise read the flash as "I'm not allowed in".
+    return (
+      <div className="songs-page">
+        <header className="songs-header">
+          <Link href="/" className="songs-back-btn">
+            {t.backToCreate}
+          </Link>
+          <h1 className="songs-heading">{t.teacherTitle}</h1>
+        </header>
+        <main className="teacher-main">
+          <p className="teacher-empty">{t.loading}</p>
+        </main>
+      </div>
+    );
+  }
 
   if (!user || !isTeacher) {
     // Not an access control boundary — RLS is. This just avoids showing an

@@ -54,20 +54,30 @@ function fromRow(row: ProfileRow): Profile {
 // trigger) and exposes a saver for the editable fields. Null user → no profile.
 export function useProfile(user: User | null) {
   const [profile, setProfile] = useState<Profile | null>(null);
+  // Callers that branch on a profile field (e.g. is_teacher) need to tell
+  // "still finding out" from "no". Without it a teacher briefly looks like a
+  // non-teacher, and a permission-shaped screen flashes at them.
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     let active = true;
     async function load() {
       if (!user) {
-        if (active) setProfile(null);
+        if (active) {
+          setProfile(null);
+          setLoading(false);
+        }
         return;
       }
+      setLoading(true);
       const { data } = await supabase
         .from("profiles")
         .select("id, is_teacher, display_name, school, grade, class_name, gender")
         .eq("id", user.id)
         .maybeSingle();
-      if (active) setProfile(data ? fromRow(data as ProfileRow) : null);
+      if (!active) return;
+      setProfile(data ? fromRow(data as ProfileRow) : null);
+      setLoading(false);
     }
     load();
     return () => {
@@ -102,5 +112,5 @@ export function useProfile(user: User | null) {
     [user]
   );
 
-  return { profile, saveProfile };
+  return { profile, loading, saveProfile };
 }

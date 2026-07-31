@@ -29,30 +29,13 @@ export function useTeacherSongs(enabled: boolean) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
 
-  const load = useCallback(async () => {
-    if (!enabled) return;
-    setLoading(true);
-    setError(false);
-    const { data, error: dbError } = await supabase
-      .from("songs")
-      .select("id, title, author, updated_at, user_id, visibility, hidden, grade, class_name")
-      .order("updated_at", { ascending: false })
-      .limit(MAX_ROWS);
-    if (dbError) {
-      console.error("[BeatBubble] teacher song list failed:", dbError);
-      setError(true);
-    } else {
-      setSongs((data as TeacherSong[]) ?? []);
-    }
-    setLoading(false);
-  }, [enabled]);
-
   useEffect(() => {
-    // Declared inside so the first setState lands in the async body rather than
-    // synchronously in the effect (which would cascade renders).
+    if (!enabled) return;
+    // The query lives inside the effect, not in a useCallback the effect calls:
+    // that way the first setState happens in the async body instead of
+    // synchronously during the effect, which would cascade renders.
     let active = true;
     async function run() {
-      if (!enabled) return;
       setLoading(true);
       setError(false);
       const { data, error: dbError } = await supabase
@@ -90,5 +73,5 @@ export function useTeacherSongs(enabled: boolean) {
     return true;
   }, []);
 
-  return { songs, loading, error, reload: load, setHidden };
+  return { songs, loading, error, setHidden };
 }
