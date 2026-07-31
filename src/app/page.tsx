@@ -22,17 +22,16 @@ import { buildRangeNotes, findMelodyNoteAt } from '@/ui/grid';
 import { AudioEngine, preloadPianoSamples } from '@/audio/engine';
 import { audioBufferToWavBlob } from '@/audio/wav';
 import { useDragInteraction } from '@/hooks/useDragInteraction';
+import { authDisplayName } from '@/hooks/useAuth';
 import { useLocale } from '@/hooks/useLocale';
+import { useAccount } from '@/app/components/AccountProvider';
 import { useSong } from '@/hooks/useSong';
-import { useAuth, authDisplayName } from '@/hooks/useAuth';
-import { useProfile } from '@/hooks/useProfile';
 import { useDiscoveries } from '@/hooks/useDiscoveries';
 import { useDiscoveryFeedback } from '@/hooks/useDiscoveryFeedback';
 import { useChallengeMode } from '@/hooks/useChallengeMode';
 import { supabase } from '@/lib/supabase';
 import { DISCOVERY_CARDS } from '@/discovery/catalog';
 import { SaveModal } from './components/SaveModal';
-import { ProfileModal } from './components/ProfileModal';
 import { NotePanel } from './components/NotePanel';
 import { Header } from './components/Header';
 import { SettingsPanel } from './components/SettingsPanel';
@@ -43,19 +42,9 @@ import { ChallengeStage } from './components/challenges/ChallengeStage';
 import { ChallengeCompleteModal } from './components/challenges/ChallengeCompleteModal';
 
 export default function Home() {
-  const { locale, t, changeLocale } = useLocale();
-  const { user, signInWithGoogle, signOut } = useAuth();
-  const { profile, saveProfile } = useProfile(user);
+  const { locale, t } = useLocale();
+  const { user } = useAccount();
   const { progress: discoveryProgress, claimDiscoveries } = useDiscoveries(user);
-
-  // Identity line for the account menu, from whatever profile fields are set.
-  const profileSubtitle = [
-    profile?.school,
-    profile?.grade != null ? t.profileGradeUnit(profile.grade) : null,
-    profile?.className,
-  ]
-    .filter(Boolean)
-    .join('・');
   const { song, setSong, songRef, canUndo, pushHistory, undo, reset } = useSong();
   const {
     activeChallengeId,
@@ -79,7 +68,6 @@ export default function Home() {
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isConfirmingReset, setIsConfirmingReset] = useState(false);
   const [isSaveModalOpen, setIsSaveModalOpen] = useState(false);
-  const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
   const [loadFailed, setLoadFailed] = useState(false);
   const [isLockMode, setIsLockMode] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
@@ -425,7 +413,6 @@ export default function Home() {
     >
       <Header
         t={t}
-        locale={locale}
         isPlaying={isPlaying}
         canUndo={canUndo}
         isSettingsOpen={isSettingsOpen}
@@ -436,14 +423,6 @@ export default function Home() {
         onOpenSave={() => setIsSaveModalOpen(true)}
         onExport={handleExport}
         isExporting={isExporting}
-        onSetLocale={changeLocale}
-        user={user}
-        profileName={profile?.displayName}
-        profileSubtitle={profileSubtitle || null}
-        isTeacher={!!profile?.isTeacher}
-        onSignIn={signInWithGoogle}
-        onSignOut={signOut}
-        onOpenProfile={() => setIsProfileModalOpen(true)}
       />
 
       {loadFailed && (
@@ -589,15 +568,6 @@ export default function Home() {
             setLoadedSong((prev) => (prev ? { ...prev, title, author } : prev))
           }
           onClose={() => setIsSaveModalOpen(false)}
-        />
-      )}
-
-      {isProfileModalOpen && user && (
-        <ProfileModal
-          t={t}
-          profile={profile}
-          onSave={saveProfile}
-          onClose={() => setIsProfileModalOpen(false)}
         />
       )}
     </div>

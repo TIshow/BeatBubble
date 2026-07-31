@@ -1,31 +1,18 @@
 'use client';
 
-import { useState } from 'react';
 import Link from 'next/link';
 import { AccountMenu } from '@/app/components/AccountMenu';
 import { DiscoveryAlbumProgress } from '@/app/components/discovery/DiscoveryAlbumProgress';
 import { DiscoveryCard } from '@/app/components/discovery/DiscoveryCard';
-import { ProfileModal } from '@/app/components/ProfileModal';
 import { DISCOVERY_CARDS } from '@/discovery/catalog';
-import { useAuth } from '@/hooks/useAuth';
 import { useDiscoveries } from '@/hooks/useDiscoveries';
 import { useLocale } from '@/hooks/useLocale';
-import { useProfile } from '@/hooks/useProfile';
+import { useAccount } from '@/app/components/AccountProvider';
 
 export default function DiscoveriesPage() {
-  const { locale, t, changeLocale } = useLocale();
-  const { user, signInWithGoogle, signOut } = useAuth();
-  const { profile, saveProfile } = useProfile(user);
+  const { locale, t } = useLocale();
+  const { user, signIn } = useAccount();
   const { progress, isLoading, syncError, retrySync } = useDiscoveries(user);
-  const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
-
-  const profileSubtitle = [
-    profile?.school,
-    profile?.grade != null ? t.profileGradeUnit(profile.grade) : null,
-    profile?.className,
-  ]
-    .filter(Boolean)
-    .join('・');
   const progressById = new Map(progress.map((item) => [item.cardId, item]));
 
   return (
@@ -35,18 +22,7 @@ export default function DiscoveriesPage() {
           {t.backToCreate}
         </Link>
         <h1 className="discoveries-heading">{t.discoveryAlbumTitle}</h1>
-        <AccountMenu
-          isTeacher={!!profile?.isTeacher}
-          user={user}
-          t={t}
-          locale={locale}
-          displayName={profile?.displayName}
-          subtitle={profileSubtitle || null}
-          onSetLocale={changeLocale}
-          onSignIn={signInWithGoogle}
-          onSignOut={signOut}
-          onOpenProfile={() => setIsProfileModalOpen(true)}
-        />
+        <AccountMenu />
       </header>
 
       <main className="discoveries-main">
@@ -61,7 +37,7 @@ export default function DiscoveriesPage() {
             <p>{t.discoveryGuestNotice}</p>
             <p>{t.discoveryLoginToKeep}</p>
             <div className="discoveries-notice-actions">
-              <button className="modal-save" onClick={signInWithGoogle}>
+              <button className="modal-save" onClick={signIn}>
                 {t.login}
               </button>
             </div>
@@ -95,15 +71,6 @@ export default function DiscoveriesPage() {
           </section>
         )}
       </main>
-
-      {isProfileModalOpen && user && (
-        <ProfileModal
-          t={t}
-          profile={profile}
-          onSave={saveProfile}
-          onClose={() => setIsProfileModalOpen(false)}
-        />
-      )}
     </div>
   );
 }

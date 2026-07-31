@@ -1,13 +1,11 @@
 "use client";
 
 import Link from "next/link";
-import type { User } from "@supabase/supabase-js";
-import type { Locale, Translations } from "@/lib/i18n";
+import type { Translations } from "@/lib/i18n";
 import { AccountMenu } from "./AccountMenu";
 
 interface Props {
   t: Translations;
-  locale: Locale;
   isPlaying: boolean;
   canUndo: boolean;
   isSettingsOpen: boolean;
@@ -18,20 +16,10 @@ interface Props {
   onOpenSave: () => void;
   onExport: () => void;
   isExporting: boolean;
-  onSetLocale: (locale: Locale) => void;
-  user: User | null;
-  profileName?: string | null;
-  profileSubtitle?: string | null;
-  // Adds the teacher view to the account menu. Not an access boundary — RLS is.
-  isTeacher?: boolean;
-  onSignIn: () => void;
-  onSignOut: () => void;
-  onOpenProfile: () => void;
 }
 
 export function Header({
   t,
-  locale,
   isPlaying,
   canUndo,
   isSettingsOpen,
@@ -42,14 +30,6 @@ export function Header({
   onOpenSave,
   onExport,
   isExporting,
-  onSetLocale,
-  user,
-  profileName,
-  profileSubtitle,
-  onSignIn,
-  onSignOut,
-  onOpenProfile,
-  isTeacher,
 }: Props) {
   return (
     <header className="header">
@@ -93,18 +73,7 @@ export function Header({
       <Link href="/songs" className="songs-nav-link">
         {t.songsLink}
       </Link>
-      <AccountMenu
-        isTeacher={isTeacher}
-        user={user}
-        t={t}
-        locale={locale}
-        displayName={profileName}
-        subtitle={profileSubtitle}
-        onSetLocale={onSetLocale}
-        onSignIn={onSignIn}
-        onSignOut={onSignOut}
-        onOpenProfile={onOpenProfile}
-      />
+      <AccountMenu />
     </header>
   );
 }

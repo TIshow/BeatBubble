@@ -3,12 +3,10 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useLocale } from "@/hooks/useLocale";
-import { useAuth } from "@/hooks/useAuth";
-import { useProfile } from "@/hooks/useProfile";
+import { useAccount } from "@/app/components/AccountProvider";
 import { useSongFeed, type FeedView } from "@/hooks/useSongFeed";
 import { useSongFilters } from "@/hooks/useSongFilters";
 import { AccountMenu } from "@/app/components/AccountMenu";
-import { ProfileModal } from "@/app/components/ProfileModal";
 import { SongCard } from "@/app/components/SongCard";
 import type { Locale } from "@/lib/i18n";
 import { translations } from "@/lib/i18n";
@@ -34,11 +32,9 @@ function timeAgo(dateStr: string, locale: Locale): string {
 }
 
 export default function SongsPage() {
-  const { locale, t, changeLocale } = useLocale();
-  const { user, signInWithGoogle, signOut } = useAuth();
-  const { profile, saveProfile } = useProfile(user);
+  const { locale, t } = useLocale();
+  const { user, isTeacher } = useAccount();
   const [view, setView] = useState<FeedView>("all");
-  const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
 
   const {
     filters,
@@ -53,7 +49,6 @@ export default function SongsPage() {
     hasClassFilters,
   } = useSongFilters();
 
-  const isTeacher = !!profile?.isTeacher;
 
   // "mine" needs sign-in; "all" and "templates" are open to everyone.
   const effectiveView: FeedView = !user && view === "mine" ? "all" : view;
@@ -72,15 +67,6 @@ export default function SongsPage() {
     setSongVisibility,
   } = useSongFeed(effectiveView, user, filters);
 
-  // Identity line for the account menu, from whatever profile fields are set.
-  const profileSubtitle = [
-    profile?.school,
-    profile?.grade != null ? t.profileGradeUnit(profile.grade) : null,
-    profile?.className,
-  ]
-    .filter(Boolean)
-    .join("・");
-
   return (
     <div className="songs-page">
       <header className="songs-header">
@@ -92,28 +78,8 @@ export default function SongsPage() {
           {t.backToCreate}
         </Link>
         <h1 className="songs-heading">{t.pageTitle}</h1>
-        <AccountMenu
-          isTeacher={!!profile?.isTeacher}
-          user={user}
-          t={t}
-          locale={locale}
-          displayName={profile?.displayName}
-          subtitle={profileSubtitle || null}
-          onSetLocale={changeLocale}
-          onSignIn={signInWithGoogle}
-          onSignOut={signOut}
-          onOpenProfile={() => setIsProfileModalOpen(true)}
-        />
+        <AccountMenu />
       </header>
-
-      {isProfileModalOpen && user && (
-        <ProfileModal
-          t={t}
-          profile={profile}
-          onSave={saveProfile}
-          onClose={() => setIsProfileModalOpen(false)}
-        />
-      )}
 
       <main className="songs-main">
         <div className="songs-search-wrap">

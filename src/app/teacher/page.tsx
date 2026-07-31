@@ -3,8 +3,7 @@
 import { useCallback, useMemo, useState } from "react";
 import Link from "next/link";
 import { useLocale } from "@/hooks/useLocale";
-import { useAuth } from "@/hooks/useAuth";
-import { useProfile } from "@/hooks/useProfile";
+import { useAccount } from "@/app/components/AccountProvider";
 import { useTeacherSongs, type TeacherSong } from "@/hooks/useTeacherSongs";
 import { useProfileDirectory } from "@/hooks/useProfileDirectory";
 import { useUserEmails } from "@/hooks/useUserEmails";
@@ -14,9 +13,7 @@ type Filter = "all" | "review" | "hidden";
 
 export default function TeacherPage() {
   const { locale, t } = useLocale();
-  const { user } = useAuth();
-  const { profile, loading: profileLoading } = useProfile(user);
-  const isTeacher = !!profile?.isTeacher;
+  const { user, isTeacher, profileLoading } = useAccount();
 
   const { songs, loading, error, setHidden } = useTeacherSongs(isTeacher);
   const authors = useProfileDirectory(isTeacher);

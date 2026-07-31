@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 
 export const dynamic = "force-dynamic";
 import "./globals.css";
+import { AccountProvider } from "./components/AccountProvider";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -27,7 +28,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${geistSans.variable} ${geistMono.variable}`}>
-        {children}
+        <AccountProvider>{children}</AccountProvider>
       </body>
     </html>
   );
