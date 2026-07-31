@@ -370,7 +370,10 @@ export class AudioEngine {
           const stepToReport = this.currentStep;
           const timeUntilStep = (this.nextNoteTime - target.ctx.currentTime) * 1000;
           setTimeout(() => {
-            if (this.state === "playing") {
+            // A Stop → Play can happen before this scheduled UI notification
+            // fires. State alone would then be "playing" again and leak the
+            // old playhead/discovery/challenge step into the new run.
+            if (this.state === "playing" && epoch === this.playEpoch) {
               onStep(stepToReport);
             }
           }, Math.max(0, timeUntilStep));

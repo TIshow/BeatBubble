@@ -12,6 +12,26 @@
   --discovery-muted: #6f6652;
   --discovery-accent: #f6b93b;
   --discovery-dim-bg: rgba(0, 0, 0, 0.58);
+  --challenge-card-bg: #fbf9ff;
+  --challenge-card-border: #d9cef8;
+  --challenge-muted: #625a74;
+  --challenge-overlay: rgba(24, 19, 38, 0.62);
+  --challenge-accent-start: #667eea;
+  --challenge-accent-end: #764ba2;
+  --challenge-rain-sky: #a8d8f0;
+  --challenge-rain-water: #5f9fc7;
+  --challenge-rain-cloud: #f4f7fb;
+  --challenge-rain-cloud-shadow: #aab9c8;
+  --challenge-sun: #ffd166;
+  --challenge-lightning: #fff4a8;
+  --challenge-scene-light: #ffffff;
+  --challenge-ghost-sky: #292346;
+  --challenge-ghost-glow: #dbd0ff;
+  --challenge-ghost-ground: #17132c;
+  --challenge-run-sky: #bfe9ff;
+  --challenge-run-hill-back: #91c788;
+  --challenge-run-hill-front: #55a46a;
+  --challenge-run-track: #d9a46c;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -26,6 +46,24 @@
     --discovery-card-border: #665c3c;
     --discovery-muted: #c8bfa9;
     --discovery-accent: #ffd166;
+    --challenge-card-bg: #302d3a;
+    --challenge-card-border: #554b73;
+    --challenge-muted: #c8c1d8;
+    --challenge-overlay: rgba(8, 7, 13, 0.78);
+    --challenge-rain-sky: #203f56;
+    --challenge-rain-water: #4b86a8;
+    --challenge-rain-cloud: #c3d0da;
+    --challenge-rain-cloud-shadow: #6e8494;
+    --challenge-sun: #f4c95d;
+    --challenge-lightning: #fff0a0;
+    --challenge-scene-light: #f4f6fa;
+    --challenge-ghost-sky: #171329;
+    --challenge-ghost-glow: #b8a8ed;
+    --challenge-ghost-ground: #0b0917;
+    --challenge-run-sky: #21465b;
+    --challenge-run-hill-back: #456f4c;
+    --challenge-run-hill-front: #285c3a;
+    --challenge-run-track: #8b6547;
   }
 }
 

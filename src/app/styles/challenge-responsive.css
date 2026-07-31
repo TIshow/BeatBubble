@@ -1,0 +1,176 @@
+/* Breakpoints and motion-accessibility overrides stay last in import order. */
+@media (max-width: 899px) {
+  .challenge-stage {
+    grid-template-columns: minmax(230px, 0.85fr) minmax(320px, 1.15fr);
+  }
+
+  .challenge-stage-copy {
+    padding: 19px;
+  }
+}
+
+@media (max-width: 599px) {
+  .discovery-chip-row {
+    justify-content: stretch;
+  }
+
+  .challenge-open-chip,
+  .discovery-chip {
+    justify-content: center;
+    flex: 1 1 auto;
+  }
+
+  .challenge-overlay {
+    align-items: flex-start;
+    padding: 12px;
+  }
+
+  .challenge-picker,
+  .challenge-complete {
+    max-height: calc(100vh - 24px);
+    border-radius: 22px;
+  }
+
+  .challenge-picker {
+    padding: 22px 16px;
+  }
+
+  .challenge-picker-heading {
+    gap: 9px;
+  }
+
+  .challenge-picker-mark {
+    font-size: 25px;
+  }
+
+  .challenge-picker-heading h2 {
+    font-size: 23px;
+  }
+
+  .challenge-card-grid {
+    grid-template-columns: 1fr;
+    gap: 10px;
+    margin-top: 18px;
+  }
+
+  .challenge-card {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    min-height: 0;
+    padding: 15px;
+  }
+
+  .challenge-card-icon {
+    grid-row: 1 / span 2;
+    align-self: center;
+    margin-right: 13px;
+    font-size: 38px;
+  }
+
+  .challenge-card-title {
+    margin-top: 0;
+    font-size: 17px;
+  }
+
+  .challenge-card-prompt {
+    margin-top: 4px;
+    font-size: 12px;
+  }
+
+  .challenge-stage {
+    grid-template-columns: 1fr;
+    width: calc(100% - 24px);
+    min-height: 0;
+    border-radius: 21px;
+  }
+
+  .challenge-stage-copy {
+    padding: 17px;
+  }
+
+  .challenge-stage-title-row p {
+    font-size: 12px;
+  }
+
+  .challenge-stage-actions {
+    margin-top: 0;
+  }
+
+  .challenge-stage-scene {
+    min-height: 184px;
+  }
+
+  .challenge-complete {
+    padding: 24px 17px;
+  }
+
+  .challenge-complete-actions {
+    flex-direction: column;
+  }
+
+  .challenge-keep-btn,
+  .challenge-another-btn {
+    width: 100%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .challenge-picker,
+  .challenge-complete,
+  .challenge-card,
+  .challenge-open-chip,
+  .challenge-random-btn,
+  .challenge-cloud,
+  .challenge-sun,
+  .challenge-ghost,
+  .challenge-ghost-shadow,
+  .challenge-hills,
+  .challenge-runner,
+  .challenge-complete-icon {
+    animation: none;
+    transition: none;
+  }
+
+  .has-rain_droplets .challenge-rain-drops i:nth-child(-n + 7),
+  .has-rain_downpour .challenge-rain-drops i,
+  .has-rain_ripples .challenge-puddle i,
+  .has-rain_thunder .challenge-lightning,
+  .has-rain_wind .challenge-wind,
+  .is-playing .challenge-ghost,
+  .has-ghost_shiver .challenge-ghost-world,
+  .has-ghost_surprise .challenge-ghost-surprise,
+  .has-ghost_approach .challenge-ghost-ground i,
+  .has-run_stride .challenge-runner,
+  .has-run_fast .challenge-run-world,
+  .has-run_jump .challenge-runner,
+  .has-run_footsteps .challenge-footprints i {
+    animation: none;
+  }
+
+  /* Keep every reaction visually distinct without relying on movement. */
+  .has-rain_droplets .challenge-rain-drops i:nth-child(-n + 7),
+  .has-rain_downpour .challenge-rain-drops i,
+  .has-rain_thunder .challenge-lightning,
+  .has-rain_wind .challenge-wind,
+  .has-ghost_surprise .challenge-ghost-surprise,
+  .has-run_footsteps .challenge-footprints i {
+    opacity: 0.85;
+  }
+
+  .has-rain_ripples .challenge-puddle i {
+    opacity: 0.72;
+    transform: translate(-50%, -50%) scale(1.25);
+  }
+
+  .has-ghost_shiver .challenge-ghost-world {
+    box-shadow: inset 0 0 0 5px color-mix(in srgb, var(--challenge-ghost-glow) 52%, transparent);
+  }
+
+  .has-run_stride .challenge-track {
+    border-top-style: solid;
+  }
+
+  .has-run_fast .challenge-run-world {
+    filter: saturate(1.18) brightness(1.05);
+  }
+}
