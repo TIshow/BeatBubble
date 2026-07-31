@@ -248,6 +248,10 @@ export function SaveModal({
             // delete it later. Warn prominently before they publish.
             <p className="modal-warn">{t.saveAnonWarn}</p>
           ))}
+        {/* Teachers can see which account made a song (#117). Say so plainly:
+            being watched over is only healthy when it isn't a secret — a hidden
+            check would be surveillance, this is the classroom norm. */}
+        {userId && <p className="modal-hint">{t.saveVisibleToTeacher}</p>}
         {error && <p className="modal-error">{error}</p>}
         <div className="modal-actions">
           <button className="modal-cancel" onClick={onClose}>

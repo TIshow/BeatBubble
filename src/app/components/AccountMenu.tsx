@@ -19,6 +19,8 @@ interface Props {
   onSignOut: () => void;
   // Shown as a menu item when signed in.
   onOpenProfile: () => void;
+  // Adds the teacher view to the menu. Not an access boundary — RLS is.
+  isTeacher?: boolean;
 }
 
 // Account dropdown shared by the editor and songs headers: identity, profile,
@@ -36,6 +38,7 @@ export function AccountMenu({
   onSignIn,
   onSignOut,
   onOpenProfile,
+  isTeacher,
 }: Props) {
   const [open, setOpen] = useState(false);
   const [confirmingLogout, setConfirmingLogout] = useState(false);
@@ -104,6 +107,17 @@ export function AccountMenu({
             <button className="account-item" role="menuitem" onClick={() => pick(onOpenProfile)}>
               {t.profile}
             </button>
+          )}
+
+          {user && isTeacher && (
+            <Link
+              href="/teacher"
+              className="account-item"
+              role="menuitem"
+              onClick={() => setOpen(false)}
+            >
+              {t.teacherLink}
+            </Link>
           )}
 
           <Link

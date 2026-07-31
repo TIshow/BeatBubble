@@ -53,6 +53,8 @@ export default function SongsPage() {
     hasClassFilters,
   } = useSongFilters();
 
+  const isTeacher = !!profile?.isTeacher;
+
   // "mine" needs sign-in; "all" and "templates" are open to everyone.
   const effectiveView: FeedView = !user && view === "mine" ? "all" : view;
 
@@ -91,6 +93,7 @@ export default function SongsPage() {
         </Link>
         <h1 className="songs-heading">{t.pageTitle}</h1>
         <AccountMenu
+          isTeacher={!!profile?.isTeacher}
           user={user}
           t={t}
           locale={locale}
@@ -237,7 +240,7 @@ export default function SongsPage() {
                   isOwner={!!user && song.user_id === user.id}
                   isTemplate={song.is_template}
                   visibility={song.visibility}
-                  isTeacher={!!profile?.isTeacher}
+                  isTeacher={isTeacher}
                   t={t}
                   onDeleted={removeSong}
                   onRenamed={renameSong}

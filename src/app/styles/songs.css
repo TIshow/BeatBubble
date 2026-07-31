@@ -632,3 +632,23 @@
     animation: none;
   }
 }
+
+/* Teacher-only line naming the account behind a song (#117). Muted by default
+   so it reads as reference, not accusation; highlighted only when the typed
+   author doesn't match the account — the case worth a second look. */
+.song-card-account {
+  margin: 2px 0 0;
+  font-size: 11px;
+  line-height: 1.4;
+  opacity: 0.65;
+}
+
+.song-card-account.differs {
+  opacity: 1;
+  color: #ef9f27;
+  font-weight: 600;
+}
+
+.song-card-account-warn {
+  font-weight: 400;
+}
