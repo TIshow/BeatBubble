@@ -186,3 +186,14 @@
     margin-left: 0;
   }
 }
+
+/* School email under the account — the identifier staff actually use. Monospace
+   so addresses line up when scanning a column of them. */
+.teacher-email {
+  display: block;
+  margin-top: 2px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 11px;
+  opacity: 0.75;
+  word-break: break-all;
+}

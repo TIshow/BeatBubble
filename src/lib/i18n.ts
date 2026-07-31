@@ -113,6 +113,9 @@ export type Translations = {
   teacherEmpty: string;
   teacherLoadError: string;
   teacherSongCount: (n: number) => string;
+  teacherShowEmails: string;
+  teacherHideEmails: string;
+  teacherEmailsHiddenNote: string;
   templateOn: string;
   templateOff: string;
   visPublic: string;
@@ -285,6 +288,9 @@ export const translations: Record<Locale, Translations> = {
     teacherEmpty: 'No songs match.',
     teacherLoadError: "Couldn't load the songs. Please reload.",
     teacherSongCount: (n) => `${n} songs`,
+    teacherShowEmails: 'Show emails',
+    teacherHideEmails: 'Hide emails',
+    teacherEmailsHiddenNote: 'Emails hidden — safe to show on the classroom screen.',
     templateOn: 'Make template',
     templateOff: 'Unset template',
     visPublic: 'Public',
@@ -556,6 +562,9 @@ export const translations: Record<Locale, Translations> = {
     teacherEmpty: '該当する曲がありません。',
     teacherLoadError: '曲を読み込めませんでした。ページを再読み込みしてください。',
     teacherSongCount: (n) => `${n}曲`,
+    teacherShowEmails: 'メールを表示',
+    teacherHideEmails: 'メールを隠す',
+    teacherEmailsHiddenNote: 'メール非表示中 — 教室の画面に映しても大丈夫です。',
     templateOn: 'テンプレにする',
     templateOff: 'テンプレ解除',
     visPublic: '公開',

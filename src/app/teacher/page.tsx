@@ -7,6 +7,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useProfile } from "@/hooks/useProfile";
 import { useTeacherSongs, type TeacherSong } from "@/hooks/useTeacherSongs";
 import { useSongAuthors } from "@/hooks/useSongAuthors";
+import { useUserEmails } from "@/hooks/useUserEmails";
 import { accountLineFor, reviewReasonFor } from "@/lib/songAuthor";
 
 type Filter = "all" | "review" | "hidden";
@@ -23,9 +24,19 @@ export default function TeacherPage() {
     isTeacher
   );
 
+  // On by default: staff identify pupils by their school address, which is why
+  // this was asked for. The toggle exists because this page can end up on the
+  // classroom projector, and 300 children's addresses should not.
+  const [showEmails, setShowEmails] = useState(true);
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState<Filter>("all");
   const [busyId, setBusyId] = useState<string | null>(null);
+
+  // Nothing is requested while the column is hidden.
+  const emails = useUserEmails(
+    songs.map((s) => s.user_id),
+    isTeacher && showEmails
+  );
 
   const labels = useMemo(
     () => ({
@@ -50,11 +61,14 @@ export default function TeacherPage() {
       if (filter === "all" && song.hidden) return false; // hidden lives in its own tab
       if (!term) return true;
       const account = song.user_id ? authors.get(song.user_id)?.displayName ?? "" : "";
-      return [song.title, song.author, account].some((v) => v.toLowerCase().includes(term));
+      const email = song.user_id ? emails.get(song.user_id) ?? "" : "";
+      return [song.title, song.author, account, email].some((v) =>
+        v.toLowerCase().includes(term)
+      );
     });
     // reasonFor depends on `authors`, which is in the dep list.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [songs, authors, search, filter, t]);
+  }, [songs, authors, emails, search, filter, t]);
 
   const reviewCount = useMemo(
     () => songs.filter((s) => !s.hidden && reasonFor(s)).length,
@@ -99,7 +113,10 @@ export default function TeacherPage() {
       </header>
 
       <main className="teacher-main">
-        <p className="teacher-intro">{t.teacherIntro}</p>
+        <p className="teacher-intro">
+          {t.teacherIntro}
+          {!showEmails && <> {t.teacherEmailsHiddenNote}</>}
+        </p>
 
         <div className="teacher-toolbar">
           <input
@@ -126,6 +143,13 @@ export default function TeacherPage() {
               </button>
             ))}
           </div>
+          <button
+            className={`teacher-tab ${showEmails ? "" : "active"}`}
+            onClick={() => setShowEmails((v) => !v)}
+            aria-pressed={!showEmails}
+          >
+            {showEmails ? t.teacherHideEmails : t.teacherShowEmails}
+          </button>
           <span className="teacher-count">{t.teacherSongCount(rows.length)}</span>
         </div>
 
@@ -164,6 +188,9 @@ export default function TeacherPage() {
                         {account?.text ?? "…"}
                         {account?.differs && (
                           <span className="teacher-typed">{t.teacherTypedAs(song.author)}</span>
+                        )}
+                        {showEmails && song.user_id && (
+                          <span className="teacher-email">{emails.get(song.user_id) ?? "…"}</span>
                         )}
                       </td>
                       <td>
