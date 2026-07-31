@@ -6,7 +6,7 @@ import { useLocale } from "@/hooks/useLocale";
 import { useAuth } from "@/hooks/useAuth";
 import { useProfile } from "@/hooks/useProfile";
 import { useTeacherSongs, type TeacherSong } from "@/hooks/useTeacherSongs";
-import { useSongAuthors } from "@/hooks/useSongAuthors";
+import { useProfileDirectory } from "@/hooks/useProfileDirectory";
 import { useUserEmails } from "@/hooks/useUserEmails";
 import { accountLineFor, reviewReasonFor } from "@/lib/songAuthor";
 
@@ -19,10 +19,7 @@ export default function TeacherPage() {
   const isTeacher = !!profile?.isTeacher;
 
   const { songs, loading, error, setHidden } = useTeacherSongs(isTeacher);
-  const authors = useSongAuthors(
-    songs.map((s) => s.user_id),
-    isTeacher
-  );
+  const authors = useProfileDirectory(isTeacher);
 
   // On by default: staff identify pupils by their school address, which is why
   // this was asked for. The toggle exists because this page can end up on the
