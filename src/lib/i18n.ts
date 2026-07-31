@@ -84,6 +84,11 @@ export type Translations = {
   loadingMore: string;
   showMore: string;
   templateBadge: string;
+  // Teacher-only: the account behind a song (the printed author is free text).
+  authorAccountLabel: string;
+  authorAccountNone: string;
+  authorAccountDiffers: string;
+  saveVisibleToTeacher: string;
   templateOn: string;
   templateOff: string;
   visPublic: string;
@@ -229,6 +234,10 @@ export const translations: Record<Locale, Translations> = {
     loadingMore: 'Loading more...',
     showMore: 'Show more',
     templateBadge: 'Template',
+    authorAccountLabel: 'Account',
+    authorAccountNone: 'No account (not identifiable)',
+    authorAccountDiffers: 'differs from the typed name',
+    saveVisibleToTeacher: 'Your teacher can see who made each song.',
     templateOn: 'Make template',
     templateOff: 'Unset template',
     visPublic: 'Public',
@@ -473,6 +482,10 @@ export const translations: Record<Locale, Translations> = {
     loadingMore: 'よみこみちゅう...',
     showMore: 'もっと見る',
     templateBadge: 'テンプレ',
+    authorAccountLabel: 'アカウント',
+    authorAccountNone: 'アカウントなし（だれか わかりません）',
+    authorAccountDiffers: '入力された なまえと ちがいます',
+    saveVisibleToTeacher: '先生には、だれが つくったか 見えるよ。',
     templateOn: 'テンプレにする',
     templateOff: 'テンプレ解除',
     visPublic: '公開',
