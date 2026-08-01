@@ -1,13 +1,79 @@
 # BeatBubble — Claude Code Guide
 
-## Product Goal
-BeatBubble is a classroom-friendly grid-based song maker.
-Key differentiators:
-- Supports sustained notes (long notes) via duration editing
-- Pitch range constraints for grade-level use
-- Melody + drum lanes for easy composition
-- Solfège (ドレミ) note labels for Japanese learners
-- Adjustable grid length and beginner-friendly settings panel
+## Product Definition
+**BeatBubble is a creative environment where primary-school children learn
+trial-and-error and expression through music.**
+
+Read that literally, because it decides things:
+
+- **through music** — music is the medium, not the subject. What is being
+  learned is having an intention and iterating toward it.
+- **trial-and-error** — the unit of value is an attempt, not a finished song.
+  Anything that raises the number of attempts a child makes is on-mission;
+  anything that lets them skip attempting is not.
+- **expression** — the child must have something of their own to say. There is
+  no correct answer to compare against.
+- **environment** — inhabited and altered, not a tool that is finished. Low
+  floor (a 6-year-old starts in seconds), high ceiling (there is somewhere to
+  iterate *toward*), and the constraints in between are scaffolding the child
+  dissolves as they grow, not a permanent ceiling.
+
+### What this rules out
+Deliberate non-goals. Each is attractive and each breaks the definition:
+
+- **AI that produces finished songs.** It skips the trial-and-error entirely —
+  the one thing this exists to create. AI may scaffold ("what if you tried
+  changing just the ending?"); it must not answer.
+- **Scoring or ranking songs.** Turns expression into correctness.
+- **Streaks, XP, leaderboards.** They replace "I want to make this" with "I
+  have to keep my streak", and among named classmates they add social
+  comparison. Badges that *reveal what is possible* or *name what a child
+  already did* are fine; badges that steer behaviour are not.
+- **Accumulating children's behavioural data as a product asset.** Knowing
+  whether the environment works needs a few aggregate numbers, not a log of
+  each child. See "見守れる練習場" below.
+- **Growing into an LMS.** Assignment/grading plumbing serves administration;
+  it does not increase a single child's attempts. The teacher features that
+  exist are there so the space can be supervised safely — hygiene, not the
+  point.
+
+### How we know it is working
+Not "how many songs were saved". Signals that map to the definition:
+
+- children using it **outside class hours**, unprompted (they want to keep
+  trying — the strongest signal we have)
+- revisions per song (trial-and-error, literally)
+- how differently children answer the *same* prompt (expression)
+- how often work is opened, taken apart and built on
+
+Keep these aggregate. The measurement must not become the surveillance this
+document rules out.
+
+## 見守れる練習場 (a supervised place to practise)
+Children's lives are moving into places adults can't see — games, VR, chat.
+Because this app is the school's, it can be the opposite: somewhere they
+practise being a person online *while a trusted adult is in the room*. That is
+the frame for every moderation decision here — not a monitoring console.
+
+Design for mistakes that are **small, visible, recoverable, and teachable**,
+rather than trying to prevent them:
+
+- **Shrink the blast radius** before policing content. A hurtful title seen by
+  one class is a conversation; the same title seen school-wide is an incident.
+- **Friction and reflection, not bans.** A sensitive title gets 「ちょっと まって
+  ね」 and the child decides (`src/lib/validation.ts`). Only explicit slurs and
+  "die/kill" are hard-blocked.
+- **Repair over punishment.** Hiding a song is reversible and keeps the record;
+  deleting destroys the evidence a teacher needs for the conversation.
+- **Visibility means "an adult is in the room", never covert.** Teachers can see
+  which account made a song, and children are told so when they save.
+- **Separate expression from targeting.** Saying something dark in your own song
+  is fine; aiming it at a named classmate is the thing to make hard.
+
+Non-goals: behaviour scores, rankings of children, silent tracking, and "zero
+incidents" as a target — zero means either nobody is using it or they have
+learned to hide. The working outcome is: *a problem surfaces, the child can put
+it right, and it happens with the teacher present.*
 
 ## Non-negotiable Requirements
 **IMPORTANT — these are hard constraints. YOU MUST NOT violate them:**
@@ -30,14 +96,25 @@ Key differentiators:
   - `legacy.ts` : `migrateSong()` (version upgrades) + old-format import
 - `src/analysis/` : research/analytics — pure `Song`→feature extraction (`metrics.ts`); consumes `src/core`, not used at app runtime
 - `src/audio/` : Web Audio scheduling + synthesis (`engine.ts`)
+- `src/discovery/` : pure detection of musical relationships a child can stumble on
+  (`detector`/`rules`/`timeline`/`eligibility`), plus the reveal queue and storage.
+  Names the thing found — never says a title is wrong (see Product Definition).
+- `src/challenges/` : open-ended prompts (「あめの音」「おばけが ちかづいてくる」) and
+  the analysis that makes the scene react. No scoring: the child decides when it's done.
 - `src/ui/` : grid helpers, color mapping, `noteLabel.ts` (locale-aware ドレミ/ABC)
-- `src/hooks/` : custom hooks — `useSong` (song state + undo history), `useDragInteraction`, `useLocale`
+- `src/hooks/` : custom hooks — `useSong` (song state + undo history), `useDragInteraction`,
+  `useLocale` (a `useSyncExternalStore` over localStorage, so every caller shares one value)
 - `src/lib/` : Supabase client (`supabase.ts`), i18n translations (`i18n.ts`, exports `Translations`)
 - `src/app/` : Next.js pages/components and styles
   - `components/` : `Header`, `SettingsPanel`, `Grid`, `NotePanel`, `SaveModal`
   - `styles/` : per-concern global CSS (`base/header/settings/grid/note-panel/modal/songs`), assembled by `globals.css` via `@import`
   - `page.tsx` : editor — wires state/handlers and composes the components
   - `songs/` : community songs feed page (`/songs`)
+  - `discoveries/` : the album of what a child has found (`/discoveries`)
+  - `teacher/` : moderation view for teachers only (`/teacher`) — see 見守れる練習場
+  - `components/AccountProvider.tsx` : who is signed in, and everything hanging off it.
+    `AccountMenu` reads it directly; pages call `useAccount()`. Identity is NOT
+    threaded as props — that is what made a menu item go missing on three pages.
 
 > Note: classes in `styles/*.css` are **global** (not CSS Modules). Keep each file's rules in their original relative order — some overrides are source-order dependent.
 
