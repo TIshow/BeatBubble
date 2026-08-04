@@ -14,9 +14,10 @@
 
 - `AGENTS.md`
 - `docs/sound-creatures/README.md`
-- `src/app/components/discovery/DiscoveryRevealModal.tsx`
-- `src/app/components/discovery/DiscoveryEvidenceOverlay.tsx`
-- `src/app/components/discovery/DiscoveryToast.tsx`
+- `src/app/components/discovery/DiscoveryFeedback.tsx`
+- `src/app/components/discovery/DiscoveryReveal.tsx`
+- `src/app/components/discovery/DiscoveryEffectLayer.tsx`
+- `src/app/components/Grid.tsx`
 - `src/hooks/useDiscoveryFeedback.ts`
 - 関連する発見演出テスト
 

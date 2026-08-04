@@ -10,12 +10,7 @@ import {
   type DiscoverySourceSnapshot,
 } from '@/discovery/eligibility';
 import { revealItemsFor, type DiscoveryRevealItem } from '@/discovery/revealQueue';
-import type { DiscoveryId, DiscoveryMatch } from '@/discovery/types';
-
-export type DiscoveryEffectEvent = {
-  key: number;
-  cardId: DiscoveryId;
-};
+import type { DiscoveryEffectEvent, DiscoveryId, DiscoveryMatch } from '@/discovery/types';
 
 type Params = {
   song: Song;

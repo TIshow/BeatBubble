@@ -76,7 +76,7 @@ function LockedCreatureEntry({ creature, eager, numberLabel, hint, t }: LockedCr
 
 export function CreatureEntry({ creature, number, progress, locale, t }: CreatureEntryProps) {
   const numberLabel = t.discoveryEntryNumber(number);
-  const copy = t.creatures[creature.translationKey];
+  const copy = t.creatures[creature.discoveryId];
   const eager = number <= 3;
 
   if (!progress) {

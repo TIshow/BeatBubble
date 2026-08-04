@@ -66,7 +66,7 @@ export function DiscoveryReveal({ item, t, onDone }: DiscoveryRevealProps) {
   }, [item]);
 
   const creature = creatureForDiscovery(item.cardId);
-  const copy = t.creatures[creature.translationKey];
+  const copy = t.creatures[creature.discoveryId];
   const titleId = `discovery-reveal-title-${item.cardId}`;
   const personalityId = `discovery-reveal-personality-${item.cardId}`;
   const descriptionId = `discovery-reveal-description-${item.cardId}`;

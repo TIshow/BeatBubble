@@ -17,7 +17,6 @@ export type CreatureDefinition<Id extends DiscoveryId = DiscoveryId> = Readonly<
   discoveryId: Id;
   portraitPath: `/creatures/${Id}/portrait.png`;
   revealEffect: CreatureRevealEffect;
-  translationKey: Id;
 }>;
 
 export type CreatureCatalog = {

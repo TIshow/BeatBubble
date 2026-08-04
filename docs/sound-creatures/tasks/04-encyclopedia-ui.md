@@ -15,7 +15,7 @@
 - `AGENTS.md`
 - `docs/sound-creatures/README.md`
 - `src/app/discoveries/page.tsx`
-- `src/app/components/discovery/DiscoveryCard.tsx`
+- `src/app/components/discovery/CreatureEntry.tsx`
 - `src/app/components/discovery/DiscoveryAlbumProgress.tsx`
 - `src/app/styles/discoveries.css`
 - `src/lib/i18n.ts`

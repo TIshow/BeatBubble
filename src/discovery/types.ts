@@ -12,3 +12,8 @@ export type DiscoveryMatch = DiscoveryEvidence & {
   startStep: number;
   triggerStep: number;
 };
+
+export type DiscoveryEffectEvent = {
+  key: number;
+  cardId: DiscoveryId;
+};

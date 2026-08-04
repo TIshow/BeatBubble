@@ -10,7 +10,7 @@ describe('DiscoveryReveal', () => {
     for (const locale of ['ja', 'en'] as const) {
       const t = translations[locale];
       for (const creature of CREATURES) {
-        const copy = t.creatures[creature.translationKey];
+        const copy = t.creatures[creature.discoveryId];
         const markup = renderToStaticMarkup(
           createElement(DiscoveryReveal, {
             item: {

@@ -13,7 +13,7 @@ describe('CreatureEntry', () => {
     for (const locale of ['ja', 'en'] as const) {
       const localeTranslations = translations[locale];
       for (const [index, catalogCreature] of CREATURES.entries()) {
-        const copy = localeTranslations.creatures[catalogCreature.translationKey];
+        const copy = localeTranslations.creatures[catalogCreature.discoveryId];
         const markup = renderToStaticMarkup(
           createElement(CreatureEntry, {
             creature: catalogCreature,

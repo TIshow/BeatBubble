@@ -15,11 +15,10 @@ describe('creature catalog invariants', () => {
     );
   });
 
-  it('keeps ids, translation keys, and portrait paths aligned', () => {
+  it('keeps ids and portrait paths aligned', () => {
     for (const id of DISCOVERY_IDS) {
       const creature = creatureForDiscovery(id);
       expect(creature.discoveryId).toBe(id);
-      expect(creature.translationKey).toBe(id);
       expect(creature.portraitPath).toBe(`/creatures/${id}/portrait.png`);
       expect(CREATURE_REVEAL_EFFECTS).toContain(creature.revealEffect);
     }
@@ -35,7 +34,7 @@ describe('creature catalog invariants', () => {
     for (const locale of Object.values(translations)) {
       expect(Object.keys(locale.creatures)).toEqual(DISCOVERY_IDS);
       for (const creature of CREATURES) {
-        const copy = locale.creatures[creature.translationKey];
+        const copy = locale.creatures[creature.discoveryId];
         expect(copy.name.trim()).not.toBe('');
         expect(copy.personality.trim()).not.toBe('');
         expect(copy.reveal.trim()).not.toBe('');
