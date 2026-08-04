@@ -2,7 +2,9 @@
 
 ## 状態
 
-Task 04完了待ち。
+実装完了・統合待ち。Issue #130で、初回発見を生き物との出会いへ変更し、
+再発見は再生を止めない短いリアクションへ変更した。マージ前レビューと
+リファクタリングも完了している。
 
 ## 目的
 
@@ -13,9 +15,10 @@ Task 04完了待ち。
 
 - `AGENTS.md`
 - `docs/sound-creatures/README.md`
-- `src/app/components/discovery/DiscoveryRevealModal.tsx`
-- `src/app/components/discovery/DiscoveryEvidenceOverlay.tsx`
-- `src/app/components/discovery/DiscoveryToast.tsx`
+- `src/app/components/discovery/DiscoveryFeedback.tsx`
+- `src/app/components/discovery/DiscoveryReveal.tsx`
+- `src/app/components/discovery/DiscoveryEffectLayer.tsx`
+- `src/app/components/Grid.tsx`
 - `src/hooks/useDiscoveryFeedback.ts`
 - 関連する発見演出テスト
 
@@ -44,3 +47,33 @@ Task 04完了待ち。
 - 証拠ハイライトが各 `DiscoveryEvidence` 種別で正しく表示される。
 - キーボード、画面幅、motion設定を含む手動確認を行っている。
 - lint、型検査、関連テストが通る。
+
+## 実装・確認記録
+
+- `41ed6a0`: 初回発見へ生き物のportrait、名前、性格、現れた理由、
+  「音楽のことば」を追加した。確認ボタンへフォーカスを閉じ込め、完了後は
+  発見前の操作要素、または再生ボタンへ戻すようにした。
+- `1e5e277`: 再発見の記号演出を生き物の短い非モーダル反応へ置き換え、8体の
+  `revealEffect` ごとの動きと、移動・回転を行わないreduced-motion表示を追加した。
+- `21eb583`: reduced-motion時も短い演出の画像が画面中央からずれないよう、
+  中心基準をベーススタイルへ移した。
+- `ac09f9c`: 常に `discoveryId` と同値だった翻訳キーを削除し、portraitパス生成と
+  発見リアクションのイベント型を一元化した。完了済みTask文書の古い参照先も修正した。
+- `df33eb0`: 全routeの不要なdynamic renderingを解除し、認証初期sessionの二重取得と
+  同一ユーザー再通知によるprofile・発見データの再取得を抑止した。
+- 8体すべてについて、日英のportrait、名前、性格、説明、音楽のことば、演出クラスを
+  静的レンダリングテストで確認した。
+- localhostの1280×720表示で、初回発見時に再生が止まり、対象2セルだけが強調され、
+  確認ボタンへフォーカスすることを確認した。Tab操作ではモーダル外へ移動せず、
+  確認後は再生ボタンへフォーカスが戻った。
+- 同じ発見を再生し直し、モーダルが出ず、生き物の短い演出中も再生が継続することを
+  確認した。
+- タブレット・モバイルでは、既存の900px境界でダイアログを対象セルの反対側へ置き、
+  カードを画面幅・画面高内でスクロール可能にするCSSを維持した。最終の実機表示は
+  レビュー時に確認する。
+- `pnpm test`（16ファイル・125件）、`pnpm exec tsc --noEmit`、`pnpm lint`を通過した。
+- `pnpm build`を外部フォント取得可能な環境で実行し、全routeのproduction buildが
+  成功した。最新の `origin/main` からの未取り込みは0件で、競合要因がないことを確認した。
+- 読み込み監査では、ゲストの発見DBアクセスは0件、ログイン時は最大8行のSELECT 1回と
+  新規発見時だけのINSERTだった。図鑑8画像は640px WebPで合計約152KB、4時間キャッシュ・
+  cache HITを確認した。全routeは静的生成され、図鑑HTMLはCDNキャッシュ対象になった。

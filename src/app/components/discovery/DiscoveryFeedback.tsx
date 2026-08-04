@@ -1,16 +1,11 @@
 import type { DiscoveryRevealItem } from '@/discovery/revealQueue';
-import type { DiscoveryId } from '@/discovery/types';
+import type { DiscoveryEffectEvent } from '@/discovery/types';
 import type { Translations } from '@/lib/i18n';
 import { DiscoveryEffectLayer } from './DiscoveryEffectLayer';
 import { DiscoveryReveal } from './DiscoveryReveal';
 
-type EffectEvent = {
-  key: number;
-  cardId: DiscoveryId;
-};
-
 interface DiscoveryFeedbackProps {
-  effects: readonly EffectEvent[];
+  effects: readonly DiscoveryEffectEvent[];
   revealQueue: readonly DiscoveryRevealItem[];
   t: Translations;
   onEffectEnd: (key: number) => void;

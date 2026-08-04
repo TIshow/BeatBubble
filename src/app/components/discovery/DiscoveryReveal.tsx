@@ -1,6 +1,8 @@
 'use client';
 
+import Image from 'next/image';
 import { useEffect, useRef, useState } from 'react';
+import { creatureForDiscovery } from '@/creatures/catalog';
 import type { DiscoveryRevealItem } from '@/discovery/revealQueue';
 import type { Translations } from '@/lib/i18n';
 import { usesSideDiscoveryDialog } from './discoveryLayout';
@@ -13,7 +15,24 @@ interface DiscoveryRevealProps {
 
 export function DiscoveryReveal({ item, t, onDone }: DiscoveryRevealProps) {
   const acknowledgeRef = useRef<HTMLButtonElement>(null);
+  const restoreFocusRef = useRef<HTMLElement | null>(null);
   const [placement, setPlacement] = useState<'top' | 'bottom' | 'right'>('right');
+
+  useEffect(() => {
+    const activeElement = document.activeElement;
+    if (activeElement instanceof HTMLElement && activeElement !== document.body) {
+      restoreFocusRef.current = activeElement;
+    }
+
+    return () => {
+      const previousFocus = restoreFocusRef.current;
+      if (previousFocus?.isConnected && !previousFocus.hasAttribute('disabled')) {
+        previousFocus.focus();
+        return;
+      }
+      document.querySelector<HTMLButtonElement>('.play-btn:not(:disabled)')?.focus();
+    };
+  }, []);
 
   useEffect(() => {
     acknowledgeRef.current?.focus();
@@ -46,8 +65,10 @@ export function DiscoveryReveal({ item, t, onDone }: DiscoveryRevealProps) {
     };
   }, [item]);
 
-  const card = t.discoveryCards[item.cardId];
+  const creature = creatureForDiscovery(item.cardId);
+  const copy = t.creatures[creature.discoveryId];
   const titleId = `discovery-reveal-title-${item.cardId}`;
+  const personalityId = `discovery-reveal-personality-${item.cardId}`;
   const descriptionId = `discovery-reveal-description-${item.cardId}`;
   const theoryId = `discovery-reveal-theory-${item.cardId}`;
 
@@ -66,27 +87,43 @@ export function DiscoveryReveal({ item, t, onDone }: DiscoveryRevealProps) {
         role="dialog"
         aria-modal="true"
         aria-labelledby={titleId}
-        aria-describedby={`${descriptionId} ${theoryId}`}
+        aria-describedby={`${personalityId} ${descriptionId} ${theoryId}`}
       >
         <div className="discovery-reveal-rays" aria-hidden="true" />
         <div className="discovery-reveal-label">{t.discoveryFound}</div>
-        <span className="discovery-reveal-card-mark" aria-hidden="true">
-          ✦
-        </span>
+        <div
+          className={`discovery-reveal-creature-stage discovery-reveal-creature-stage--${creature.revealEffect}`}
+        >
+          <span className="discovery-reveal-creature-glow" aria-hidden="true" />
+          <Image
+            className="discovery-reveal-creature"
+            src={creature.portraitPath}
+            alt={copy.alt}
+            width={1024}
+            height={1024}
+            loading="eager"
+            sizes="180px"
+          />
+        </div>
         <strong className="discovery-reveal-name" id={titleId}>
-          {card.name}
+          {copy.name}
         </strong>
-        <span className="discovery-reveal-message">{card.reveal}</span>
-        <p className="discovery-reveal-description" id={descriptionId}>
-          {card.description}
+        <p className="discovery-reveal-personality" id={personalityId}>
+          {copy.personality}
         </p>
+        <span className="discovery-reveal-message">{copy.reveal}</span>
+        <div className="discovery-reveal-reason" id={descriptionId}>
+          <strong>{t.discoveryCreatureReasonLabel}</strong>
+          <p>{copy.description}</p>
+        </div>
         <p className="discovery-reveal-focus-hint">
           <span aria-hidden="true">◎</span>
           {t.discoveryFocusHint}
         </p>
         <div className="discovery-reveal-theory" id={theoryId}>
-          <strong>{t.discoveryAhaLabel}</strong>
-          <p>{card.theory}</p>
+          <strong>{t.discoveryTheoryLabel}</strong>
+          <span>{t.discoveryAhaLabel}</span>
+          <p>{copy.theory}</p>
         </div>
         <button
           ref={acknowledgeRef}

@@ -1,38 +1,39 @@
-import type { DiscoveryId } from '@/discovery/types';
+import Image from 'next/image';
+import { creatureForDiscovery } from '@/creatures/catalog';
+import type { DiscoveryEffectEvent } from '@/discovery/types';
 
-type DiscoveryEffectEvent = {
-  key: number;
-  cardId: DiscoveryId;
-};
-
-interface Props {
+interface DiscoveryEffectLayerProps {
   events: readonly DiscoveryEffectEvent[];
   onEffectEnd: (key: number) => void;
 }
 
-const EFFECT_MARKS: Record<DiscoveryId, string> = {
-  interval_third: '✦ ✦',
-  open_fifth: '◯',
-  close_tension: 'ϟ',
-  stepwise_run: '▁ ▃ ▅ ▇',
-  call_and_response: '● · ●',
-  rest_then_burst: '○ ◌ ✹',
-  rhythm_loop: '↻',
-  sustain_contrast: '━ ✦',
-};
-
-export function DiscoveryEffectLayer({ events, onEffectEnd }: Props) {
+export function DiscoveryEffectLayer({ events, onEffectEnd }: DiscoveryEffectLayerProps) {
   return (
     <div className="discovery-effect-layer" aria-hidden="true">
-      {events.map((event) => (
-        <div
-          key={event.key}
-          className={`discovery-effect discovery-effect--${event.cardId}`}
-          onAnimationEnd={() => onEffectEnd(event.key)}
-        >
-          {EFFECT_MARKS[event.cardId]}
-        </div>
-      ))}
+      {events.map((event) => {
+        const creature = creatureForDiscovery(event.cardId);
+        return (
+          <div
+            key={event.key}
+            className={`discovery-effect discovery-effect--${creature.revealEffect}`}
+            onAnimationEnd={(animationEvent) => {
+              if (animationEvent.currentTarget === animationEvent.target) {
+                onEffectEnd(event.key);
+              }
+            }}
+          >
+            <span className="discovery-effect-glow" />
+            <Image
+              className="discovery-effect-creature"
+              src={creature.portraitPath}
+              alt=""
+              width={1024}
+              height={1024}
+              sizes="140px"
+            />
+          </div>
+        );
+      })}
     </div>
   );
 }

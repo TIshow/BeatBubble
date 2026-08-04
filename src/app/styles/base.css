@@ -12,6 +12,8 @@
   --discovery-muted: #6f6652;
   --discovery-accent: #f6b93b;
   --discovery-dim-bg: rgba(0, 0, 0, 0.58);
+  --creature-silhouette-filter: grayscale(1) brightness(0);
+  --creature-silhouette-opacity: 0.58;
   --challenge-card-bg: #fbf9ff;
   --challenge-card-border: #d9cef8;
   --challenge-muted: #625a74;
@@ -46,6 +48,8 @@
     --discovery-card-border: #665c3c;
     --discovery-muted: #c8bfa9;
     --discovery-accent: #ffd166;
+    --creature-silhouette-filter: grayscale(1) brightness(0) invert(1);
+    --creature-silhouette-opacity: 0.64;
     --challenge-card-bg: #302d3a;
     --challenge-card-border: #554b73;
     --challenge-muted: #c8c1d8;
