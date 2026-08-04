@@ -18,7 +18,7 @@ function formatDiscoveryDate(value: string, locale: Locale): string {
 }
 
 export function DiscoveryCard({ definition, progress, locale, t }: DiscoveryCardProps) {
-  const copy = t.discoveryCards[definition.id];
+  const copy = t.creatures[definition.id];
   const number = String(definition.sortOrder / 10).padStart(2, '0');
 
   if (!progress) {

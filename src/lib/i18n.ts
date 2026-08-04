@@ -3,12 +3,14 @@ import type { ChallengeId, ChallengeTechniqueId } from '@/challenges/types';
 
 export type Locale = 'en' | 'ja';
 
-export type DiscoveryCardTranslation = {
+export type CreatureTranslation = {
   name: string;
+  personality: string;
   reveal: string;
   description: string;
   hint: string;
   theory: string;
+  alt: string;
 };
 
 export type ChallengeCardTranslation = {
@@ -178,7 +180,7 @@ export type Translations = {
   discoveryLoginToKeep: string;
   discoverySyncError: string;
   discoveryRetry: string;
-  discoveryCards: Record<DiscoveryId, DiscoveryCardTranslation>;
+  creatures: Record<DiscoveryId, CreatureTranslation>;
   // Open-ended challenges
   challengeOpen: string;
   challengePickerTitle: string;
@@ -335,89 +337,106 @@ export const translations: Record<Locale, Translations> = {
     profileSaveFailed: "Couldn't save. Please try again.",
     profileSchoolPlaceholder: 'School name',
     profileNamePlaceholder: 'Your name or nickname',
-    discoveriesLink: 'Discoveries',
-    discoveryAlbumTitle: 'Discovery Album',
-    discoveryAlbumIntro: 'Make sounds, listen closely, and collect the musical surprises you find.',
-    discoveryProgress: (earned, total) => `${earned} / ${total} found`,
-    discoveryFound: 'Discovery!',
-    discoveryFocusHint: 'The glowing notes and beats made this discovery.',
+    discoveriesLink: 'Creature guide',
+    discoveryAlbumTitle: 'Sound Creature Guide',
+    discoveryAlbumIntro:
+      'Make sounds, listen closely, and meet the creatures hiding in musical surprises.',
+    discoveryProgress: (earned, total) => `${earned} / ${total} met`,
+    discoveryFound: 'A sound creature appeared!',
+    discoveryFocusHint: 'This creature was hiding in the glowing notes and rhythms.',
     discoveryAhaLabel: 'Oh, I get it!',
     discoveryAcknowledge: 'Got it!',
     discoveryLocked: '???',
     discoveryHintLabel: 'Try this',
     discoveryTheoryLabel: 'Music words',
-    discoveryDate: (date) => `Found ${date}`,
-    discoveryGuestNotice: 'These discoveries are saved for this browser session.',
+    discoveryDate: (date) => `Met ${date}`,
+    discoveryGuestNotice: 'This guide remembers creatures you meet for this browser session.',
     discoveryLoginToKeep:
-      'Discoveries you find after logging in are saved to your account and other devices.',
-    discoverySyncError: "Some discoveries haven't synced yet.",
+      'Creatures you meet after logging in are saved to your guide on your other devices too.',
+    discoverySyncError: "Some creatures haven't been saved to your guide yet.",
     discoveryRetry: 'Try again',
-    discoveryCards: {
+    creatures: {
       interval_third: {
-        name: 'Twin Stars',
+        name: 'Mitts',
+        personality: 'Loves singing with two notes that are a little apart.',
         reveal: 'Two notes lit up together!',
         description: 'The two glowing notes are 3 or 4 half-steps apart.',
-        hint: 'Move either note a little. Can you make the stars appear again?',
+        hint: 'Move either note a little and listen for a place where they softly fit together.',
         theory:
           'C to E and D to F are both called thirds: count the note names from the lower note, including both ends—C, D, E makes three. A third can span 3 or 4 half-steps.',
+        alt: 'Mitts, a round purple creature with large coral ears divided into different numbers of segments.',
       },
       open_fifth: {
-        name: 'Wide Sky',
+        name: 'Nobeen',
+        personality: 'A calm listener who loves calling out in wide-open places.',
         reveal: 'The sound opened up!',
         description: 'The glowing notes are separated by a wide, even-sounding distance.',
         hint: 'Try the same shape higher or lower.',
         theory:
           'C to G is a perfect fifth: count C, D, E, F, G, and the notes are 7 half-steps apart. C to the next C is an octave, 12 half-steps. Both often sound open and stable.',
+        alt: 'Nobeen, a blue creature stretching wide yellow sound fins to both sides.',
       },
       close_tension: {
-        name: 'Tingly Neighbors',
+        name: 'Bururi',
+        personality: 'Shivers when notes get very close, then leans in to listen again.',
         reveal: 'The sound gave a little shiver!',
         description: 'The two glowing notes sit right next to each other on the keyboard.',
         hint: 'Use this sound when something strange or scary is about to happen.',
         theory:
           'The distance from one key to the very next key—white or black—is one half-step, also called a semitone. Playing those neighbors together creates strong tension.',
+        alt: 'Bururi, a rounded red creature with two close blue sound horns and wavy sides.',
       },
       stepwise_run: {
-        name: 'Sound Staircase',
+        name: 'Tokotoko',
+        personality: 'An explorer who walks from one neighboring note to the next.',
         reveal: 'A staircase appeared!',
         description: 'Four glowing notes moved in one direction, each only 1 or 2 half-steps away.',
         hint: 'How long can you make the staircase?',
         theory:
           'Moving from one nearby note to the next—like C, D, E, F—is called stepwise motion. Because there are no big jumps, the melody sounds smooth and easy to follow.',
+        alt: 'Tokotoko, climbing diagonally on a green four-step body and four orange feet.',
       },
       call_and_response: {
-        name: 'Call and Answer',
+        name: 'Yobikota',
+        personality: 'A careful listener who answers every call in the same way.',
         reveal: 'The sounds answered each other!',
         description:
           'A three-note shape returned after a short pause, with the same rhythm and motion.',
         hint: 'Make the answer start on a different note.',
         theory:
           'The first shape is the call and the repeated shape is the response. The answer may start higher or lower, but keeping the same rhythm and up-and-down motion makes the connection audible.',
+        alt: 'Yobikota, an orange creature with two facing faces and matching sets of three blue marks.',
       },
       rest_then_burst: {
-        name: 'Wait... Pop!',
+        name: 'Tamepon',
+        personality: 'Waits quietly, then bursts out with joy when the sounds arrive.',
         reveal: 'The quiet made the next sound burst!',
         description:
           'One whole beat stayed silent, then at least three sounds began in the next beat.',
         hint: 'Try making the quiet part even longer.',
         theory:
           'Written silence is called a rest. A rest creates anticipation, so several sounds arriving just after it can feel stronger—like taking a breath before speaking.',
+        alt: 'Tamepon, a blue three-layered creature popping three round purple sound sprouts upward.',
       },
       rhythm_loop: {
-        name: 'Rhythm Engine',
+        name: 'Gurutan',
+        personality: 'Gets excited by a familiar step and happily goes around again.',
         reveal: 'The rhythm started an engine!',
         description: 'Two or more sounds used the same timing and lengths again in the next beat.',
         hint: 'Keep the rhythm but change the pitches.',
         theory:
           'Rhythm is the pattern of when sounds begin and how long they last. When that pattern repeats, it can become an ostinato—the steady engine underneath a song.',
+        alt: 'Gurutan, a yellow ring-shaped creature with a large center opening and matching pink marks.',
       },
       sustain_contrast: {
-        name: 'Comet Trail',
+        name: 'Nobichoko',
+        personality: 'Stretches one voice out, then takes two quick little steps.',
         reveal: 'A long sound left a sparkling trail!',
         description: 'A note held for at least one beat was followed by two quick, one-cell notes.',
         hint: 'Swap the order: what happens when short notes come first?',
         theory:
           'A held note feels spacious, while short notes feel active. Putting different note lengths next to each other is called rhythmic contrast, and it gives a phrase shape and motion.',
+        alt: 'Nobichoko, a brown creature with a long pink voice-tail and two short blue feet.',
       },
     },
     challengeOpen: 'Try a prompt',
@@ -610,87 +629,104 @@ export const translations: Record<Locale, Translations> = {
     profileSaveFailed: 'ほぞんに しっぱいしました。もういちど ためしてね。',
     profileSchoolPlaceholder: 'がっこうのなまえ',
     profileNamePlaceholder: 'なまえ か ニックネーム',
-    discoveriesLink: 'はっけん',
-    discoveryAlbumTitle: 'はっけんアルバム',
-    discoveryAlbumIntro: '音をつくって、よくきいて。見つけた音楽のふしぎを集めよう。',
-    discoveryProgress: (earned, total) => `${earned} / ${total} はっけん`,
-    discoveryFound: 'はっけん！',
-    discoveryFocusHint: 'ひかっている音やリズムが、はっけんのもとだよ。',
+    discoveriesLink: 'ずかん',
+    discoveryAlbumTitle: 'おとのずかん',
+    discoveryAlbumIntro: '音をつくって、よくきいて。音の中にかくれた生き物とであおう。',
+    discoveryProgress: (earned, total) => `${earned} / ${total} と であった`,
+    discoveryFound: 'おとのいきものと であった！',
+    discoveryFocusHint: 'ひかっている音やリズムに、この生き物がかくれていたよ。',
     discoveryAhaLabel: 'へぇ、なるほど！',
     discoveryAcknowledge: 'わかった！',
     discoveryLocked: '？？？',
     discoveryHintLabel: 'ためしてみよう',
     discoveryTheoryLabel: '音楽のことば',
-    discoveryDate: (date) => `${date} に はっけん`,
-    discoveryGuestNotice: 'このブラウザをひらいているあいだ、はっけんをおぼえているよ。',
+    discoveryDate: (date) => `${date} に であった`,
+    discoveryGuestNotice:
+      'このブラウザをひらいているあいだ、であった生き物をずかんがおぼえているよ。',
     discoveryLoginToKeep:
-      'ログインしてから見つけたカードは、つぎにひらいたときや別の端末でも見られるよ。',
-    discoverySyncError: 'まだ ほぞんできていないカードがあるよ。',
+      'ログインしてからであった生き物は、つぎにひらいたときや別の端末のずかんでも見られるよ。',
+    discoverySyncError: 'まだ ずかんに ほぞんできていない生き物がいるよ。',
     discoveryRetry: 'もういちど',
-    discoveryCards: {
+    creatures: {
       interval_third: {
-        name: 'ふたご星',
+        name: 'ミッツ',
+        personality: '少しはなれた2つの音と、いっしょに歌うのが大好き。',
         reveal: 'ふたつの音が いっしょに光った！',
         description: 'ひかった2音は、となりのけんばんへ1つずつ進むと、3歩か4歩のきょりだよ。',
-        hint: 'どちらかの音をすこし動かして、もう一度 星を出せるかな？',
+        hint: 'どちらかの音をすこし動かして、ふわっとひびく場所をさがしてみよう。',
         theory:
           'けんばんですぐとなりへ進む1歩を「半音」というよ。ド→ミ、レ→ファのように、低い音から両はしを入れて3つ数えるきょりが「3度」。3度には、半音3つぶんと4つぶんがあるんだ。',
+        alt: '紫の丸い体と、左右で節の数が異なる珊瑚色の大きな耳を持つ、ミッツ',
       },
       open_fifth: {
-        name: 'ひろがる空',
+        name: 'ノビーン',
+        personality: '広いところでのびのび鳴く、のんびりした聞き上手。',
         reveal: '音のむこうに 空がひらいた！',
         description: 'ひかった2音が、ひろく安定して聞こえるきょりにあるよ。',
         hint: '同じかたちを、もっと高いところや低いところでためしてみよう。',
         theory:
           'ド→ソは「ド・レ・ミ・ファ・ソ」と5つ数えるので「完全5度」。けんばんでは7歩ぶんだよ。ド→高いドは12歩ぶんの「オクターブ」。どちらも、ひろく安定して聞こえやすいんだ。',
+        alt: '青い体から黄色い音のひれを左右へ大きく広げた、ノビーン',
       },
       close_tension: {
-        name: 'ちょっとドキドキ',
+        name: 'ブルリ',
+        personality: '近すぎる音にびっくりして、もう一度聞きたがる好奇心いっぱいの子。',
         reveal: '音が ぶるっとふるえた！',
         description: 'ひかった2音は、けんばんですぐとなりどうしだよ。',
         hint: 'ふしぎなことや、こわいことが起こる前の音に使ってみよう。',
         theory:
           '白いけんばんも黒いけんばんもふくめて、すぐとなりまでのきょりを「半音」というよ。半音となりの2音をいっしょに鳴らすと、つよい緊張感が生まれるんだ。',
+        alt: '赤い丸四角の体に、近く並ぶ水色の音のつのと波打つ体側を持つ、ブルリ',
       },
       stepwise_run: {
-        name: '音のかいだん',
+        name: 'トコトコ',
+        personality: 'となりの音へ一歩ずつ進み、つぎの場所を見つけるのが好きな探検家。',
         reveal: '音のかいだんが あらわれた！',
         description: 'ひかった4音が、けんばん1歩か2歩ずつ、同じ向きへ進んだよ。',
         hint: 'どこまで長いかいだんを作れるかな？',
         theory:
           'ド・レ・ミ・ファのように、となりに近い音へ少しずつ進む動きを「順次進行」というよ。大きくジャンプしないので、なめらかなメロディーに聞こえるんだ。',
+        alt: '緑の4段の体とオレンジ色の4本の足で斜め上へ歩く、トコトコ',
       },
       call_and_response: {
-        name: 'よびかけとへんじ',
+        name: 'ヨビコタ',
+        personality: 'よびかけを聞きのがさず、同じ調子でへんじする聞き上手。',
         reveal: '音どうしが おへんじした！',
         description: '3音のかたちが少し間をあけて、同じリズムと動きでもう一度あらわれたよ。',
         hint: 'へんじのはじまりを、ちがう高さにしてみよう。',
         theory:
           'さいしょのかたちが「よびかけ」、つぎのかたちが「へんじ」。へんじの高さがちがっても、リズムとのぼりおりが同じなら、つながって聞こえるんだ。',
+        alt: '上下で向き合う2つの顔と、同じ3つずつの水色の印を持つオレンジ色のヨビコタ',
       },
       rest_then_burst: {
-        name: 'ためて、ドン！',
+        name: 'タメポン',
+        personality: 'しずかな時間をじっと味わい、音が来るとよろこんで飛び出す。',
         reveal: 'しずけさのあとで 音がはじけた！',
         description: 'まるまる1ぱく休んだあと、つぎの1ぱくで3つ以上の音がはじまったよ。',
         hint: 'しずかなところを、もっと長くしたらどうなるかな？',
         theory:
           '音を鳴らさない時間を「休符」というよ。休符があると「つぎは何だろう？」と感じるので、そのあとに音が集まると、より強く聞こえるんだ。',
+        alt: '青い3段の体から紫の3つの丸い音の芽を飛び出させた、タメポン',
       },
       rhythm_loop: {
-        name: 'リズムエンジン',
+        name: 'グルタン',
+        personality: '同じ足どりを見つけると、うれしくなって何周でも楽しむ。',
         reveal: 'リズムのエンジンが うごきだした！',
         description: '2つ以上の音のタイミングと長さが、つぎの1ぱくでも同じになったよ。',
         hint: 'リズムはそのままで、音の高さだけかえてみよう。',
         theory:
           '音が「いつ始まり、どれだけ続くか」のならびがリズム。そのかたちをくりかえすと、曲を動かすエンジンのような「オスティナート」になることがあるよ。',
+        alt: '大きな穴のある黄色い輪の体に、左右同じ並びのピンク色の印を持つ、グルタン',
       },
       sustain_contrast: {
-        name: 'ながれ星',
+        name: 'ノビチョコ',
+        personality: 'ひとつの声をゆっくりのばしたあと、軽い足どりで二歩進む。',
         reveal: '長い音が きらきらのあとをのこした！',
         description: '1ぱく以上のばした音のあとに、1マスの短い音が2つつづいたよ。',
         hint: 'こんどは、短い音をさきにしたらどう聞こえるかな？',
         theory:
           '長い音はゆったり、短い音は活発に感じやすいよ。ちがう長さをとなり合わせる「リズムの対比」で、音楽にかたちや動きが生まれるんだ。',
+        alt: '左へ長く伸びる桃色の声の尾と、2本の短い水色の足を持つ茶色のノビチョコ',
       },
     },
     challengeOpen: 'お題にちょうせん',

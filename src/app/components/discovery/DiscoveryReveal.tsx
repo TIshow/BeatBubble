@@ -46,7 +46,7 @@ export function DiscoveryReveal({ item, t, onDone }: DiscoveryRevealProps) {
     };
   }, [item]);
 
-  const card = t.discoveryCards[item.cardId];
+  const card = t.creatures[item.cardId];
   const titleId = `discovery-reveal-title-${item.cardId}`;
   const descriptionId = `discovery-reveal-description-${item.cardId}`;
   const theoryId = `discovery-reveal-theory-${item.cardId}`;
