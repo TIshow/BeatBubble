@@ -13,15 +13,28 @@
 
 ## タスク一覧
 
-| #   | 文書                                                 | 成果                   | 開始条件                 |
-| --- | ---------------------------------------------------- | ---------------------- | ------------------------ |
-| 01  | [`01-style-prototype.md`](./01-style-prototype.md)   | 代表1体とスタイル基準  | 統括Issue承認後          |
-| 02  | [`02-roster-art.md`](./02-roster-art.md)             | 残り7体の画像          | 01の人手承認後           |
-| 03  | [`03-creature-catalog.md`](./03-creature-catalog.md) | 型安全な表示カタログ   | 画像仕様の確定後         |
-| 04  | [`04-encyclopedia-ui.md`](./04-encyclopedia-ui.md)   | シルエット式の図鑑     | 03完了後                 |
-| 05  | [`05-discovery-reveal.md`](./05-discovery-reveal.md) | 初回の出会い演出       | 04完了後                 |
-| 06  | [`06-editor-companion.md`](./06-editor-companion.md) | 図鑑から連れて行く相棒 | 05の利用確認後           |
-| 07  | [`07-ai-scaffolding.md`](./07-ai-scaffolding.md)     | 試行錯誤を促すAI設計   | 06の利用確認後・別途承認 |
+| #   | 文書                                                 | 状態       | 成果                   | 開始条件                 |
+| --- | ---------------------------------------------------- | ---------- | ---------------------- | ------------------------ |
+| 01  | [`01-style-prototype.md`](./01-style-prototype.md)   | 完了       | 代表1体とスタイル基準  | 統括Issue承認後          |
+| 02  | [`02-roster-art.md`](./02-roster-art.md)             | 完了       | 残り7体の画像          | 01の人手承認後           |
+| 03  | [`03-creature-catalog.md`](./03-creature-catalog.md) | 実行可能   | 型安全な表示カタログ   | 画像仕様の確定後         |
+| 04  | [`04-encyclopedia-ui.md`](./04-encyclopedia-ui.md)   | 03完了待ち | シルエット式の図鑑     | 03完了後                 |
+| 05  | [`05-discovery-reveal.md`](./05-discovery-reveal.md) | 04完了待ち | 初回の出会い演出       | 04完了後                 |
+| 06  | [`06-editor-companion.md`](./06-editor-companion.md) | 将来       | 図鑑から連れて行く相棒 | 05の利用確認後           |
+| 07  | [`07-ai-scaffolding.md`](./07-ai-scaffolding.md)     | 将来       | 試行錯誤を促すAI設計   | 06の利用確認後・別途承認 |
+
+## 完了文書の扱い
+
+完了したタスク文書は、`completed/` などへ移動せず番号順の場所に残す。後続タスクが
+前段の判断や合格条件を参照するため、移動するとリンクと実行順序が分かりにくくなる。
+
+完了時は次の3か所を更新する。
+
+1. この一覧の「状態」
+2. 各タスク文書の「状態」
+3. [`../issues.md`](../issues.md) のIssue対応表と、GitHub Issueの状態
+
+完了文書は作業指示として再実行せず、設計判断と検証結果を追える履歴として保持する。
 
 ## Issue運用
 
