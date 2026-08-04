@@ -20,7 +20,7 @@
 | 03  | [`03-creature-catalog.md`](./03-creature-catalog.md) | 完了     | 型安全な表示カタログ   | 画像仕様の確定後         |
 | 04  | [`04-encyclopedia-ui.md`](./04-encyclopedia-ui.md)   | 完了     | シルエット式の図鑑     | 03完了後                 |
 | 05  | [`05-discovery-reveal.md`](./05-discovery-reveal.md) | 完了     | 初回の出会い演出       | 04完了後                 |
-| 06  | [`06-editor-companion.md`](./06-editor-companion.md) | 実装中   | 図鑑から連れて行く相棒 | 05の利用確認後           |
+| 06  | [`06-editor-companion.md`](./06-editor-companion.md) | 確認待ち | 図鑑から連れて行く相棒 | 05の利用確認後           |
 | 07  | [`07-ai-scaffolding.md`](./07-ai-scaffolding.md)     | 将来     | 試行錯誤を促すAI設計   | 06の利用確認後・別途承認 |
 
 ## 完了文書の扱い

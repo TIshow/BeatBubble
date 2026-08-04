@@ -95,20 +95,24 @@ it right, and it happens with the teacher present.*
 - `src/core/` : data model + pure ops + migration (types/defaults/utils/ops/id/legacy)
   - `legacy.ts` : `migrateSong()` (version upgrades) + old-format import
 - `src/analysis/` : research/analytics — pure `Song`→feature extraction (`metrics.ts`); consumes `src/core`, not used at app runtime
-- `src/discovery/` : pure discovery-card domain logic (catalog/timeline/detection/eligibility/storage validation)
-  - `rules/` : detection rules grouped by musical concern (harmony/melody/rhythm)
-- `src/audio/` : Web Audio scheduling + synthesis (`engine.ts`)
 - `src/discovery/` : pure detection of musical relationships a child can stumble on
-  (`detector`/`rules`/`timeline`/`eligibility`), plus the reveal queue and storage.
+  (`catalog`/`detector`/`timeline`/`eligibility`), plus the reveal queue and storage.
   Names the thing found — never says a title is wrong (see Product Definition).
+  - `rules/` : detection rules grouped by musical concern (harmony/melody/rhythm)
+- `src/creatures/` : presentation mapping from `DiscoveryId` to sound-creature assets,
+  reveal effects, and validated anonymous companion storage. It never detects discoveries.
+- `src/audio/` : Web Audio scheduling + synthesis (`engine.ts`)
 - `src/challenges/` : open-ended prompts (「あめの音」「おばけが ちかづいてくる」) and
   the analysis that makes the scene react. No scoring: the child decides when it's done.
 - `src/ui/` : grid helpers, color mapping, `noteLabel.ts` (locale-aware ドレミ/ABC)
-- `src/hooks/` : custom hooks — song/edit/auth state plus discovery persistence and playback feedback
-- `src/lib/` : Supabase client/repositories and i18n translations (`i18n.ts`, exports `Translations`)
+- `src/hooks/` : custom hooks — song/edit/auth state plus discovery and companion persistence
+  and playback feedback
+- `src/lib/` : Supabase client/repositories, safe browser-storage access, and i18n
+  translations (`i18n.ts`, exports `Translations`)
 - `src/app/` : Next.js pages/components and styles
-  - `components/` : shared editor components; discovery-specific UI lives in `components/discovery/`
-  - `styles/` : per-concern global CSS (`base/header/settings/grid/note-panel/modal/songs`), assembled by `globals.css` via `@import`
+  - `components/` : shared editor components; discovery and companion UI live in their
+    matching `components/discovery/` and `components/companion/` directories
+  - `styles/` : per-concern global CSS (`base/header/settings/grid/note-panel/modal/discoveries/companion/songs`), assembled by `globals.css` via `@import`
   - `page.tsx` : editor — wires state/handlers and composes the components
   - `songs/` : community songs feed page (`/songs`)
   - `discoveries/` : the album of what a child has found (`/discoveries`)

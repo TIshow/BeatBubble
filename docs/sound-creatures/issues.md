@@ -8,7 +8,7 @@
 | 完了               | [#128 — 発見IDと生き物を結ぶ表示カタログを実装する](https://github.com/TIshow/BeatBubble/issues/128)         | `tasks/03-creature-catalog.md` |
 | 完了               | [#129 — 未発見シルエットと発見済みの生き物を表示する](https://github.com/TIshow/BeatBubble/issues/129)       | `tasks/04-encyclopedia-ui.md`  |
 | 完了               | [#130 — 初回発見を生き物との出会い演出へ変更する](https://github.com/TIshow/BeatBubble/issues/130)           | `tasks/05-discovery-reveal.md` |
-| 実装中             | [#133 — 見つけた生き物を編集画面へ連れて行く](https://github.com/TIshow/BeatBubble/issues/133)              | `tasks/06-editor-companion.md` |
+| 実装完了・確認待ち | [#133 — 見つけた生き物を編集画面へ連れて行く](https://github.com/TIshow/BeatBubble/issues/133)               | `tasks/06-editor-companion.md` |
 
 #124では、承認済みスタイルを使って残りの生き物を1体ずつ制作し、2026-08-04に
 全8体の人手承認と変更の統合を完了した。次も検証結果を反映してから、実行する
@@ -16,5 +16,6 @@
 
 ## 現在のタスク
 
-Task 05までPR #131で`main`へ統合し、Production反映まで完了した。Task 06は利用確認を経て
-Issue #133で実装中。Task 07はTask 06の利用確認と別途承認まで開始しない。
+Task 05までPR #131で`main`へ統合し、Production反映まで完了した。Task 06はIssue #133で
+実装を終え、DB migration適用と人手確認を待っている。Task 07はTask 06の利用確認と
+別途承認まで開始しない。
