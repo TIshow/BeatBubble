@@ -11,25 +11,34 @@
   position: absolute;
   top: 48%;
   left: 50%;
-  color: var(--discovery-accent);
-  font-size: clamp(36px, 8vw, 88px);
-  font-weight: 900;
-  letter-spacing: 0.2em;
-  text-shadow: 0 4px 20px color-mix(in srgb, var(--discovery-accent) 60%, transparent);
-  white-space: nowrap;
-  animation: discovery-effect-pop 950ms ease-out forwards;
+  width: clamp(96px, 16vw, 150px);
+  aspect-ratio: 1;
+  animation: discovery-effect-pop 1100ms ease-out forwards;
 }
 
-.discovery-effect--close_tension {
+.discovery-effect-glow {
+  position: absolute;
+  inset: 14%;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--discovery-accent) 58%, transparent);
+  filter: blur(18px);
+}
+
+.discovery-effect-creature {
+  position: relative;
+  z-index: 1;
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  filter: drop-shadow(0 8px 14px rgba(0, 0, 0, 0.24));
+}
+
+.discovery-effect--shiver-wave {
   animation-name: discovery-effect-shiver;
 }
 
-.discovery-effect--stepwise_run,
-.discovery-effect--sustain_contrast {
-  letter-spacing: 0.08em;
-}
-
-.discovery-effect--rhythm_loop {
+.discovery-effect--loop-chase {
   animation-name: discovery-effect-spin;
 }
 
@@ -42,9 +51,13 @@
     opacity: 1;
     transform: translate(-50%, -50%) scale(1);
   }
+  68% {
+    opacity: 1;
+    transform: translate(-50%, -55%) scale(1);
+  }
   100% {
     opacity: 0;
-    transform: translate(-50%, -70%) scale(1.8);
+    transform: translate(-50%, -75%) scale(1.15);
   }
 }
 
@@ -67,7 +80,7 @@
   }
   100% {
     opacity: 0;
-    transform: translate(-50%, -50%) scale(1.4);
+    transform: translate(-50%, -58%) scale(1.05);
   }
 }
 
@@ -81,11 +94,11 @@
   }
   100% {
     opacity: 0;
-    transform: translate(-50%, -50%) rotate(270deg) scale(1.8);
+    transform: translate(-50%, -58%) rotate(270deg) scale(1.08);
   }
 }
 
-/* First-time card reveal: playback is paused and the dialog stays open until
+/* First-time creature reveal: playback is paused and the dialog stays open until
    the child acknowledges it. The transparent full-screen layer blocks editing
    while the grid itself provides the spotlight treatment below. */
 .discovery-reveal {
@@ -147,9 +160,9 @@
 .discovery-reveal-card {
   position: relative;
   isolation: isolate;
-  width: min(400px, calc(100vw - 28px));
+  width: min(420px, calc(100vw - 28px));
   max-height: calc(100vh - 28px);
-  padding: 24px;
+  padding: 20px;
   overflow: hidden auto;
   border: 3px solid var(--discovery-accent);
   border-radius: 28px;
@@ -162,17 +175,71 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 10px;
+  gap: 8px;
   text-align: center;
   animation: discovery-card-arrive 420ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
 }
 
-.discovery-reveal-card-mark {
+.discovery-reveal-creature-stage {
   position: relative;
   z-index: 1;
-  color: var(--discovery-accent);
-  font-size: 34px;
-  line-height: 1;
+  display: grid;
+  width: min(210px, 58vw);
+  height: clamp(108px, 18vh, 168px);
+  place-items: center;
+  margin-top: 2px;
+}
+
+.discovery-reveal-creature-glow {
+  position: absolute;
+  inset: 16%;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--discovery-accent) 44%, transparent);
+  filter: blur(22px);
+  animation: discovery-creature-glow 900ms ease-out both;
+}
+
+.discovery-reveal-creature {
+  position: relative;
+  z-index: 1;
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  filter: drop-shadow(0 9px 13px rgba(0, 0, 0, 0.22));
+  animation: discovery-creature-arrive 720ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+
+.discovery-reveal-creature-stage--ear-harmony .discovery-reveal-creature {
+  animation-name: discovery-creature-ear-harmony;
+}
+
+.discovery-reveal-creature-stage--wide-unfold .discovery-reveal-creature {
+  animation-name: discovery-creature-wide-unfold;
+}
+
+.discovery-reveal-creature-stage--shiver-wave .discovery-reveal-creature {
+  animation-name: discovery-creature-shiver-wave;
+}
+
+.discovery-reveal-creature-stage--step-climb .discovery-reveal-creature {
+  animation-name: discovery-creature-step-climb;
+}
+
+.discovery-reveal-creature-stage--echo-response .discovery-reveal-creature {
+  animation-name: discovery-creature-echo-response;
+}
+
+.discovery-reveal-creature-stage--quiet-burst .discovery-reveal-creature {
+  animation-name: discovery-creature-quiet-burst;
+}
+
+.discovery-reveal-creature-stage--loop-chase .discovery-reveal-creature {
+  animation-name: discovery-creature-loop-chase;
+}
+
+.discovery-reveal-creature-stage--stretch-and-step .discovery-reveal-creature {
+  animation-name: discovery-creature-stretch-and-step;
 }
 
 .discovery-reveal-name {
@@ -180,6 +247,16 @@
   z-index: 1;
   font-size: clamp(24px, 5vw, 34px);
   font-weight: 900;
+}
+
+.discovery-reveal-personality {
+  position: relative;
+  z-index: 1;
+  max-width: 330px;
+  color: var(--foreground);
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1.55;
 }
 
 .discovery-reveal-message {
@@ -191,12 +268,28 @@
   line-height: 1.6;
 }
 
-.discovery-reveal-description {
+.discovery-reveal-reason {
   position: relative;
   z-index: 1;
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid var(--discovery-card-border);
+  border-radius: 13px;
+  background: color-mix(in srgb, var(--grid-bg) 62%, transparent);
+  text-align: left;
+}
+
+.discovery-reveal-reason strong {
+  display: block;
+  margin-bottom: 3px;
+  color: var(--discovery-muted);
+  font-size: 12px;
+}
+
+.discovery-reveal-reason p {
   color: var(--foreground);
-  font-size: 14px;
-  line-height: 1.65;
+  font-size: 13px;
+  line-height: 1.58;
 }
 
 .discovery-reveal-focus-hint {
@@ -235,14 +328,20 @@
 }
 
 .discovery-reveal-theory strong {
-  display: block;
-  margin-bottom: 4px;
+  display: inline;
   color: var(--discovery-accent);
   font-size: 14px;
 }
 
+.discovery-reveal-theory > span {
+  margin-left: 7px;
+  color: var(--discovery-muted);
+  font-size: 11px;
+  font-weight: 800;
+}
+
 .discovery-reveal-theory p {
-  margin: 0;
+  margin-top: 4px;
   color: var(--foreground);
   font-size: 13px;
   line-height: 1.6;
@@ -286,6 +385,164 @@
   100% {
     opacity: 1;
     transform: translateY(0) rotate(0) scale(1);
+  }
+}
+
+@keyframes discovery-creature-glow {
+  0% {
+    opacity: 0;
+    transform: scale(0.35);
+  }
+  45%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes discovery-creature-arrive {
+  0% {
+    opacity: 0;
+    transform: translateY(18px) scale(0.7);
+  }
+  70% {
+    opacity: 1;
+    transform: translateY(-3px) scale(1.04);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes discovery-creature-ear-harmony {
+  0% {
+    opacity: 0;
+    transform: translateY(10px) scaleX(0.72) scaleY(0.82);
+  }
+  68% {
+    opacity: 1;
+    transform: translateY(-4px) scaleX(1.04) scaleY(1.02);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes discovery-creature-wide-unfold {
+  0% {
+    opacity: 0;
+    transform: scaleX(0.42) scaleY(0.82);
+  }
+  72% {
+    opacity: 1;
+    transform: scaleX(1.05) scaleY(1);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes discovery-creature-shiver-wave {
+  0% {
+    opacity: 0;
+    transform: translateX(0) scale(0.72);
+  }
+  42% {
+    opacity: 1;
+    transform: translateX(-5px) rotate(-2deg) scale(1);
+  }
+  54% {
+    transform: translateX(5px) rotate(2deg) scale(1.02);
+  }
+  66% {
+    transform: translateX(-3px) rotate(-1deg) scale(1.01);
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(0) rotate(0) scale(1);
+  }
+}
+
+@keyframes discovery-creature-step-climb {
+  0% {
+    opacity: 0;
+    transform: translate(-18px, 16px) scale(0.76);
+  }
+  72% {
+    opacity: 1;
+    transform: translate(3px, -4px) scale(1.03);
+  }
+  100% {
+    opacity: 1;
+    transform: translate(0, 0) scale(1);
+  }
+}
+
+@keyframes discovery-creature-echo-response {
+  0% {
+    opacity: 0;
+    transform: translateY(-10px) scale(0.76);
+  }
+  45% {
+    opacity: 0.68;
+    transform: translateY(8px) scale(0.94);
+  }
+  72% {
+    opacity: 1;
+    transform: translateY(-3px) scale(1.04);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes discovery-creature-quiet-burst {
+  0%,
+  35% {
+    opacity: 0;
+    transform: scale(0.62);
+  }
+  72% {
+    opacity: 1;
+    transform: scale(1.08);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes discovery-creature-loop-chase {
+  0% {
+    opacity: 0;
+    transform: rotate(-18deg) scale(0.72);
+  }
+  72% {
+    opacity: 1;
+    transform: rotate(6deg) scale(1.04);
+  }
+  100% {
+    opacity: 1;
+    transform: rotate(0) scale(1);
+  }
+}
+
+@keyframes discovery-creature-stretch-and-step {
+  0% {
+    opacity: 0;
+    transform: translateX(14px) scaleX(0.58) scaleY(0.88);
+  }
+  72% {
+    opacity: 1;
+    transform: translateX(-3px) scaleX(1.04) scaleY(1.01);
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(0) scale(1);
   }
 }
 
@@ -782,10 +1039,13 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .discovery-effect,
-  .discovery-effect--close_tension,
-  .discovery-effect--rhythm_loop {
+  .discovery-effect {
     animation: discovery-fade-only 700ms ease-out forwards;
+  }
+
+  .discovery-reveal-creature,
+  .discovery-reveal-creature-glow {
+    animation: discovery-creature-fade 240ms ease-out both !important;
   }
 
   .discovery-reveal-card,
@@ -812,6 +1072,15 @@
   }
   20%,
   75% {
+    opacity: 1;
+  }
+}
+
+@keyframes discovery-creature-fade {
+  from {
+    opacity: 0;
+  }
+  to {
     opacity: 1;
   }
 }
