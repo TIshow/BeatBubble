@@ -173,7 +173,11 @@ export type Translations = {
   discoveryAhaLabel: string;
   discoveryAcknowledge: string;
   discoveryLocked: string;
+  discoveryCreatureLocked: string;
+  discoveryCreatureMet: string;
+  discoveryEntryNumber: (number: number) => string;
   discoveryHintLabel: string;
+  discoveryCreatureReasonLabel: string;
   discoveryTheoryLabel: string;
   discoveryDate: (date: string) => string;
   discoveryGuestNotice: string;
@@ -347,7 +351,11 @@ export const translations: Record<Locale, Translations> = {
     discoveryAhaLabel: 'Oh, I get it!',
     discoveryAcknowledge: 'Got it!',
     discoveryLocked: '???',
+    discoveryCreatureLocked: 'Not met yet',
+    discoveryCreatureMet: 'Met!',
+    discoveryEntryNumber: (number) => `No. ${String(number).padStart(2, '0')}`,
     discoveryHintLabel: 'Try this',
+    discoveryCreatureReasonLabel: 'Why did it appear?',
     discoveryTheoryLabel: 'Music words',
     discoveryDate: (date) => `Met ${date}`,
     discoveryGuestNotice: 'This guide remembers creatures you meet for this browser session.',
@@ -638,7 +646,11 @@ export const translations: Record<Locale, Translations> = {
     discoveryAhaLabel: 'へぇ、なるほど！',
     discoveryAcknowledge: 'わかった！',
     discoveryLocked: '？？？',
+    discoveryCreatureLocked: 'まだ であっていない',
+    discoveryCreatureMet: 'であった！',
+    discoveryEntryNumber: (number) => `ずかん ${String(number).padStart(2, '0')}`,
     discoveryHintLabel: 'ためしてみよう',
+    discoveryCreatureReasonLabel: 'どうして あらわれたの？',
     discoveryTheoryLabel: '音楽のことば',
     discoveryDate: (date) => `${date} に であった`,
     discoveryGuestNotice:

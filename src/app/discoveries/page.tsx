@@ -3,8 +3,8 @@
 import Link from 'next/link';
 import { AccountMenu } from '@/app/components/AccountMenu';
 import { DiscoveryAlbumProgress } from '@/app/components/discovery/DiscoveryAlbumProgress';
-import { DiscoveryCard } from '@/app/components/discovery/DiscoveryCard';
-import { DISCOVERY_CARDS } from '@/discovery/catalog';
+import { CreatureEntry } from '@/app/components/discovery/CreatureEntry';
+import { CREATURES } from '@/creatures/catalog';
 import { useDiscoveries } from '@/hooks/useDiscoveries';
 import { useLocale } from '@/hooks/useLocale';
 import { useAccount } from '@/app/components/AccountProvider';
@@ -29,7 +29,7 @@ export default function DiscoveriesPage() {
         <section className="discoveries-hero">
           <h2 className="discoveries-title">{t.discoveryAlbumTitle}</h2>
           <p className="discoveries-intro">{t.discoveryAlbumIntro}</p>
-          <DiscoveryAlbumProgress earned={progress.length} total={DISCOVERY_CARDS.length} t={t} />
+          <DiscoveryAlbumProgress earned={progress.length} total={CREATURES.length} t={t} />
         </section>
 
         {!user && (
@@ -59,11 +59,12 @@ export default function DiscoveriesPage() {
           <p className="songs-status">{t.loading}</p>
         ) : (
           <section className="discoveries-grid" aria-label={t.discoveryAlbumTitle}>
-            {DISCOVERY_CARDS.map((definition) => (
-              <DiscoveryCard
-                key={definition.id}
-                definition={definition}
-                progress={progressById.get(definition.id) ?? null}
+            {CREATURES.map((creature, index) => (
+              <CreatureEntry
+                key={creature.discoveryId}
+                creature={creature}
+                number={index + 1}
+                progress={progressById.get(creature.discoveryId) ?? null}
                 locale={locale}
                 t={t}
               />
