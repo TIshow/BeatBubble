@@ -13,6 +13,7 @@ interface CreatureEntryProps {
 
 interface LockedCreatureEntryProps {
   creature: CreatureDefinition;
+  eager: boolean;
   numberLabel: string;
   hint: string;
   t: Translations;
@@ -26,7 +27,15 @@ function formatDiscoveryDate(value: string, locale: Locale): string {
   }).format(new Date(value));
 }
 
-function CreaturePortrait({ creature, alt }: { creature: CreatureDefinition; alt: string }) {
+function CreaturePortrait({
+  creature,
+  alt,
+  eager,
+}: {
+  creature: CreatureDefinition;
+  alt: string;
+  eager: boolean;
+}) {
   return (
     <div className="creature-entry-portrait-frame">
       <Image
@@ -35,13 +44,14 @@ function CreaturePortrait({ creature, alt }: { creature: CreatureDefinition; alt
         alt={alt}
         width={1024}
         height={1024}
+        loading={eager ? 'eager' : 'lazy'}
         sizes="(max-width: 599px) 72vw, (max-width: 899px) 36vw, 260px"
       />
     </div>
   );
 }
 
-function LockedCreatureEntry({ creature, numberLabel, hint, t }: LockedCreatureEntryProps) {
+function LockedCreatureEntry({ creature, eager, numberLabel, hint, t }: LockedCreatureEntryProps) {
   const titleId = `creature-entry-locked-${creature.discoveryId}`;
 
   return (
@@ -51,7 +61,7 @@ function LockedCreatureEntry({ creature, numberLabel, hint, t }: LockedCreatureE
         <span className="creature-entry-status">{t.discoveryCreatureLocked}</span>
       </header>
       <div className="creature-entry-silhouette" aria-hidden="true">
-        <CreaturePortrait creature={creature} alt="" />
+        <CreaturePortrait creature={creature} alt="" eager={eager} />
       </div>
       <h2 className="creature-entry-name creature-entry-name--locked" id={titleId}>
         {t.discoveryLocked}
@@ -67,10 +77,17 @@ function LockedCreatureEntry({ creature, numberLabel, hint, t }: LockedCreatureE
 export function CreatureEntry({ creature, number, progress, locale, t }: CreatureEntryProps) {
   const numberLabel = t.discoveryEntryNumber(number);
   const copy = t.creatures[creature.translationKey];
+  const eager = number <= 3;
 
   if (!progress) {
     return (
-      <LockedCreatureEntry creature={creature} numberLabel={numberLabel} hint={copy.hint} t={t} />
+      <LockedCreatureEntry
+        creature={creature}
+        eager={eager}
+        numberLabel={numberLabel}
+        hint={copy.hint}
+        t={t}
+      />
     );
   }
 
@@ -84,7 +101,7 @@ export function CreatureEntry({ creature, number, progress, locale, t }: Creatur
           {t.discoveryCreatureMet}
         </span>
       </header>
-      <CreaturePortrait creature={creature} alt={copy.alt} />
+      <CreaturePortrait creature={creature} alt={copy.alt} eager={eager} />
       <div className="creature-entry-body">
         <h2 className="creature-entry-name" id={titleId}>
           {copy.name}
