@@ -573,6 +573,7 @@
 .discovery-focus-active > .note-panel,
 .discovery-focus-active > .editor-notice,
 .discovery-focus-active > .discovery-chip-row,
+.discovery-focus-active > .editor-companion,
 .discovery-focus-active > .challenge-stage,
 .discovery-focus-active .grid-scrollbar {
   opacity: 0.28;

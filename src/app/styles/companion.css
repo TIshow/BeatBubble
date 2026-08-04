@@ -1,0 +1,294 @@
+/* Companion selection in the guide */
+.companion-picker {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  margin-top: 20px;
+  padding: 20px 24px;
+  border: 2px solid var(--discovery-card-border);
+  border-radius: 22px;
+  background: var(--discovery-card-bg);
+  box-shadow: 0 7px 22px rgba(0, 0, 0, 0.07);
+}
+
+.companion-picker-copy {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  min-width: 0;
+}
+
+.companion-picker-mark {
+  flex: 0 0 auto;
+  display: grid;
+  width: 42px;
+  height: 42px;
+  place-items: center;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #f7971e, #ffd200);
+  color: #ffffff;
+  font-size: 23px;
+  font-weight: 900;
+  box-shadow: 0 5px 14px rgba(247, 151, 30, 0.28);
+}
+
+.companion-picker-copy h2 {
+  font-size: clamp(20px, 3vw, 25px);
+  font-weight: 900;
+}
+
+.companion-picker-copy p {
+  margin-top: 5px;
+  color: var(--discovery-muted);
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.companion-picker-copy .companion-picker-scope {
+  font-size: 12px;
+  font-weight: 750;
+}
+
+.companion-picker-current {
+  flex: 0 0 min(390px, 44%);
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 12px;
+  min-height: 72px;
+}
+
+.companion-picker-portrait {
+  flex: 0 0 auto;
+  width: 72px;
+  height: 72px;
+  object-fit: contain;
+  filter: drop-shadow(0 5px 8px rgba(0, 0, 0, 0.18));
+}
+
+.companion-picker-current strong,
+.companion-picker-status {
+  min-width: 0;
+  font-size: 14px;
+  font-weight: 850;
+  line-height: 1.4;
+}
+
+.companion-none-btn,
+.companion-select-btn {
+  border: 1.5px solid var(--discovery-card-border);
+  border-radius: 999px;
+  background: var(--grid-bg);
+  color: var(--foreground);
+  font-weight: 850;
+  transition:
+    transform 0.15s ease,
+    border-color 0.15s ease,
+    box-shadow 0.15s ease;
+}
+
+.companion-none-btn {
+  flex: 0 0 auto;
+  padding: 9px 14px;
+  font-size: 12px;
+}
+
+.companion-none-btn[aria-pressed='true'],
+.companion-select-btn--selected {
+  border-color: var(--discovery-accent);
+  background: color-mix(in srgb, var(--discovery-accent) 14%, var(--grid-bg));
+}
+
+.companion-none-btn:hover:not(:disabled),
+.companion-none-btn:focus-visible,
+.companion-select-btn:hover:not(:disabled),
+.companion-select-btn:focus-visible {
+  transform: translateY(-1px);
+  border-color: var(--discovery-accent);
+  box-shadow: 0 4px 12px color-mix(in srgb, var(--discovery-accent) 24%, transparent);
+  outline: 3px solid color-mix(in srgb, var(--discovery-accent) 28%, transparent);
+  outline-offset: 2px;
+}
+
+.companion-none-btn:disabled,
+.companion-select-btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.58;
+}
+
+.companion-select-btn {
+  width: 100%;
+  margin-top: 16px;
+  padding: 11px 15px;
+  font-size: 13px;
+}
+
+/* The editor companion stays in normal document flow, never above the grid. */
+.editor-companion {
+  align-self: flex-end;
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  width: min(440px, calc(100% - 32px));
+  min-height: 82px;
+  margin: 10px 16px 0;
+  padding: 8px 12px;
+  border: 1.5px solid var(--discovery-card-border);
+  border-radius: 20px;
+  background: var(--discovery-card-bg);
+  color: var(--foreground);
+  box-shadow: 0 5px 16px rgba(0, 0, 0, 0.07);
+  transition:
+    opacity 0.2s ease,
+    filter 0.2s ease;
+}
+
+.editor-companion-stage {
+  position: relative;
+  flex: 0 0 auto;
+  display: grid;
+  width: 70px;
+  height: 70px;
+  place-items: center;
+  animation: companion-notice 360ms ease-out both;
+}
+
+.editor-companion-glow {
+  position: absolute;
+  inset: 15%;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--discovery-accent) 32%, transparent);
+  filter: blur(12px);
+}
+
+.editor-companion-portrait {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  filter: drop-shadow(0 5px 8px rgba(0, 0, 0, 0.2));
+}
+
+.editor-companion--listening .editor-companion-portrait {
+  animation: companion-listen 1.25s ease-in-out infinite alternate;
+}
+
+.editor-companion-copy {
+  min-width: 0;
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.editor-companion-copy strong {
+  overflow: hidden;
+  font-size: 15px;
+  font-weight: 900;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.editor-companion-copy span {
+  color: var(--discovery-muted);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.editor-companion-change {
+  flex: 0 0 auto;
+  padding: 7px 11px;
+  border-radius: 999px;
+  color: var(--discovery-muted);
+  font-size: 11px;
+  font-weight: 800;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.editor-companion-change:focus-visible {
+  outline: 3px solid color-mix(in srgb, var(--discovery-accent) 32%, transparent);
+  outline-offset: 2px;
+}
+
+@keyframes companion-notice {
+  0% {
+    transform: translateY(4px) scale(0.92);
+  }
+  58% {
+    transform: translateY(-5px) scale(1.04);
+  }
+  100% {
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes companion-listen {
+  from {
+    transform: rotate(-2deg) translateY(1px);
+  }
+  to {
+    transform: rotate(2deg) translateY(-3px);
+  }
+}
+
+@media (max-width: 899px) {
+  .companion-picker {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .companion-picker-current {
+    flex-basis: auto;
+    justify-content: flex-start;
+  }
+}
+
+@media (max-width: 599px) {
+  .companion-picker {
+    gap: 16px;
+    padding: 18px 16px;
+  }
+
+  .companion-picker-current {
+    flex-wrap: wrap;
+  }
+
+  .companion-picker-current strong,
+  .companion-picker-status {
+    flex: 1 1 calc(100% - 84px);
+  }
+
+  .companion-none-btn {
+    width: 100%;
+  }
+
+  .editor-companion {
+    align-self: stretch;
+    width: auto;
+    min-height: 72px;
+    margin: 8px 12px 0;
+  }
+
+  .editor-companion-stage {
+    width: 58px;
+    height: 58px;
+  }
+
+  .editor-companion-change {
+    padding-inline: 7px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .companion-none-btn,
+  .companion-select-btn,
+  .editor-companion,
+  .editor-companion-stage,
+  .editor-companion-portrait {
+    animation: none !important;
+    transition: none !important;
+  }
+}
