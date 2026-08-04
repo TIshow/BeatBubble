@@ -1,11 +1,13 @@
-"use client";
+'use client';
 
-import { createContext, useContext, useState } from "react";
-import type { User } from "@supabase/supabase-js";
-import { useAuth } from "@/hooks/useAuth";
-import { useProfile, type Profile, type ProfileEdits } from "@/hooks/useProfile";
-import { useLocale } from "@/hooks/useLocale";
-import { ProfileModal } from "@/app/components/ProfileModal";
+import { createContext, useContext, useState } from 'react';
+import type { User } from '@supabase/supabase-js';
+import type { DiscoveryId } from '@/discovery/types';
+import { useAuth } from '@/hooks/useAuth';
+import { useCompanionSelection } from '@/hooks/useCompanionSelection';
+import { useProfile, type Profile, type ProfileEdits } from '@/hooks/useProfile';
+import { useLocale } from '@/hooks/useLocale';
+import { ProfileModal } from '@/app/components/ProfileModal';
 
 type AccountState = {
   user: User | null;
@@ -15,6 +17,9 @@ type AccountState = {
   // profile field, so a teacher never briefly looks like a non-teacher.
   profileLoading: boolean;
   isTeacher: boolean;
+  companionDiscoveryId: DiscoveryId | null;
+  companionLoading: boolean;
+  selectCompanion: (discoveryId: DiscoveryId | null) => Promise<{ error: unknown }>;
   signIn: () => void;
   signOut: () => void;
   saveProfile: (edits: ProfileEdits) => Promise<{ error: unknown }>;
@@ -42,7 +47,14 @@ const AccountContext = createContext<AccountState | null>(null);
 // localStorage, so every caller already shares one value.
 export function AccountProvider({ children }: { children: React.ReactNode }) {
   const { user, ready, signInWithGoogle, signOut } = useAuth();
-  const { profile, loading, saveProfile } = useProfile(user);
+  const { profile, loading, saveProfile, saveCompanion } = useProfile(user);
+  const { companionDiscoveryId, companionLoading, selectCompanion } = useCompanionSelection({
+    user,
+    authReady: ready,
+    profileLoading: loading,
+    accountCompanionId: profile?.companionDiscoveryId ?? null,
+    saveAccountCompanion: saveCompanion,
+  });
   const { t } = useLocale();
   const [profileOpen, setProfileOpen] = useState(false);
 
@@ -54,6 +66,9 @@ export function AccountProvider({ children }: { children: React.ReactNode }) {
         profile,
         profileLoading: loading,
         isTeacher: !!profile?.isTeacher,
+        companionDiscoveryId,
+        companionLoading,
+        selectCompanion,
         signIn: signInWithGoogle,
         signOut,
         saveProfile,
@@ -75,6 +90,6 @@ export function AccountProvider({ children }: { children: React.ReactNode }) {
 
 export function useAccount(): AccountState {
   const value = useContext(AccountContext);
-  if (!value) throw new Error("useAccount must be used within AccountProvider");
+  if (!value) throw new Error('useAccount must be used within AccountProvider');
   return value;
 }
