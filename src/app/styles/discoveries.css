@@ -13,6 +13,7 @@
   left: 50%;
   width: clamp(96px, 16vw, 150px);
   aspect-ratio: 1;
+  transform: translate(-50%, -50%);
   animation: discovery-effect-pop 1100ms ease-out forwards;
 }
 
