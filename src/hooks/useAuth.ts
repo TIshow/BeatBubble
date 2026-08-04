@@ -11,12 +11,19 @@ export function useAuth() {
   const [ready, setReady] = useState(false);
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data }) => {
-      setUser(data.session?.user ?? null);
+    // onAuthStateChange emits INITIAL_SESSION after it has read storage, so a
+    // separate getSession() duplicates the same initialization. Supabase may
+    // also emit SIGNED_IN again when a tab regains focus; retaining the current
+    // object for the same user avoids re-fetching profile and discovery data.
+    const { data: sub } = supabase.auth.onAuthStateChange((event, session) => {
+      const nextUser = session?.user ?? null;
+      setUser((currentUser) => {
+        if (event !== "USER_UPDATED" && currentUser?.id === nextUser?.id) {
+          return currentUser;
+        }
+        return nextUser;
+      });
       setReady(true);
-    });
-    const { data: sub } = supabase.auth.onAuthStateChange((_event, session) => {
-      setUser(session?.user ?? null);
     });
     return () => sub.subscription.unsubscribe();
   }, []);
