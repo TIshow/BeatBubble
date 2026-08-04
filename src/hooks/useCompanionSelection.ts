@@ -4,17 +4,9 @@ import { useCallback, useEffect, useState } from 'react';
 import type { User } from '@supabase/supabase-js';
 import { readGuestCompanion, writeGuestCompanion } from '@/creatures/companionStorage';
 import type { DiscoveryId } from '@/discovery/types';
+import { safeSessionStorage } from '@/lib/browserStorage';
 
 type SaveAccountCompanion = (discoveryId: DiscoveryId | null) => Promise<{ error: unknown }>;
-
-function currentSessionStorage(): Storage | null {
-  if (typeof window === 'undefined') return null;
-  try {
-    return window.sessionStorage;
-  } catch {
-    return null;
-  }
-}
 
 export function useCompanionSelection({
   user,
@@ -37,7 +29,7 @@ export function useCompanionSelection({
     async function loadGuestSelection() {
       await Promise.resolve();
       if (!active) return;
-      setGuestCompanionId(readGuestCompanion(currentSessionStorage()));
+      setGuestCompanionId(readGuestCompanion(safeSessionStorage()));
       setGuestReady(true);
     }
     void loadGuestSelection();
@@ -50,7 +42,7 @@ export function useCompanionSelection({
     async (discoveryId: DiscoveryId | null): Promise<{ error: unknown }> => {
       if (user) return saveAccountCompanion(discoveryId);
       setGuestCompanionId(discoveryId);
-      writeGuestCompanion(currentSessionStorage(), discoveryId);
+      writeGuestCompanion(safeSessionStorage(), discoveryId);
       return { error: null };
     },
     [saveAccountCompanion, user],

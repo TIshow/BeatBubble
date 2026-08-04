@@ -31,6 +31,7 @@ describe('CreatureEntry', () => {
         expect(markup).toContain(copy.hint);
         expect(markup).not.toContain(copy.name);
         expect(markup).not.toContain(copy.alt);
+        expect(markup).not.toContain(localeTranslations.companionChoose);
       }
     }
   });
