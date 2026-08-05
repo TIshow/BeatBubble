@@ -124,32 +124,75 @@
   font-size: 13px;
 }
 
-/* The editor companion stays in normal document flow, never above the grid. */
+/* A small draggable pet keeps the editor's vertical space free. It sits below
+   the sticky header and behind discovery/challenge overlays and modals. */
 .editor-companion {
-  align-self: flex-end;
+  position: fixed;
+  right: max(12px, env(safe-area-inset-right));
+  bottom: max(12px, env(safe-area-inset-bottom));
+  z-index: 40;
   display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: 11px;
-  width: min(440px, calc(100% - 32px));
-  min-height: 82px;
-  margin: 10px 16px 0;
-  padding: 8px 12px;
-  border: 1.5px solid var(--discovery-card-border);
-  border-radius: 20px;
-  background: var(--discovery-card-bg);
+  gap: 5px;
+  width: 124px;
+  margin: 0;
   color: var(--foreground);
-  box-shadow: 0 5px 16px rgba(0, 0, 0, 0.07);
+  pointer-events: none;
   transition:
     opacity 0.2s ease,
     filter 0.2s ease;
+}
+
+.editor-companion-drag-handle {
+  position: relative;
+  display: flex;
+  width: 100%;
+  align-items: center;
+  flex-direction: column;
+  padding: 4px 8px 8px;
+  border: 1.5px solid var(--discovery-card-border);
+  border-radius: 28px;
+  background: color-mix(in srgb, var(--discovery-card-bg) 92%, transparent);
+  color: var(--foreground);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.16);
+  cursor: grab;
+  pointer-events: auto;
+  touch-action: none;
+  user-select: none;
+  transition:
+    border-color 0.15s ease,
+    box-shadow 0.15s ease;
+}
+
+.editor-companion--dragging .editor-companion-drag-handle {
+  border-color: var(--discovery-accent);
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.23);
+  cursor: grabbing;
+}
+
+.editor-companion-drag-handle:focus-visible {
+  outline: 3px solid color-mix(in srgb, var(--discovery-accent) 42%, transparent);
+  outline-offset: 3px;
+}
+
+.editor-companion-grip {
+  position: absolute;
+  top: 7px;
+  right: 9px;
+  z-index: 2;
+  color: var(--discovery-muted);
+  font-size: 15px;
+  line-height: 1;
+  opacity: 0.78;
 }
 
 .editor-companion-stage {
   position: relative;
   flex: 0 0 auto;
   display: grid;
-  width: 70px;
-  height: 70px;
+  width: 92px;
+  height: 92px;
   place-items: center;
   animation: companion-notice 360ms ease-out both;
 }
@@ -176,16 +219,20 @@
 }
 
 .editor-companion-copy {
-  min-width: 0;
   display: flex;
-  flex: 1 1 auto;
+  width: 100%;
+  min-width: 0;
+  align-items: center;
   flex-direction: column;
   gap: 2px;
+  line-height: 1.2;
+  text-align: center;
 }
 
 .editor-companion-copy strong {
+  max-width: 100%;
   overflow: hidden;
-  font-size: 15px;
+  font-size: 14px;
   font-weight: 900;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -197,15 +244,26 @@
   font-weight: 700;
 }
 
-.editor-companion-change {
-  flex: 0 0 auto;
-  padding: 7px 11px;
-  border-radius: 999px;
+.editor-companion-copy small {
+  margin-top: 2px;
   color: var(--discovery-muted);
-  font-size: 11px;
+  font-size: 9px;
+  font-weight: 700;
+  opacity: 0.82;
+}
+
+.editor-companion-change {
+  padding: 5px 10px;
+  border: 1px solid var(--discovery-card-border);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--discovery-card-bg) 92%, transparent);
+  color: var(--discovery-muted);
+  font-size: 10px;
   font-weight: 800;
+  pointer-events: auto;
   text-decoration: underline;
   text-underline-offset: 2px;
+  box-shadow: 0 3px 9px rgba(0, 0, 0, 0.1);
 }
 
 .editor-companion-change:focus-visible {
@@ -266,19 +324,24 @@
   }
 
   .editor-companion {
-    align-self: stretch;
-    width: auto;
-    min-height: 72px;
-    margin: 8px 12px 0;
+    width: 106px;
   }
 
   .editor-companion-stage {
-    width: 58px;
-    height: 58px;
+    width: 78px;
+    height: 78px;
   }
 
-  .editor-companion-change {
-    padding-inline: 7px;
+  .editor-companion-copy strong {
+    font-size: 13px;
+  }
+
+  .editor-companion-copy span {
+    font-size: 11px;
+  }
+
+  .editor-companion-copy small {
+    font-size: 8px;
   }
 }
 
@@ -286,6 +349,7 @@
   .companion-none-btn,
   .companion-select-btn,
   .editor-companion,
+  .editor-companion-drag-handle,
   .editor-companion-stage,
   .editor-companion-portrait {
     animation: none !important;

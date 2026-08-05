@@ -574,6 +574,8 @@
 .discovery-focus-active > .editor-notice,
 .discovery-focus-active > .discovery-chip-row,
 .discovery-focus-active > .editor-companion,
+.discovery-focus-active > .editor-companion .editor-companion-drag-handle,
+.discovery-focus-active > .editor-companion .editor-companion-change,
 .discovery-focus-active > .challenge-stage,
 .discovery-focus-active .grid-scrollbar {
   opacity: 0.28;
