@@ -195,10 +195,7 @@ export type Translations = {
   companionChooseNone: string;
   companionSaving: string;
   companionSaveError: string;
-  companionEditorWatching: string;
-  companionEditorListening: string;
   companionMoveHint: string;
-  companionChange: string;
   creatures: Record<DiscoveryId, CreatureTranslation>;
   // Open-ended challenges
   challengeOpen: string;
@@ -389,10 +386,7 @@ export const translations: Record<Locale, Translations> = {
     companionChooseNone: 'Bring no creature',
     companionSaving: 'Saving…',
     companionSaveError: "Couldn't change your companion. Please try again.",
-    companionEditorWatching: 'Watching your sounds',
-    companionEditorListening: 'Listening with you',
     companionMoveHint: 'Drag or use arrow keys to move',
-    companionChange: 'Change in the guide',
     creatures: {
       interval_third: {
         name: 'Mitts',
@@ -700,10 +694,7 @@ export const translations: Record<Locale, Translations> = {
     companionChooseNone: 'つれていかない',
     companionSaving: 'ほぞん中…',
     companionSaveError: 'いっしょにいく生き物を かえられなかったよ。もういちど ためしてね。',
-    companionEditorWatching: '音づくりを みているよ',
-    companionEditorListening: 'いっしょに きいているよ',
     companionMoveHint: 'ドラッグで うごかせるよ',
-    companionChange: 'ずかんで かえる',
     creatures: {
       interval_third: {
         name: 'ミッツ',
