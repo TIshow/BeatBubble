@@ -17,5 +17,5 @@
 ## 現在のタスク
 
 Task 05までPR #131で`main`へ統合し、Production反映まで完了した。Task 06はIssue #133で
-実装を終え、DB migration適用と人手確認を待っている。Task 07はTask 06の利用確認と
-別途承認まで開始しない。
+実装とProduction DB migration適用を終え、ログイン状態の保存と人手確認を待っている。
+Task 07はTask 06の利用確認と別途承認まで開始しない。
