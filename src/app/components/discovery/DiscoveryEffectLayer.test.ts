@@ -8,10 +8,7 @@ describe('DiscoveryEffectLayer', () => {
   it('uses the matching creature for each short non-modal reaction', () => {
     const markup = renderToStaticMarkup(
       createElement(DiscoveryEffectLayer, {
-        events: CREATURES.map((creature, index) => ({
-          key: index,
-          cardId: creature.discoveryId,
-        })),
+        events: CREATURES.map((creature) => creature.discoveryId),
         onEffectEnd: () => undefined,
       }),
     );

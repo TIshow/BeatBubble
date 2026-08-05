@@ -10,7 +10,7 @@ import {
   type DiscoverySourceSnapshot,
 } from '@/discovery/eligibility';
 import { revealItemsFor, type DiscoveryRevealItem } from '@/discovery/revealQueue';
-import type { DiscoveryEffectEvent, DiscoveryId, DiscoveryMatch } from '@/discovery/types';
+import type { DiscoveryId, DiscoveryMatch } from '@/discovery/types';
 
 type Params = {
   song: Song;
@@ -39,9 +39,11 @@ export function useDiscoveryFeedback({
   loadedSongOwnerId,
   claimDiscoveries,
 }: Params) {
-  const [effects, setEffects] = useState<DiscoveryEffectEvent[]>([]);
+  // Two states rather than one because they end differently: an effect clears
+  // itself when its animation finishes, a reveal waits for the child to dismiss
+  // it. A creature can only ever be newly met once, so its id identifies both.
+  const [effects, setEffects] = useState<DiscoveryId[]>([]);
   const [revealQueue, setRevealQueue] = useState<DiscoveryRevealItem[]>([]);
-  const effectKeyRef = useRef(0);
   const sourceRef = useRef<DiscoverySourceSnapshot | null>(null);
   const matchesRef = useRef<Map<number, DiscoveryMatch[]>>(new Map());
 
@@ -71,15 +73,10 @@ export function useDiscoveryFeedback({
       const newlyEarned = claimDiscoveries(earnable);
       if (newlyEarned.length === 0) return false;
 
-      // Only a first meeting animates. The effect layer drops a creature in the
-      // middle of the screen, and a match re-fires on every loop of the song —
-      // so for a creature already met it landed on top of the grid again and
-      // again while the child was trying to work.
-      const nextEffects = newlyEarned.map((cardId) => ({
-        key: effectKeyRef.current++,
-        cardId,
-      }));
-      setEffects((current) => [...current, ...nextEffects].slice(-12));
+      // Only a first meeting animates. The effect drops a creature in the middle
+      // of the screen and a match re-fires on every loop, so for a creature
+      // already met it kept landing on the grid while the child was working.
+      setEffects((current) => [...current, ...newlyEarned]);
       setRevealQueue((current) => [...current, ...revealItemsFor(newlyEarned, matches)]);
       return true;
     },
@@ -87,8 +84,8 @@ export function useDiscoveryFeedback({
   );
 
   const clearEffects = useCallback(() => setEffects([]), []);
-  const dismissEffect = useCallback((key: number) => {
-    setEffects((current) => current.filter((event) => event.key !== key));
+  const dismissEffect = useCallback((cardId: DiscoveryId) => {
+    setEffects((current) => current.filter((id) => id !== cardId));
   }, []);
   const finishReveal = useCallback(() => {
     setRevealQueue((current) => current.slice(1));
