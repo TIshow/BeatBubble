@@ -63,24 +63,25 @@ export function useDiscoveryFeedback({
       const matches = matchesRef.current.get(step);
       if (!matches || matches.length === 0) return false;
 
-      const effectCardIds = [...new Set(matches.map((match) => match.cardId))];
-      const nextEffects = effectCardIds.map((cardId) => ({
-        key: effectKeyRef.current++,
-        cardId,
-      }));
-      setEffects((current) => [...current, ...nextEffects].slice(-12));
-
       const source =
         currentUserId && loadedSongOwnerId === currentUserId ? null : sourceRef.current;
       const earnable = matches
         .filter((match) => hasUserContribution(match, songRef.current, source))
         .map((match) => match.cardId);
       const newlyEarned = claimDiscoveries(earnable);
-      if (newlyEarned.length > 0) {
-        setRevealQueue((current) => [...current, ...revealItemsFor(newlyEarned, matches)]);
-        return true;
-      }
-      return false;
+      if (newlyEarned.length === 0) return false;
+
+      // Only a first meeting animates. The effect layer drops a creature in the
+      // middle of the screen, and a match re-fires on every loop of the song —
+      // so for a creature already met it landed on top of the grid again and
+      // again while the child was trying to work.
+      const nextEffects = newlyEarned.map((cardId) => ({
+        key: effectKeyRef.current++,
+        cardId,
+      }));
+      setEffects((current) => [...current, ...nextEffects].slice(-12));
+      setRevealQueue((current) => [...current, ...revealItemsFor(newlyEarned, matches)]);
+      return true;
     },
     [claimDiscoveries, currentUserId, loadedSongOwnerId, songRef],
   );

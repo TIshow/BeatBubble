@@ -30,7 +30,6 @@ import { useDiscoveries } from '@/hooks/useDiscoveries';
 import { useDiscoveryFeedback } from '@/hooks/useDiscoveryFeedback';
 import { useChallengeMode } from '@/hooks/useChallengeMode';
 import { supabase } from '@/lib/supabase';
-import { DISCOVERY_CARDS } from '@/discovery/catalog';
 import { creatureForDiscovery } from '@/creatures/catalog';
 import { SaveModal } from './components/SaveModal';
 import { NotePanel } from './components/NotePanel';
@@ -503,7 +502,7 @@ export default function Home() {
         </button>
         <Link href="/discoveries" className="discovery-chip">
           <span aria-hidden="true">✦</span>
-          {t.discoveryProgress(discoveryProgress.length, DISCOVERY_CARDS.length)}
+          {t.discoveriesLink}
         </Link>
       </div>
 
