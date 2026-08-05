@@ -1,24 +1,24 @@
 import Image from 'next/image';
 import { creatureForDiscovery } from '@/creatures/catalog';
-import type { DiscoveryEffectEvent } from '@/discovery/types';
+import type { DiscoveryId } from '@/discovery/types';
 
 interface DiscoveryEffectLayerProps {
-  events: readonly DiscoveryEffectEvent[];
-  onEffectEnd: (key: number) => void;
+  events: readonly DiscoveryId[];
+  onEffectEnd: (cardId: DiscoveryId) => void;
 }
 
 export function DiscoveryEffectLayer({ events, onEffectEnd }: DiscoveryEffectLayerProps) {
   return (
     <div className="discovery-effect-layer" aria-hidden="true">
-      {events.map((event) => {
-        const creature = creatureForDiscovery(event.cardId);
+      {events.map((cardId) => {
+        const creature = creatureForDiscovery(cardId);
         return (
           <div
-            key={event.key}
+            key={cardId}
             className={`discovery-effect discovery-effect--${creature.revealEffect}`}
             onAnimationEnd={(animationEvent) => {
               if (animationEvent.currentTarget === animationEvent.target) {
-                onEffectEnd(event.key);
+                onEffectEnd(cardId);
               }
             }}
           >
