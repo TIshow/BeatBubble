@@ -1,5 +1,9 @@
 # BeatBubble — Claude Code Guide
 
+> **This file and `AGENTS.md` are the same document with a different title line.**
+> Claude Code reads this one, Codex reads the other. Update both together — they
+> have drifted twice, and each time an agent worked from a stale map.
+
 ## Product Definition
 **BeatBubble is a creative environment where primary-school children learn
 trial-and-error and expression through music.**
@@ -96,27 +100,57 @@ it right, and it happens with the teacher present.*
   - `legacy.ts` : `migrateSong()` (version upgrades) + old-format import
 - `src/analysis/` : research/analytics — pure `Song`→feature extraction (`metrics.ts`); consumes `src/core`, not used at app runtime
 - `src/audio/` : Web Audio scheduling + synthesis (`engine.ts`)
-- `src/discovery/` : pure detection of musical relationships a child can stumble on
-  (`detector`/`rules`/`timeline`/`eligibility`), plus the reveal queue and storage.
-  Names the thing found — never says a title is wrong (see Product Definition).
+- `src/discovery/` : **pure detection** of musical relationships a child can stumble on
+  (`detector`/`timeline`/`eligibility`), plus the reveal queue and progress storage.
+  Names the thing found — never says a song is wrong (see Product Definition).
+  - `rules/` : detection rules grouped by musical concern (harmony/melody/rhythm)
+- `src/creatures/` : **presentation only** — maps a `DiscoveryId` to its sound creature
+  (art, name, reveal effect) and stores an anonymous companion choice. It never
+  detects anything; keeping that split is what lets the rules be unit-tested.
 - `src/challenges/` : open-ended prompts (「あめの音」「おばけが ちかづいてくる」) and
   the analysis that makes the scene react. No scoring: the child decides when it's done.
-- `src/ui/` : grid helpers, color mapping, `noteLabel.ts` (locale-aware ドレミ/ABC)
+- `src/ui/` : grid helpers, color mapping, `noteLabel.ts` (locale-aware ドレミ/ABC),
+  `floatingPosition.ts` (draggable companion placement)
 - `src/hooks/` : custom hooks — `useSong` (song state + undo history), `useDragInteraction`,
+  discovery/companion persistence, playback feedback, and
   `useLocale` (a `useSyncExternalStore` over localStorage, so every caller shares one value)
-- `src/lib/` : Supabase client (`supabase.ts`), i18n translations (`i18n.ts`, exports `Translations`)
+- `src/lib/` : Supabase client and repositories, `browserStorage.ts` (storage access that
+  can't throw in private mode), i18n translations (`i18n.ts`, exports `Translations`)
 - `src/app/` : Next.js pages/components and styles
-  - `components/` : `Header`, `SettingsPanel`, `Grid`, `NotePanel`, `SaveModal`
-  - `styles/` : per-concern global CSS (`base/header/settings/grid/note-panel/modal/songs`), assembled by `globals.css` via `@import`
+  - `components/` : shared editor components (`Header`, `SettingsPanel`, `Grid`,
+    `NotePanel`, `SaveModal`); discovery and companion UI live in
+    `components/discovery/` and `components/companion/`
+  - `styles/` : per-concern global CSS (`base/header/settings/grid/note-panel/modal/discoveries/companion/songs`), assembled by `globals.css` via `@import`
   - `page.tsx` : editor — wires state/handlers and composes the components
   - `songs/` : community songs feed page (`/songs`)
-  - `discoveries/` : the album of what a child has found (`/discoveries`)
+  - `discoveries/` : 「おとのずかん」— the album of creatures met so far (`/discoveries`)
   - `teacher/` : moderation view for teachers only (`/teacher`) — see 見守れる練習場
   - `components/AccountProvider.tsx` : who is signed in, and everything hanging off it.
     `AccountMenu` reads it directly; pages call `useAccount()`. Identity is NOT
     threaded as props — that is what made a menu item go missing on three pages.
 
 > Note: classes in `styles/*.css` are **global** (not CSS Modules). Keep each file's rules in their original relative order — some overrides are source-order dependent.
+
+## おとのいきもの (sound creatures)
+The discovery layer is dressed as creatures a child *meets* by making music, not
+as cards they earn. `src/discovery` decides **what** was found; `src/creatures`
+decides **how it looks**. Keep that seam: detection stays pure and testable.
+
+Rules that are easy to get wrong:
+
+- **Only a first meeting animates.** A match re-fires on every loop of the song,
+  so animating every match dropped a full-size creature onto the middle of the
+  grid while the child was working. Meeting a creature you have already met is
+  not news. (This deliberately narrows the original plan of "a quiet reaction
+  every time" — that reaction was never built quiet.)
+- **A creature is never a score.** No ranking, no completion pressure. The
+  editor chip is a plain link labelled ずかん; the count lives in the album.
+- **Nothing is "wrong".** Dissonance, silence and repetition each have a
+  creature. The album names what a child did; it never grades it.
+- **Companion is one creature the child chose**, shown floating in the editor and
+  draggable. Signed-in choices live in `profiles.companion_discovery_id` (a DB
+  trigger refuses a creature the user has not met); anonymous choices stay in
+  session storage and are never written to the database.
 
 ## Development Commands
 - Install: `pnpm install`
@@ -177,3 +211,9 @@ Playful, rounded, kid-friendly. Keep new UI consistent with these:
 - Save song -> appears on /songs page
 - Click "あそぶ" on /songs -> song loads in editor (older saves migrate cleanly)
 - Locale toggle switches all strings AND note labels (ドレミ ↔ ABC) on both pages
+- Play a third for the first time -> creature reveal appears; play it again ->
+  nothing appears (repeat meetings must stay silent)
+- Pick a companion in /discoveries -> it floats in the editor and can be dragged
+- Save a song while signed in -> the modal says a teacher can see who made it
+- /teacher shows nothing for a child, and the account menu offers 先生ページ
+  only to a teacher (RLS is the real gate; the link is convenience)
