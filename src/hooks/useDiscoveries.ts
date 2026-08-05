@@ -14,15 +14,7 @@ import {
 } from '@/discovery/storage';
 import type { DiscoveryId } from '@/discovery/types';
 import { fetchUserDiscoveries, insertUserDiscoveries } from '@/lib/discoveryRepository';
-
-function currentSessionStorage(): Storage | null {
-  if (typeof window === 'undefined') return null;
-  try {
-    return window.sessionStorage;
-  } catch {
-    return null;
-  }
-}
+import { safeSessionStorage } from '@/lib/browserStorage';
 
 function sortProgress(cards: readonly StoredDiscovery[]): StoredDiscovery[] {
   const order = new Map(DISCOVERY_CARDS.map((card) => [card.id, card.sortOrder]));
@@ -68,7 +60,7 @@ export function useDiscoveries(user: User | null) {
   }, []);
 
   const flushPending = useCallback(async (userId: string): Promise<boolean> => {
-    const storage = currentSessionStorage();
+    const storage = safeSessionStorage();
     const key = pendingDiscoveriesKey(userId);
     const pending = readDiscoveries(storage, key);
     if (pending.length === 0) return true;
@@ -92,7 +84,7 @@ export function useDiscoveries(user: User | null) {
     let active = true;
 
     async function load() {
-      const storage = currentSessionStorage();
+      const storage = safeSessionStorage();
       const guest = readDiscoveries(storage, GUEST_DISCOVERIES_KEY);
       const userId = user?.id;
       const pending = userId ? readDiscoveries(storage, pendingDiscoveriesKey(userId)) : [];
@@ -149,7 +141,7 @@ export function useDiscoveries(user: User | null) {
       if (additions.length === 0) return [];
 
       addProgress(additions);
-      const storage = currentSessionStorage();
+      const storage = safeSessionStorage();
       const currentUser = userRef.current;
 
       if (!currentUser) {

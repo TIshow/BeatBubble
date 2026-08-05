@@ -9,6 +9,9 @@ interface CreatureEntryProps {
   progress: StoredDiscovery | null;
   locale: Locale;
   t: Translations;
+  isCompanion: boolean;
+  companionDisabled: boolean;
+  onChooseCompanion: () => void;
 }
 
 interface LockedCreatureEntryProps {
@@ -74,7 +77,16 @@ function LockedCreatureEntry({ creature, eager, numberLabel, hint, t }: LockedCr
   );
 }
 
-export function CreatureEntry({ creature, number, progress, locale, t }: CreatureEntryProps) {
+export function CreatureEntry({
+  creature,
+  number,
+  progress,
+  locale,
+  t,
+  isCompanion,
+  companionDisabled,
+  onChooseCompanion,
+}: CreatureEntryProps) {
   const numberLabel = t.discoveryEntryNumber(number);
   const copy = t.creatures[creature.discoveryId];
   const eager = number <= 3;
@@ -118,6 +130,15 @@ export function CreatureEntry({ creature, number, progress, locale, t }: Creatur
           <h3>{t.discoveryTheoryLabel}</h3>
           <p>{copy.theory}</p>
         </section>
+        <button
+          type="button"
+          className={`companion-select-btn ${isCompanion ? 'companion-select-btn--selected' : ''}`}
+          aria-pressed={isCompanion}
+          disabled={companionDisabled || isCompanion}
+          onClick={onChooseCompanion}
+        >
+          {isCompanion ? t.companionSelected : t.companionChoose}
+        </button>
       </div>
     </article>
   );

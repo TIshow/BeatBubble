@@ -1,10 +1,12 @@
-"use client";
+'use client';
 
-import { useCallback, useEffect, useState } from "react";
-import type { User } from "@supabase/supabase-js";
-import { supabase } from "@/lib/supabase";
+import { useCallback, useEffect, useState } from 'react';
+import type { User } from '@supabase/supabase-js';
+import { isDiscoveryId } from '@/discovery/catalog';
+import type { DiscoveryId } from '@/discovery/types';
+import { supabase } from '@/lib/supabase';
 
-export type Gender = "male" | "female" | "other" | "undisclosed";
+export type Gender = 'male' | 'female' | 'other' | 'undisclosed';
 
 // App-level attributes for a signed-in user, stored in public.profiles.
 // `isTeacher` is admin-set (a user can't change their own — see the migration);
@@ -17,6 +19,7 @@ export type Profile = {
   grade: number | null;
   className: string | null;
   gender: Gender | null;
+  companionDiscoveryId: DiscoveryId | null;
 };
 
 // The user-editable subset of a profile.
@@ -36,7 +39,11 @@ type ProfileRow = {
   grade: number | null;
   class_name: string | null;
   gender: Gender | null;
+  companion_discovery_id: string | null;
 };
+
+const PROFILE_FIELDS =
+  'id, is_teacher, display_name, school, grade, class_name, gender, companion_discovery_id';
 
 function fromRow(row: ProfileRow): Profile {
   return {
@@ -47,6 +54,9 @@ function fromRow(row: ProfileRow): Profile {
     grade: row.grade,
     className: row.class_name,
     gender: row.gender,
+    companionDiscoveryId: isDiscoveryId(row.companion_discovery_id)
+      ? row.companion_discovery_id
+      : null,
   };
 }
 
@@ -71,9 +81,9 @@ export function useProfile(user: User | null) {
       }
       setLoading(true);
       const { data } = await supabase
-        .from("profiles")
-        .select("id, is_teacher, display_name, school, grade, class_name, gender")
-        .eq("id", user.id)
+        .from('profiles')
+        .select(PROFILE_FIELDS)
+        .eq('id', user.id)
         .maybeSingle();
       if (!active) return;
       setProfile(data ? fromRow(data as ProfileRow) : null);
@@ -87,12 +97,12 @@ export function useProfile(user: User | null) {
 
   const saveProfile = useCallback(
     async (edits: ProfileEdits): Promise<{ error: unknown }> => {
-      if (!user) return { error: new Error("Not signed in") };
+      if (!user) return { error: new Error('Not signed in') };
       // Upsert (not update) so a missing row — e.g. the trigger hasn't run
       // yet — still succeeds. is_teacher is omitted: users can't set it, and
       // the DB defaults it to false / preserves it on update.
       const { data, error } = await supabase
-        .from("profiles")
+        .from('profiles')
         .upsert(
           {
             id: user.id,
@@ -102,15 +112,35 @@ export function useProfile(user: User | null) {
             class_name: edits.className,
             gender: edits.gender,
           },
-          { onConflict: "id" }
+          { onConflict: 'id' },
         )
-        .select("id, is_teacher, display_name, school, grade, class_name, gender")
+        .select(PROFILE_FIELDS)
         .maybeSingle();
       if (!error && data) setProfile(fromRow(data as ProfileRow));
       return { error };
     },
-    [user]
+    [user],
   );
 
-  return { profile, loading, saveProfile };
+  const saveCompanion = useCallback(
+    async (companionDiscoveryId: DiscoveryId | null): Promise<{ error: unknown }> => {
+      if (!user) return { error: new Error('Not signed in') };
+      const { data, error } = await supabase
+        .from('profiles')
+        .upsert(
+          {
+            id: user.id,
+            companion_discovery_id: companionDiscoveryId,
+          },
+          { onConflict: 'id' },
+        )
+        .select(PROFILE_FIELDS)
+        .maybeSingle();
+      if (!error && data) setProfile(fromRow(data as ProfileRow));
+      return { error };
+    },
+    [user],
+  );
+
+  return { profile, loading, saveProfile, saveCompanion };
 }

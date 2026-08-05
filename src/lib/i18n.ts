@@ -184,6 +184,18 @@ export type Translations = {
   discoveryLoginToKeep: string;
   discoverySyncError: string;
   discoveryRetry: string;
+  companionPickerTitle: string;
+  companionPickerIntro: string;
+  companionAccountScope: string;
+  companionGuestScope: string;
+  companionCurrent: (name: string) => string;
+  companionNoneCurrent: string;
+  companionChoose: string;
+  companionSelected: string;
+  companionChooseNone: string;
+  companionSaving: string;
+  companionSaveError: string;
+  companionMoveHint: string;
   creatures: Record<DiscoveryId, CreatureTranslation>;
   // Open-ended challenges
   challengeOpen: string;
@@ -363,6 +375,18 @@ export const translations: Record<Locale, Translations> = {
       'Creatures you meet after logging in are saved to your guide on your other devices too.',
     discoverySyncError: "Some creatures haven't been saved to your guide yet.",
     discoveryRetry: 'Try again',
+    companionPickerTitle: 'Create with a companion',
+    companionPickerIntro: 'Choose one creature you have met to stay beside you in the editor.',
+    companionAccountScope: 'Your choice is saved to your account.',
+    companionGuestScope: 'Your choice stays in this tab. It is not moved into an account.',
+    companionCurrent: (name) => `Creating with ${name}`,
+    companionNoneCurrent: 'Creating on your own for now',
+    companionChoose: 'Bring to the editor',
+    companionSelected: 'Together now',
+    companionChooseNone: 'Bring no creature',
+    companionSaving: 'Saving…',
+    companionSaveError: "Couldn't change your companion. Please try again.",
+    companionMoveHint: 'Drag or use arrow keys to move',
     creatures: {
       interval_third: {
         name: 'Mitts',
@@ -659,6 +683,18 @@ export const translations: Record<Locale, Translations> = {
       'ログインしてからであった生き物は、つぎにひらいたときや別の端末のずかんでも見られるよ。',
     discoverySyncError: 'まだ ずかんに ほぞんできていない生き物がいるよ。',
     discoveryRetry: 'もういちど',
+    companionPickerTitle: 'いっしょに つくる',
+    companionPickerIntro: 'であった生き物から、編集画面につれていく1体をえらべるよ。',
+    companionAccountScope: 'えらんだ生き物は、アカウントに ほぞんされるよ。',
+    companionGuestScope: 'えらんだ生き物は、このタブだけがおぼえるよ。ログイン後にはうつさないよ。',
+    companionCurrent: (name) => `${name} と いっしょ`,
+    companionNoneCurrent: 'いまは ひとりで つくる',
+    companionChoose: 'いっしょに つくる',
+    companionSelected: 'いま いっしょ',
+    companionChooseNone: 'つれていかない',
+    companionSaving: 'ほぞん中…',
+    companionSaveError: 'いっしょにいく生き物を かえられなかったよ。もういちど ためしてね。',
+    companionMoveHint: 'ドラッグで うごかせるよ',
     creatures: {
       interval_third: {
         name: 'ミッツ',

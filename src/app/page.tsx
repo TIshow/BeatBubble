@@ -31,6 +31,7 @@ import { useDiscoveryFeedback } from '@/hooks/useDiscoveryFeedback';
 import { useChallengeMode } from '@/hooks/useChallengeMode';
 import { supabase } from '@/lib/supabase';
 import { DISCOVERY_CARDS } from '@/discovery/catalog';
+import { creatureForDiscovery } from '@/creatures/catalog';
 import { SaveModal } from './components/SaveModal';
 import { NotePanel } from './components/NotePanel';
 import { Header } from './components/Header';
@@ -40,10 +41,11 @@ import { DiscoveryFeedback } from './components/discovery/DiscoveryFeedback';
 import { ChallengePicker } from './components/challenges/ChallengePicker';
 import { ChallengeStage } from './components/challenges/ChallengeStage';
 import { ChallengeCompleteModal } from './components/challenges/ChallengeCompleteModal';
+import { EditorCompanion } from './components/companion/EditorCompanion';
 
 export default function Home() {
   const { locale, t } = useLocale();
-  const { user } = useAccount();
+  const { user, companionDiscoveryId, companionLoading } = useAccount();
   const { progress: discoveryProgress, claimDiscoveries } = useDiscoveries(user);
   const { song, setSong, songRef, canUndo, pushHistory, undo, reset } = useSong();
   const {
@@ -71,6 +73,7 @@ export default function Home() {
   const [loadFailed, setLoadFailed] = useState(false);
   const [isLockMode, setIsLockMode] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
+  const [companionReactionKey, setCompanionReactionKey] = useState(0);
   // The song loaded via ?load=<id>, so its owner can overwrite it on save.
   const [loadedSong, setLoadedSong] = useState<{
     id: string;
@@ -181,6 +184,10 @@ export default function Home() {
     return engineRef.current;
   }, []);
 
+  const reactCompanion = useCallback(() => {
+    setCompanionReactionKey((current) => current + 1);
+  }, []);
+
   const handleNoteCreate = useCallback(
     (noteName: NoteName, step: number): string | null => {
       const newSong = addMelodyNote(song, {
@@ -194,6 +201,7 @@ export default function Home() {
       if (addedNote) {
         pushHistory(song);
         setSong(newSong);
+        reactCompanion();
         getEngine()
           .playNotePreview(noteName, song.instrument)
           .catch((error) => console.error('Note preview failed:', error));
@@ -201,15 +209,16 @@ export default function Home() {
       }
       return null;
     },
-    [song, setSong, getEngine, pushHistory],
+    [song, setSong, getEngine, pushHistory, reactCompanion],
   );
 
   const handleNoteRemove = useCallback(
     (noteId: string) => {
       pushHistory(song);
       setSong((prev) => removeMelodyNote(prev, noteId));
+      reactCompanion();
     },
-    [song, setSong, pushHistory],
+    [song, setSong, pushHistory, reactCompanion],
   );
 
   const handleNoteDurationChange = useCallback(
@@ -224,13 +233,14 @@ export default function Home() {
       const wasHit = song.drums.hits.some((h) => h.drumId === drumId && h.step === step);
       pushHistory(song);
       setSong((prev) => toggleDrumHit(prev, { step, drumId }));
+      reactCompanion();
       if (!wasHit) {
         getEngine()
           .playDrumPreview(drumId)
           .catch((error) => console.error('Drum preview failed:', error));
       }
     },
-    [song, setSong, getEngine, pushHistory],
+    [song, setSong, getEngine, pushHistory, reactCompanion],
   );
 
   const findNoteAt = useCallback(
@@ -324,6 +334,13 @@ export default function Home() {
     setPlayheadStep(null);
     clearDiscoveryEffects();
     stopChallengePlayback();
+    reactCompanion();
+  };
+
+  const handleUndo = () => {
+    if (!canUndo) return;
+    undo();
+    reactCompanion();
   };
 
   const handleExport = async () => {
@@ -418,7 +435,7 @@ export default function Home() {
         isSettingsOpen={isSettingsOpen}
         onPlay={handlePlay}
         onStop={handleStop}
-        onUndo={undo}
+        onUndo={handleUndo}
         onToggleSettings={handleToggleSettings}
         onOpenSave={() => setIsSaveModalOpen(true)}
         onExport={handleExport}
@@ -506,6 +523,17 @@ export default function Home() {
           }}
         />
       )}
+
+      {!companionLoading &&
+        companionDiscoveryId &&
+        discoveryProgress.some((item) => item.cardId === companionDiscoveryId) && (
+          <EditorCompanion
+            creature={creatureForDiscovery(companionDiscoveryId)}
+            isPlaying={isPlaying}
+            reactionKey={companionReactionKey}
+            t={t}
+          />
+        )}
 
       <Grid
         song={song}

@@ -21,6 +21,9 @@ describe('CreatureEntry', () => {
             progress: null,
             locale,
             t: localeTranslations,
+            isCompanion: false,
+            companionDisabled: false,
+            onChooseCompanion: () => {},
           }),
         );
 
@@ -28,6 +31,7 @@ describe('CreatureEntry', () => {
         expect(markup).toContain(copy.hint);
         expect(markup).not.toContain(copy.name);
         expect(markup).not.toContain(copy.alt);
+        expect(markup).not.toContain(localeTranslations.companionChoose);
       }
     }
   });
@@ -43,6 +47,9 @@ describe('CreatureEntry', () => {
         },
         locale: 'ja',
         t,
+        isCompanion: true,
+        companionDisabled: false,
+        onChooseCompanion: () => {},
       }),
     );
 
@@ -51,5 +58,8 @@ describe('CreatureEntry', () => {
     expect(markup).toContain(t.creatures.interval_third.description);
     expect(markup).toContain(t.creatures.interval_third.theory);
     expect(markup).toContain(t.creatures.interval_third.alt);
+    expect(markup).toContain(t.companionSelected);
+    expect(markup).toContain('aria-pressed="true"');
+    expect(markup).toContain('disabled=""');
   });
 });
