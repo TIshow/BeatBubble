@@ -26,6 +26,7 @@ export default function DiscoveriesPage() {
 
   async function handleCompanionChoice(discoveryId: DiscoveryId | null) {
     if (discoveryId && !progressById.has(discoveryId)) return;
+    if (discoveryId === companionDiscoveryId) return;
     setIsCompanionSaving(true);
     setCompanionSaveError(false);
     const { error } = await selectCompanion(discoveryId);
@@ -75,6 +76,7 @@ export default function DiscoveriesPage() {
 
         <CompanionPicker
           selectedCreature={selectedCreature}
+          hasSelection={companionDiscoveryId !== null}
           isAccount={!!user}
           isLoading={companionLoading || isLoading}
           isSaving={isCompanionSaving}

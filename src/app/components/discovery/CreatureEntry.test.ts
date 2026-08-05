@@ -60,5 +60,6 @@ describe('CreatureEntry', () => {
     expect(markup).toContain(t.creatures.interval_third.alt);
     expect(markup).toContain(t.companionSelected);
     expect(markup).toContain('aria-pressed="true"');
+    expect(markup).toContain('disabled=""');
   });
 });

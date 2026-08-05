@@ -20,10 +20,9 @@ export function EditorCompanion({
   const { rootRef, style, isDragging, handleProps } = useFloatingCompanion();
 
   return (
-    <section
+    <div
       ref={rootRef}
       className={`editor-companion ${isPlaying ? 'editor-companion--listening' : ''} ${isDragging ? 'editor-companion--dragging' : ''}`}
-      aria-label={t.companionCurrent(copy.name)}
       style={style}
     >
       <button
@@ -43,6 +42,6 @@ export function EditorCompanion({
           />
         </span>
       </button>
-    </section>
+    </div>
   );
 }

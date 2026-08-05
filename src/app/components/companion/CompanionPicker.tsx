@@ -4,6 +4,7 @@ import type { Translations } from '@/lib/i18n';
 
 export function CompanionPicker({
   selectedCreature,
+  hasSelection,
   isAccount,
   isLoading,
   isSaving,
@@ -11,6 +12,7 @@ export function CompanionPicker({
   onChooseNone,
 }: {
   selectedCreature: CreatureDefinition | null;
+  hasSelection: boolean;
   isAccount: boolean;
   isLoading: boolean;
   isSaving: boolean;
@@ -55,8 +57,8 @@ export function CompanionPicker({
         <button
           type="button"
           className="companion-none-btn"
-          aria-pressed={!selectedCreature}
-          disabled={isLoading || isSaving}
+          aria-pressed={!hasSelection}
+          disabled={isLoading || isSaving || !hasSelection}
           onClick={onChooseNone}
         >
           {isSaving ? t.companionSaving : t.companionChooseNone}

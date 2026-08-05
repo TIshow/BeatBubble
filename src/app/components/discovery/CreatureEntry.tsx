@@ -134,7 +134,7 @@ export function CreatureEntry({
           type="button"
           className={`companion-select-btn ${isCompanion ? 'companion-select-btn--selected' : ''}`}
           aria-pressed={isCompanion}
-          disabled={companionDisabled}
+          disabled={companionDisabled || isCompanion}
           onClick={onChooseCompanion}
         >
           {isCompanion ? t.companionSelected : t.companionChoose}
