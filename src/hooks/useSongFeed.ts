@@ -172,8 +172,8 @@ export function useSongFeed(view: FeedView, user: User | null, filters: FeedFilt
     setSongs((prev) => prev.filter((s) => s.id !== id));
   }, []);
 
-  const renameSong = useCallback((id: string, title: string) => {
-    setSongs((prev) => prev.map((s) => (s.id === id ? { ...s, title } : s)));
+  const renameSong = useCallback((id: string, title: string, description: string | null) => {
+    setSongs((prev) => prev.map((s) => (s.id === id ? { ...s, title, description } : s)));
   }, []);
 
   const setSongTemplate = useCallback((id: string, isTemplate: boolean) => {
