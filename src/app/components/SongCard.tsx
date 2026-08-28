@@ -5,7 +5,12 @@ import Link from "next/link";
 import type { Translations } from "@/lib/i18n";
 import type { Visibility } from "@/hooks/useSongFeed";
 import { supabase } from "@/lib/supabase";
-import { MAX_TITLE_LENGTH, validateSongMeta } from "@/lib/validation";
+import {
+  MAX_TITLE_LENGTH,
+  MAX_DESCRIPTION_LENGTH,
+  validateSongMeta,
+  containsSensitiveWord,
+} from "@/lib/validation";
 
 interface Props {
   id: string;
@@ -22,12 +27,12 @@ interface Props {
   isTeacher: boolean;
   t: Translations;
   onDeleted: (id: string) => void;
-  onRenamed: (id: string, title: string) => void;
+  onRenamed: (id: string, title: string, description: string | null) => void;
   onTemplateToggled: (id: string, isTemplate: boolean) => void;
   onVisibilityChanged: (id: string, visibility: Visibility) => void;
 }
 
-type Mode = "view" | "rename" | "confirmDelete";
+type Mode = "view" | "edit" | "confirmSensitive" | "confirmDelete";
 
 const VISIBILITY_ORDER: Visibility[] = ["public", "unlisted", "draft"];
 
@@ -50,6 +55,8 @@ export function SongCard({
 }: Props) {
   const [mode, setMode] = useState<Mode>("view");
   const [draft, setDraft] = useState(title);
+  const [draftDescription, setDraftDescription] = useState(description ?? "");
+  const [editError, setEditError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [copied, setCopied] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
@@ -74,21 +81,59 @@ export function SongCard({
     }
   };
 
-  const saveRename = async () => {
-    const next = draft.trim();
-    const meta = validateSongMeta({ title: next, author });
-    if (!meta.ok || next === title) {
-      setMode("view");
-      setDraft(title);
+  const closeEdit = () => {
+    setMode("view");
+    setDraft(title);
+    setDraftDescription(description ?? "");
+    setEditError(null);
+  };
+
+  // The row the update will write, or null when nothing actually changed.
+  const pendingEdit = () => {
+    const nextTitle = draft.trim();
+    const nextDescription = draftDescription.trim() || null;
+    if (nextTitle === title && nextDescription === (description ?? null)) return null;
+    return { title: nextTitle, description: nextDescription };
+  };
+
+  const writeEdit = async (next: { title: string; description: string | null }) => {
+    setBusy(true);
+    const { error } = await supabase.from("songs").update(next).eq("id", id);
+    setBusy(false);
+    if (error) {
+      console.error("[BeatBubble] edit failed:", error);
+      setEditError(t.saveErrorFailed);
+      setMode("edit");
       return;
     }
-    setBusy(true);
-    const { error } = await supabase.from("songs").update({ title: next }).eq("id", id);
-    setBusy(false);
-    if (!error) {
-      onRenamed(id, next);
-      setMode("view");
+    onRenamed(id, next.title, next.description);
+    closeEdit();
+  };
+
+  const saveEdit = async () => {
+    const next = pendingEdit();
+    if (!next) {
+      closeEdit();
+      return;
     }
+    const meta = validateSongMeta({ title: next.title, author, description: next.description ?? "" });
+    if (!meta.ok) {
+      // Previously an invalid rename just reverted in silence. That was already
+      // unhelpful for a title; with a description in the box it would throw away
+      // a paragraph the child had typed, so say what happened instead.
+      setEditError(
+        meta.reason === "blocked-word" ? t.saveErrorBlockedWord : t.saveErrorFailed
+      );
+      return;
+    }
+    // Editing must not become the way around the save-time pause (#94): a
+    // sensitive word gets the same one-question stop here.
+    if (containsSensitiveWord(next.title) || containsSensitiveWord(next.description ?? "")) {
+      setEditError(null);
+      setMode("confirmSensitive");
+      return;
+    }
+    await writeEdit(next);
   };
 
   const confirmDelete = async () => {
@@ -178,7 +223,10 @@ export function SongCard({
                   role="menuitem"
                   onClick={() => {
                     setMenuOpen(false);
-                    setMode("rename");
+                    setDraft(title);
+                    setDraftDescription(description ?? "");
+                    setEditError(null);
+                    setMode("edit");
                   }}
                 >
                   ✎ {t.rename}
@@ -200,28 +248,64 @@ export function SongCard({
       </div>
 
       <div className="song-card-body">
-        {mode === "rename" ? (
+        {mode === "edit" ? (
           <div className="song-card-rename">
             <input
               className="song-card-rename-input"
               value={draft}
-              onChange={(e) => setDraft(e.target.value)}
+              onChange={(e) => {
+                setDraft(e.target.value);
+                setEditError(null);
+              }}
               maxLength={MAX_TITLE_LENGTH}
+              aria-label={t.titlePlaceholder}
               autoFocus
             />
+            <textarea
+              className="song-card-rename-input song-card-rename-description"
+              value={draftDescription}
+              onChange={(e) => {
+                setDraftDescription(e.target.value);
+                setEditError(null);
+              }}
+              maxLength={MAX_DESCRIPTION_LENGTH}
+              placeholder={t.descriptionPlaceholder}
+              aria-label={t.descriptionPlaceholder}
+              rows={3}
+            />
+            {editError && <p className="song-card-edit-error">{editError}</p>}
             <div className="song-card-rename-actions">
-              <button className="song-card-mini save" onClick={saveRename} disabled={busy}>
+              <button className="song-card-mini save" onClick={saveEdit} disabled={busy}>
                 {t.save}
+              </button>
+              <button className="song-card-mini" onClick={closeEdit} disabled={busy}>
+                {t.cancel}
+              </button>
+            </div>
+          </div>
+        ) : mode === "confirmSensitive" ? (
+          // Same pause as the save dialog, in the card's existing confirm shape.
+          // "Change it" stays the primary action; the detected word is never shown.
+          <div className="song-card-confirm">
+            <span className="song-card-confirm-label">{t.reflectBody}</span>
+            <div className="song-card-rename-actions">
+              <button
+                className="song-card-mini save"
+                onClick={() => setMode("edit")}
+                disabled={busy}
+              >
+                {t.reflectChangeName}
               </button>
               <button
                 className="song-card-mini"
                 onClick={() => {
-                  setMode("view");
-                  setDraft(title);
+                  const next = pendingEdit();
+                  if (next) writeEdit(next);
+                  else closeEdit();
                 }}
                 disabled={busy}
               >
-                {t.cancel}
+                {t.reflectSaveAnyway}
               </button>
             </div>
           </div>
