@@ -598,8 +598,8 @@ export default function Home() {
                 }
               : null
           }
-          onOverwritten={(title, author) =>
-            setLoadedSong((prev) => (prev ? { ...prev, title, author } : prev))
+          onOverwritten={(title, author, description) =>
+            setLoadedSong((prev) => (prev ? { ...prev, title, author, description } : prev))
           }
           onClose={() => setIsSaveModalOpen(false)}
         />

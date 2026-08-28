@@ -42,10 +42,10 @@ interface Props {
   userId: string | null;
   defaultAuthor?: string;
   // When set, the loaded song is owned by the current user and can be overwritten.
-  existing?: { id: string; title: string; author: string; description?: string | null } | null;
+  existing?: { id: string; title: string; author: string; description: string | null } | null;
   // Called after a successful overwrite so the caller can keep its loaded-song
   // title/author in sync (avoids a stale prefill reverting the name next time).
-  onOverwritten?: (title: string, author: string) => void;
+  onOverwritten?: (title: string, author: string, description: string | null) => void;
   onClose: () => void;
 }
 
@@ -75,13 +75,15 @@ export function SaveModal({
   const pendingSaveRef = useRef<(() => void) | null>(null);
   const reflectionAckedRef = useRef(false);
 
+  // Empty note and "no note" are the same thing to the database.
+  const trimmedDescription = () => description.trim() || null;
+
   const guard = (): boolean => {
     const meta = validateSongMeta({ title, author, description });
     if (!meta.ok) {
       // Empty/length are gated by the disabled button + maxLength; the
       // meaningful client-side rejection here is the blocked word.
       if (meta.reason === "blocked-word") setError(t.saveErrorBlockedWord);
-      if (meta.reason === "description-too-long") setError(t.saveErrorDescriptionTooLong);
       return false;
     }
     if (!songWithinSizeLimit(song)) {
@@ -153,7 +155,7 @@ export function SaveModal({
         supabase.from("songs").insert({
           title: title.trim(),
           author: author.trim(),
-          description: description.trim() || null,
+          description: trimmedDescription(),
           song_data: song,
           user_id: userId,
           visibility,
@@ -169,12 +171,12 @@ export function SaveModal({
           .update({
             title: title.trim(),
             author: author.trim(),
-            description: description.trim() || null,
+            description: trimmedDescription(),
             song_data: song,
           })
           .eq("id", existing!.id),
       () => {
-        onOverwritten?.(title.trim(), author.trim());
+        onOverwritten?.(title.trim(), author.trim(), trimmedDescription());
         onClose();
       }
     );
