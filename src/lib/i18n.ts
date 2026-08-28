@@ -50,6 +50,8 @@ export type Translations = {
   saveModalTitle: string;
   titlePlaceholder: string;
   authorPlaceholder: string;
+  descriptionPlaceholder: string;
+  saveErrorDescriptionTooLong: string;
   cancel: string;
   saving: string;
   saveErrorBlockedWord: string;
@@ -243,6 +245,8 @@ export const translations: Record<Locale, Translations> = {
     saveModalTitle: 'Save Song',
     titlePlaceholder: 'Song title',
     authorPlaceholder: 'Your name',
+    descriptionPlaceholder: 'What did you work on? (optional)',
+    saveErrorDescriptionTooLong: 'That note is a bit too long.',
     cancel: 'Cancel',
     saving: 'Saving...',
     saveErrorBlockedWord: "This name can't be used. Please pick another one.",
@@ -549,6 +553,8 @@ export const translations: Record<Locale, Translations> = {
     saveModalTitle: '曲をほぞん',
     titlePlaceholder: 'きょくのなまえ',
     authorPlaceholder: 'あなたのなまえ',
+    descriptionPlaceholder: 'どこを くふうした？（かかなくても いいよ）',
+    saveErrorDescriptionTooLong: 'せつめいが すこし ながすぎます。',
     cancel: 'キャンセル',
     saving: 'ほぞんちゅう...',
     saveErrorBlockedWord: 'この なまえは つかえないよ。ちがう なまえに してね。',

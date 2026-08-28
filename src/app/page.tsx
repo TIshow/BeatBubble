@@ -78,6 +78,7 @@ export default function Home() {
     id: string;
     title: string;
     author: string;
+    description: string | null;
     userId: string | null;
     isTemplate: boolean;
   } | null>(null);
@@ -149,7 +150,7 @@ export default function Home() {
     if (!loadId) return;
     supabase
       .from('songs')
-      .select('id, title, author, song_data, user_id, is_template')
+      .select('id, title, author, description, song_data, user_id, is_template')
       .eq('id', loadId)
       .single()
       .then(({ data, error }) => {
@@ -161,6 +162,7 @@ export default function Home() {
             id: data.id,
             title: data.title,
             author: data.author,
+            description: data.description ?? null,
             userId: data.user_id ?? null,
             isTemplate: data.is_template ?? false,
           });
@@ -588,7 +590,12 @@ export default function Home() {
           defaultAuthor={authDisplayName(user)}
           existing={
             user && loadedSong && loadedSong.userId === user.id
-              ? { id: loadedSong.id, title: loadedSong.title, author: loadedSong.author }
+              ? {
+                  id: loadedSong.id,
+                  title: loadedSong.title,
+                  author: loadedSong.author,
+                  description: loadedSong.description,
+                }
               : null
           }
           onOverwritten={(title, author) =>
