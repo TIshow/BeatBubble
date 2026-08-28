@@ -8,6 +8,7 @@ import { supabase } from "@/lib/supabase";
 import {
   MAX_TITLE_LENGTH,
   MAX_AUTHOR_LENGTH,
+  MAX_DESCRIPTION_LENGTH,
   validateSongMeta,
   songWithinSizeLimit,
   containsSensitiveWord,
@@ -41,10 +42,10 @@ interface Props {
   userId: string | null;
   defaultAuthor?: string;
   // When set, the loaded song is owned by the current user and can be overwritten.
-  existing?: { id: string; title: string; author: string } | null;
+  existing?: { id: string; title: string; author: string; description: string | null } | null;
   // Called after a successful overwrite so the caller can keep its loaded-song
   // title/author in sync (avoids a stale prefill reverting the name next time).
-  onOverwritten?: (title: string, author: string) => void;
+  onOverwritten?: (title: string, author: string, description: string | null) => void;
   onClose: () => void;
 }
 
@@ -60,6 +61,7 @@ export function SaveModal({
   const t = translations[locale];
   const [title, setTitle] = useState(existing ? existing.title : "");
   const [author, setAuthor] = useState(existing ? existing.author : defaultAuthor);
+  const [description, setDescription] = useState(existing?.description ?? "");
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   // After a successful new save, show a confirmation telling the child what
@@ -73,8 +75,11 @@ export function SaveModal({
   const pendingSaveRef = useRef<(() => void) | null>(null);
   const reflectionAckedRef = useRef(false);
 
+  // Empty note and "no note" are the same thing to the database.
+  const trimmedDescription = () => description.trim() || null;
+
   const guard = (): boolean => {
-    const meta = validateSongMeta({ title, author });
+    const meta = validateSongMeta({ title, author, description });
     if (!meta.ok) {
       // Empty/length are gated by the disabled button + maxLength; the
       // meaningful client-side rejection here is the blocked word.
@@ -114,7 +119,9 @@ export function SaveModal({
     // here: guard() rejects them first. Stash the save and let the child decide.
     if (
       !reflectionAckedRef.current &&
-      (containsSensitiveWord(title) || containsSensitiveWord(author))
+      (containsSensitiveWord(title) ||
+        containsSensitiveWord(author) ||
+        containsSensitiveWord(description))
     ) {
       pendingSaveRef.current = () => execute(op, onSuccess);
       setReflecting(true);
@@ -148,6 +155,7 @@ export function SaveModal({
         supabase.from("songs").insert({
           title: title.trim(),
           author: author.trim(),
+          description: trimmedDescription(),
           song_data: song,
           user_id: userId,
           visibility,
@@ -160,10 +168,15 @@ export function SaveModal({
       async () =>
         supabase
           .from("songs")
-          .update({ title: title.trim(), author: author.trim(), song_data: song })
+          .update({
+            title: title.trim(),
+            author: author.trim(),
+            description: trimmedDescription(),
+            song_data: song,
+          })
           .eq("id", existing!.id),
       () => {
-        onOverwritten?.(title.trim(), author.trim());
+        onOverwritten?.(title.trim(), author.trim(), trimmedDescription());
         onClose();
       }
     );
@@ -238,6 +251,21 @@ export function SaveModal({
               reflectionAckedRef.current = false; // a new name gets a fresh nudge
             }}
             maxLength={MAX_AUTHOR_LENGTH}
+          />
+          {/* Optional. The prompt asks what they worked on rather than what the
+              song is, because naming your own intent is the thing being learned
+              — a summary of the notes would just restate the grid. */}
+          <textarea
+            className="modal-input modal-textarea"
+            placeholder={t.descriptionPlaceholder}
+            value={description}
+            onChange={(e) => {
+              setDescription(e.target.value);
+              if (error) setError(null);
+              reflectionAckedRef.current = false;
+            }}
+            maxLength={MAX_DESCRIPTION_LENGTH}
+            rows={3}
           />
         </div>
         {!existing &&

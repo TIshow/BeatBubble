@@ -11,6 +11,7 @@ interface Props {
   id: string;
   title: string;
   author: string;
+  description: string | null;
   time: string;
   gradient: string;
   isOwner: boolean;
@@ -34,6 +35,7 @@ export function SongCard({
   id,
   title,
   author,
+  description,
   time,
   gradient,
   isOwner,
@@ -230,6 +232,11 @@ export function SongCard({
         <p className="song-card-meta">
           {author} ・ {time}
         </p>
+
+        {/* What the child says they were going for. Clamped rather than
+            truncated in JS so the full text stays selectable and readable to a
+            screen reader. */}
+        {description && <p className="song-card-description">{description}</p>}
 
         {mode === "confirmDelete" ? (
           <div className="song-card-confirm">

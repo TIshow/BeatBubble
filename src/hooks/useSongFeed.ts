@@ -15,6 +15,7 @@ export type FeedSong = {
   id: string;
   title: string;
   author: string;
+  description: string | null;
   created_at: string;
   updated_at: string;
   user_id: string | null;
@@ -26,7 +27,7 @@ export type FeedSong = {
 const PAGE_SIZE = 24;
 
 const SONG_COLUMNS =
-  "id, title, author, created_at, updated_at, user_id, is_template, visibility";
+  "id, title, author, description, created_at, updated_at, user_id, is_template, visibility";
 
 // Whether a song belongs to a view — mirrors the server-side filter, so a
 // locally-mutated song (template toggled, etc.) leaves/stays in the list

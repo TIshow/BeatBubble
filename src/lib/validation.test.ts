@@ -7,6 +7,7 @@ import {
   songWithinSizeLimit,
   MAX_TITLE_LENGTH,
   MAX_AUTHOR_LENGTH,
+  MAX_DESCRIPTION_LENGTH,
 } from "./validation";
 
 describe("validateSongMeta", () => {
@@ -104,5 +105,40 @@ describe("songWithinSizeLimit", () => {
   it("accepts small payloads and rejects huge ones", () => {
     expect(songWithinSizeLimit({ a: 1 })).toBe(true);
     expect(songWithinSizeLimit({ big: "x".repeat(200_000) })).toBe(false);
+  });
+});
+
+describe("validateSongMeta — description", () => {
+  const base = { title: "きらきら", author: "たろう" };
+
+  it("is optional", () => {
+    expect(validateSongMeta(base)).toEqual({ ok: true });
+    expect(validateSongMeta({ ...base, description: "" })).toEqual({ ok: true });
+  });
+
+  it("accepts a note about what the child worked on", () => {
+    expect(
+      validateSongMeta({ ...base, description: "さいごの ながい音を くふうした" })
+    ).toEqual({ ok: true });
+  });
+
+  it("rejects an over-long note", () => {
+    expect(
+      validateSongMeta({ ...base, description: "あ".repeat(MAX_DESCRIPTION_LENGTH + 1) })
+    ).toEqual({ ok: false, reason: "description-too-long" });
+  });
+
+  it("applies the blocked words to it too — it is published text", () => {
+    expect(validateSongMeta({ ...base, description: "しね" })).toEqual({
+      ok: false,
+      reason: "blocked-word",
+    });
+  });
+
+  it("sees through the same dodges as the title does", () => {
+    expect(validateSongMeta({ ...base, description: "し ね" })).toEqual({
+      ok: false,
+      reason: "blocked-word",
+    });
   });
 });

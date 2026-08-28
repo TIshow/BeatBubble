@@ -6,6 +6,9 @@
 
 export const MAX_TITLE_LENGTH = 60;
 export const MAX_AUTHOR_LENGTH = 40;
+// A few sentences from a child about what they were going for — long enough to
+// say something, short enough to read on a card.
+export const MAX_DESCRIPTION_LENGTH = 200;
 // Generous ceiling on the serialized song to stop abusive payloads.
 export const MAX_SONG_BYTES = 100_000;
 
@@ -100,19 +103,35 @@ export type MetaValidationReason =
   | "title-too-long"
   | "author-empty"
   | "author-too-long"
+  | "description-too-long"
   | "blocked-word";
 
 export type MetaValidation = { ok: true } | { ok: false; reason: MetaValidationReason };
 
-export function validateSongMeta(input: { title: string; author: string }): MetaValidation {
+// `description` is optional — the child may just save. It is checked like the
+// rest because it is published text a child writes: a new public field that
+// skipped the word lists would be a hole in the same wall.
+export function validateSongMeta(input: {
+  title: string;
+  author: string;
+  description?: string;
+}): MetaValidation {
   const title = input.title.trim();
   const author = input.author.trim();
+  const description = (input.description ?? "").trim();
 
   if (title.length === 0) return { ok: false, reason: "title-empty" };
   if (title.length > MAX_TITLE_LENGTH) return { ok: false, reason: "title-too-long" };
   if (author.length === 0) return { ok: false, reason: "author-empty" };
   if (author.length > MAX_AUTHOR_LENGTH) return { ok: false, reason: "author-too-long" };
-  if (containsBlockedWord(title) || containsBlockedWord(author)) {
+  if (description.length > MAX_DESCRIPTION_LENGTH) {
+    return { ok: false, reason: "description-too-long" };
+  }
+  if (
+    containsBlockedWord(title) ||
+    containsBlockedWord(author) ||
+    containsBlockedWord(description)
+  ) {
     return { ok: false, reason: "blocked-word" };
   }
   return { ok: true };

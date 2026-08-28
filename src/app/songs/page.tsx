@@ -201,6 +201,7 @@ export default function SongsPage() {
                   id={song.id}
                   title={song.title}
                   author={song.author}
+                  description={song.description}
                   time={timeAgo(song.updated_at, locale)}
                   gradient={CARD_GRADIENTS[i % CARD_GRADIENTS.length]}
                   isOwner={!!user && song.user_id === user.id}

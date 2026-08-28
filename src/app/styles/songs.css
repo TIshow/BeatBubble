@@ -652,3 +652,17 @@
 .song-card-account-warn {
   font-weight: 400;
 }
+
+/* What the child says they were going for. Clamped to three lines so a long
+   note can't push the cards out of alignment; the text itself is untouched. */
+.song-card-description {
+  margin: 6px 0 0;
+  font-size: 12px;
+  line-height: 1.5;
+  opacity: 0.8;
+  white-space: pre-wrap;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
