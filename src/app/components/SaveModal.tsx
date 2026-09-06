@@ -81,9 +81,12 @@ export function SaveModal({
   const guard = (): boolean => {
     const meta = validateSongMeta({ title, author, description });
     if (!meta.ok) {
-      // Empty/length are gated by the disabled button + maxLength; the
-      // meaningful client-side rejection here is the blocked word.
+      // Empty/title length are gated by the disabled button + maxLength. The
+      // note is not: overwriting a song saved before the limit dropped to 120
+      // loads a longer note into the box, and maxLength doesn't trim a value it
+      // didn't receive as typing — so this would fail with no message at all.
       if (meta.reason === "blocked-word") setError(t.saveErrorBlockedWord);
+      else if (meta.reason === "description-too-long") setError(t.saveErrorDescriptionTooLong);
       return false;
     }
     if (!songWithinSizeLimit(song)) {

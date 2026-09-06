@@ -60,7 +60,24 @@ export function SongCard({
   const [busy, setBusy] = useState(false);
   const [copied, setCopied] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [expanded, setExpanded] = useState(false);
+  const [clamped, setClamped] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
+  const descRef = useRef<HTMLParagraphElement>(null);
+
+  // Whether the note is actually cut off, measured rather than counted: the card
+  // is narrower at the mobile breakpoint, so the same text clamps at one width
+  // and fits at another. Only measured while collapsed — once open the clamp is
+  // gone, so the last measurement is what keeps the close button on screen.
+  useEffect(() => {
+    const el = descRef.current;
+    if (!el || expanded) return;
+    const measure = () => setClamped(el.scrollHeight > el.clientHeight + 1);
+    measure();
+    const observer = new ResizeObserver(measure);
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [description, expanded]);
 
   useEffect(() => {
     if (!menuOpen) return;
@@ -121,8 +138,15 @@ export function SongCard({
       // Previously an invalid rename just reverted in silence. That was already
       // unhelpful for a title; with a description in the box it would throw away
       // a paragraph the child had typed, so say what happened instead.
+      // A note saved before the limit dropped to 120 can be longer than the box
+      // now accepts, so this branch is reachable again — say "shorten it" rather
+      // than the generic failure, which read as a bug.
       setEditError(
-        meta.reason === "blocked-word" ? t.saveErrorBlockedWord : t.saveErrorFailed
+        meta.reason === "blocked-word"
+          ? t.saveErrorBlockedWord
+          : meta.reason === "description-too-long"
+            ? t.saveErrorDescriptionTooLong
+            : t.saveErrorFailed
       );
       return;
     }
@@ -319,8 +343,27 @@ export function SongCard({
 
         {/* What the child says they were going for. Clamped rather than
             truncated in JS so the full text stays selectable and readable to a
-            screen reader. */}
-        {description && <p className="song-card-description">{description}</p>}
+            screen reader — and openable in place, because a note nobody can
+            finish reading is a note that wasn't worth writing. */}
+        {description && (
+          <>
+            <p
+              ref={descRef}
+              className={`song-card-description${expanded ? " expanded" : ""}`}
+            >
+              {description}
+            </p>
+            {clamped && (
+              <button
+                className="song-card-more"
+                onClick={() => setExpanded((open) => !open)}
+                aria-expanded={expanded}
+              >
+                {expanded ? t.showLess : t.readMore}
+              </button>
+            )}
+          </>
+        )}
 
         {mode === "confirmDelete" ? (
           <div className="song-card-confirm">

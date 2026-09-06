@@ -54,6 +54,7 @@ export type Translations = {
   cancel: string;
   saving: string;
   saveErrorBlockedWord: string;
+  saveErrorDescriptionTooLong: string;
   reflectTitle: string;
   reflectBody: string;
   reflectChangeName: string;
@@ -134,6 +135,8 @@ export type Translations = {
   close: string;
   loadFailed: string;
   rename: string;
+  readMore: string;
+  showLess: string;
   deleteSong: string;
   confirmDeleteSong: string;
   justNow: string;
@@ -248,6 +251,7 @@ export const translations: Record<Locale, Translations> = {
     cancel: 'Cancel',
     saving: 'Saving...',
     saveErrorBlockedWord: "This name can't be used. Please pick another one.",
+    saveErrorDescriptionTooLong: 'That note is a bit long. Please shorten it.',
     reflectTitle: 'Wait a sec',
     reflectBody:
       'Could this name make a friend feel sad or upset? Take another look before you save.',
@@ -327,6 +331,8 @@ export const translations: Record<Locale, Translations> = {
     close: 'Close',
     loadFailed: "Couldn't open this song. Check that you're logged in, then reload to try again.",
     rename: 'Edit title & note',
+    readMore: 'Read more',
+    showLess: 'Show less',
     deleteSong: 'Delete',
     confirmDeleteSong: 'Delete this song?',
     justNow: 'just now',
@@ -555,6 +561,7 @@ export const translations: Record<Locale, Translations> = {
     cancel: 'キャンセル',
     saving: 'ほぞんちゅう...',
     saveErrorBlockedWord: 'この なまえは つかえないよ。ちがう なまえに してね。',
+    saveErrorDescriptionTooLong: 'メモが ながすぎるよ。みじかく してね。',
     reflectTitle: 'ちょっと まってね',
     reflectBody:
       'その なまえを 見た ともだちが、いやな きもちに なったり、かなしく ならないかな？ もういちど かんがえてみよう。',
@@ -636,6 +643,8 @@ export const translations: Record<Locale, Translations> = {
     loadFailed:
       'この曲を ひらけなかったよ。ログインしているか たしかめて、ページを さいよみこみ してみてね。',
     rename: 'なまえと せつめい',
+    readMore: 'つづきを よむ',
+    showLess: 'とじる',
     deleteSong: 'けす',
     confirmDeleteSong: 'この曲を けしますか？',
     justNow: 'たったいま',

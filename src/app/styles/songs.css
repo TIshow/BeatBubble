@@ -70,6 +70,10 @@
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
   gap: 20px;
+  /* Each card sizes to its own content. Without this the grid stretches every
+     card to the tallest in its row, so opening one note dragged its whole row
+     taller with it — and short cards carried dead space even when closed. */
+  align-items: start;
 }
 
 .song-card {
@@ -665,6 +669,34 @@
   -webkit-line-clamp: 3;
   -webkit-box-orient: vertical;
   overflow: hidden;
+}
+
+/* Opened in place rather than in a dialog: on a tablet there is no hover to put
+   a tooltip behind, and a full-screen sheet for two sentences costs more than it
+   returns. The 120-character limit is what keeps an opened card card-sized. */
+.song-card-description.expanded {
+  -webkit-line-clamp: unset;
+  overflow: visible;
+}
+
+.song-card-more {
+  align-self: flex-start;
+  margin-top: 4px;
+  padding: 2px 0;
+  border: none;
+  background: none;
+  color: var(--foreground);
+  opacity: 0.65;
+  font-family: inherit;
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.song-card-more:hover {
+  opacity: 1;
 }
 
 /* The note box inside the card's edit form. Grows downward only, so a long
