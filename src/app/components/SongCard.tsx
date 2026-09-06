@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import type { Translations } from "@/lib/i18n";
+import { metaErrorMessage } from "@/lib/i18n";
 import type { Visibility } from "@/hooks/useSongFeed";
 import { supabase } from "@/lib/supabase";
 import {
@@ -60,15 +61,20 @@ export function SongCard({
   const [busy, setBusy] = useState(false);
   const [copied, setCopied] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
-  const [expanded, setExpanded] = useState(false);
+  // Which note is open, rather than a bare "is open": an edited note then starts
+  // closed on its own, with no effect syncing a flag back to the prop. That
+  // matters because measuring is skipped while open (below), so a flag left over
+  // from the previous text would strand a "close" under a note that now fits.
+  const [openNote, setOpenNote] = useState<string | null>(null);
+  const expanded = description !== null && openNote === description;
   const [clamped, setClamped] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
   const descRef = useRef<HTMLParagraphElement>(null);
 
   // Whether the note is actually cut off, measured rather than counted: the card
   // is narrower at the mobile breakpoint, so the same text clamps at one width
-  // and fits at another. Only measured while collapsed — once open the clamp is
-  // gone, so the last measurement is what keeps the close button on screen.
+  // and fits at another. Not measured while open — the clamp is lifted there, so
+  // measuring would report "fits" and take the close button away with it.
   useEffect(() => {
     const el = descRef.current;
     if (!el || expanded) return;
@@ -138,16 +144,7 @@ export function SongCard({
       // Previously an invalid rename just reverted in silence. That was already
       // unhelpful for a title; with a description in the box it would throw away
       // a paragraph the child had typed, so say what happened instead.
-      // A note saved before the limit dropped to 120 can be longer than the box
-      // now accepts, so this branch is reachable again — say "shorten it" rather
-      // than the generic failure, which read as a bug.
-      setEditError(
-        meta.reason === "blocked-word"
-          ? t.saveErrorBlockedWord
-          : meta.reason === "description-too-long"
-            ? t.saveErrorDescriptionTooLong
-            : t.saveErrorFailed
-      );
+      setEditError(metaErrorMessage(meta.reason, t));
       return;
     }
     // Editing must not become the way around the save-time pause (#94): a
@@ -349,6 +346,7 @@ export function SongCard({
           <>
             <p
               ref={descRef}
+              id={`song-note-${id}`}
               className={`song-card-description${expanded ? " expanded" : ""}`}
             >
               {description}
@@ -356,8 +354,9 @@ export function SongCard({
             {clamped && (
               <button
                 className="song-card-more"
-                onClick={() => setExpanded((open) => !open)}
+                onClick={() => setOpenNote(expanded ? null : description)}
                 aria-expanded={expanded}
+                aria-controls={`song-note-${id}`}
               >
                 {expanded ? t.showLess : t.readMore}
               </button>

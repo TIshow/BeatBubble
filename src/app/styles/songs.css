@@ -680,8 +680,9 @@
 }
 
 .song-card-more {
+  /* .song-card-body is a flex column with its own gap, so the spacing above is
+     already handled; align-self keeps the hit area on the text, not the card. */
   align-self: flex-start;
-  margin-top: 4px;
   padding: 2px 0;
   border: none;
   background: none;

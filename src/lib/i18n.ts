@@ -1,5 +1,6 @@
 import type { DiscoveryId } from '@/discovery/types';
 import type { ChallengeId, ChallengeTechniqueId } from '@/challenges/types';
+import type { MetaValidationReason } from './validation';
 
 export type Locale = 'en' | 'ja';
 
@@ -841,3 +842,21 @@ export const translations: Record<Locale, Translations> = {
     },
   },
 };
+
+// What a rejected title/author/note says to a child. One place on purpose: the
+// save modal and the card's edit form both need this and had already drifted —
+// the card answered an over-long note with "couldn't save", and the modal showed
+// nothing at all, so pressing save just did nothing.
+export function metaErrorMessage(reason: MetaValidationReason, t: Translations): string {
+  switch (reason) {
+    case 'blocked-word':
+      return t.saveErrorBlockedWord;
+    case 'description-too-long':
+      return t.saveErrorDescriptionTooLong;
+    default:
+      // Empty and over-long title/author are gated by the disabled save button
+      // and maxLength, so this is a backstop rather than a message anyone should
+      // meet in normal use.
+      return t.saveErrorFailed;
+  }
+}
