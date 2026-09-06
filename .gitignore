@@ -45,3 +45,9 @@ CLAUDE.local.md
 .claude/settings.local.json
 .claude/launch.json
 .claude/worktrees/
+
+# Contest / research working docs. These stay out of the repo because it is
+# public: the analysis is anonymised to A/B/C, but it quotes song titles and
+# save times, and /songs shows the author beside those same titles — so anyone
+# could join the two back to a named child. Internal drafts live here too.
+docs/ict-yume-2026/
