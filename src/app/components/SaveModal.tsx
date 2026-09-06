@@ -3,7 +3,7 @@
 import { useRef, useState } from "react";
 import type { Song } from "@/core/types";
 import type { Locale, Translations } from "@/lib/i18n";
-import { translations } from "@/lib/i18n";
+import { metaErrorMessage, translations } from "@/lib/i18n";
 import { supabase } from "@/lib/supabase";
 import {
   MAX_TITLE_LENGTH,
@@ -81,9 +81,10 @@ export function SaveModal({
   const guard = (): boolean => {
     const meta = validateSongMeta({ title, author, description });
     if (!meta.ok) {
-      // Empty/length are gated by the disabled button + maxLength; the
-      // meaningful client-side rejection here is the blocked word.
-      if (meta.reason === "blocked-word") setError(t.saveErrorBlockedWord);
+      // Overwriting a song saved before the limit dropped to 120 loads a longer
+      // note into the box, and maxLength doesn't trim a value it didn't receive
+      // as typing — so this is reachable, and used to fail with no message.
+      setError(metaErrorMessage(meta.reason, t));
       return false;
     }
     if (!songWithinSizeLimit(song)) {

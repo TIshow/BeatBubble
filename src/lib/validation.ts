@@ -6,9 +6,12 @@
 
 export const MAX_TITLE_LENGTH = 60;
 export const MAX_AUTHOR_LENGTH = 40;
-// A few sentences from a child about what they were going for — long enough to
-// say something, short enough to read on a card.
-export const MAX_DESCRIPTION_LENGTH = 200;
+// A sentence or two from a child about what they were going for. The card shows
+// the first three lines and the rest opens in place, so this bounds how tall an
+// opened card can get — roughly one card's worth of text. Saves made before this
+// limit dropped from 200 keep their longer note: it still displays and opens in
+// full, and only editing one asks for it to be shortened.
+export const MAX_DESCRIPTION_LENGTH = 120;
 // Generous ceiling on the serialized song to stop abusive payloads.
 export const MAX_SONG_BYTES = 100_000;
 
