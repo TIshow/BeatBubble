@@ -826,3 +826,11 @@
     max-width: 100%;
   }
 }
+
+/* On the owner's own card: which of their tries they handed in (#143). */
+.song-card-folder {
+  margin: 2px 0 0;
+  font-size: 11px;
+  font-weight: 700;
+  color: #11998e;
+}

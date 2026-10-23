@@ -3,6 +3,7 @@
 import type { User } from "@supabase/supabase-js";
 import type { SongFeed } from "@/hooks/useSongFeed";
 import { SongCard } from "@/app/components/SongCard";
+import type { SongFolder } from "@/lib/folders";
 import type { Locale, Translations } from "@/lib/i18n";
 import { translations } from "@/lib/i18n";
 
@@ -32,6 +33,8 @@ interface Props {
   emptyText: string;
   user: User | null;
   isTeacher: boolean;
+  // The viewer's lesson folders, for submitting from a card's menu (#143).
+  folders: SongFolder[];
   locale: Locale;
   t: Translations;
 }
@@ -39,7 +42,7 @@ interface Props {
 // The card grid with its loading skeleton, empty state and infinite scroll.
 // Shared by the feed (/songs) and a lesson folder (/songs/folders/[id]), so
 // the two can't drift in how a song card behaves.
-export function SongGrid({ feed, emptyText, user, isTeacher, locale, t }: Props) {
+export function SongGrid({ feed, emptyText, user, isTeacher, folders, locale, t }: Props) {
   const { songs, loading, loadingMore, hasMore, loadMore, sentinelRef } = feed;
 
   if (loading) {
@@ -84,6 +87,9 @@ export function SongGrid({ feed, emptyText, user, isTeacher, locale, t }: Props)
             onRenamed={feed.renameSong}
             onTemplateToggled={feed.setSongTemplate}
             onVisibilityChanged={feed.setSongVisibility}
+            folderId={song.folder_id}
+            folders={folders}
+            onFolderChanged={feed.setSongFolder}
           />
         ))}
       </div>

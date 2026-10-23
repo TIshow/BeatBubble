@@ -154,6 +154,9 @@ export type Translations = {
   savedFolderMsg: (name: string) => string;
   saveOpenFolder: string;
   saveErrorFolder: string;
+  cardSubmittedTo: (name: string | null) => string;
+  cardTakeBack: string;
+  cardFolderError: string;
   templateOn: string;
   templateOff: string;
   visPublic: string;
@@ -385,6 +388,9 @@ export const translations: Record<Locale, Translations> = {
     savedFolderMsg: (name) => `Submitted to “${name}”!`,
     saveOpenFolder: 'Open the folder',
     saveErrorFolder: "Couldn't submit to this folder. Choose “Don't submit” and save.",
+    cardSubmittedTo: (name) => (name ? `📁 Submitted to ${name}` : '📁 Submitted'),
+    cardTakeBack: '📁 Take back from the folder',
+    cardFolderError: "Couldn't submit to the folder.",
     templateOn: 'Make template',
     templateOff: 'Unset template',
     visPublic: 'Public',
@@ -731,6 +737,9 @@ export const translations: Record<Locale, Translations> = {
     savedFolderMsg: (name) => `「${name}」に ていしゅつ したよ！`,
     saveOpenFolder: 'フォルダを みる',
     saveErrorFolder: 'この フォルダには ていしゅつ できなかったよ。「ていしゅつ しない」に して ほぞん してね。',
+    cardSubmittedTo: (name) => (name ? `📁 ${name} に ていしゅつ ずみ` : '📁 ていしゅつ ずみ'),
+    cardTakeBack: '📁 フォルダから もどす',
+    cardFolderError: 'フォルダに ていしゅつ できなかったよ。',
     templateOn: 'テンプレにする',
     templateOff: 'テンプレ解除',
     visPublic: '公開',

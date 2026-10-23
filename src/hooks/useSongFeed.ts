@@ -21,18 +21,27 @@ export type FeedSong = {
   user_id: string | null;
   is_template: boolean;
   visibility: Visibility;
+  // The lesson folder it was submitted to (#143), if any.
+  folder_id: string | null;
 };
 
 // How many songs to fetch per page. The feed loads more as you scroll.
 const PAGE_SIZE = 24;
 
 const SONG_COLUMNS =
-  "id, title, author, description, created_at, updated_at, user_id, is_template, visibility";
+  "id, title, author, description, created_at, updated_at, user_id, is_template, visibility, folder_id";
 
 // Whether a song belongs to a view — mirrors the server-side filter, so a
 // locally-mutated song (template toggled, etc.) leaves/stays in the list
 // immediately without waiting for a refetch.
-function matchesView(song: FeedSong, view: FeedView, user: User | null): boolean {
+function matchesView(
+  song: FeedSong,
+  view: FeedView,
+  user: User | null,
+  folderId: string | null
+): boolean {
+  // A song taken back out of the folder being shown leaves it at once.
+  if (folderId && song.folder_id !== folderId) return false;
   if (view === "mine") return !!user && song.user_id === user.id;
   // Public feeds show only public songs, so a song switched to draft/unlisted
   // drops out immediately without waiting for a refetch.
@@ -188,8 +197,18 @@ export function useSongFeed(view: FeedView, user: User | null, filters: FeedFilt
     setSongs((prev) => prev.map((s) => (s.id === id ? { ...s, visibility } : s)));
   }, []);
 
+  // Submitting a draft also publishes it, so both change together.
+  const setSongFolder = useCallback(
+    (id: string, folderId: string | null, visibility: Visibility) => {
+      setSongs((prev) =>
+        prev.map((s) => (s.id === id ? { ...s, folder_id: folderId, visibility } : s))
+      );
+    },
+    []
+  );
+
   return {
-    songs: songs.filter((s) => matchesView(s, view, user)),
+    songs: songs.filter((s) => matchesView(s, view, user, folderId)),
     total,
     loading,
     loadingMore,
@@ -200,6 +219,7 @@ export function useSongFeed(view: FeedView, user: User | null, filters: FeedFilt
     renameSong,
     setSongTemplate,
     setSongVisibility,
+    setSongFolder,
   };
 }
 
