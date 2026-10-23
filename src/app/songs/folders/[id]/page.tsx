@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useLocale } from "@/hooks/useLocale";
 import { useAccount } from "@/app/components/AccountProvider";
-import { useFolder } from "@/hooks/useFolders";
+import { useFolder, useFolderShortcuts } from "@/hooks/useFolders";
 import { useSongFeed } from "@/hooks/useSongFeed";
 import { AccountMenu } from "@/app/components/AccountMenu";
 import { SongGrid } from "@/app/components/SongGrid";
@@ -17,9 +17,15 @@ import { SongGrid } from "@/app/components/SongGrid";
 export default function FolderPage() {
   const { id } = useParams<{ id: string }>();
   const { locale, t } = useLocale();
-  const { user, isTeacher } = useAccount();
+  const { user, isTeacher, profile } = useAccount();
   const { folder, loading } = useFolder(id);
   const feed = useSongFeed("all", user, { folderId: id });
+  // For the cards' menus: taking a song back out of this folder, and naming it.
+  const folders = useFolderShortcuts({
+    isTeacher,
+    grade: profile?.grade ?? null,
+    className: profile?.className ?? null,
+  });
 
   return (
     <div className="songs-page">
@@ -57,6 +63,7 @@ export default function FolderPage() {
               emptyText={t.folderNoSongs}
               user={user}
               isTeacher={isTeacher}
+              folders={folders}
               locale={locale}
               t={t}
             />

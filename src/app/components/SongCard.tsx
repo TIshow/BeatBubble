@@ -5,6 +5,7 @@ import Link from "next/link";
 import type { Translations } from "@/lib/i18n";
 import { metaErrorMessage } from "@/lib/i18n";
 import type { Visibility } from "@/hooks/useSongFeed";
+import type { SongFolder } from "@/lib/folders";
 import { supabase } from "@/lib/supabase";
 import {
   MAX_TITLE_LENGTH,
@@ -31,9 +32,14 @@ interface Props {
   onRenamed: (id: string, title: string, description: string | null) => void;
   onTemplateToggled: (id: string, isTemplate: boolean) => void;
   onVisibilityChanged: (id: string, visibility: Visibility) => void;
+  // The lesson folder this song was submitted to (#143), and the viewer's
+  // folders: the open ones are where it can go, and every one lends its name.
+  folderId: string | null;
+  folders: SongFolder[];
+  onFolderChanged: (id: string, folderId: string | null, visibility: Visibility) => void;
 }
 
-type Mode = "view" | "edit" | "confirmSensitive" | "confirmDelete";
+type Mode = "view" | "edit" | "confirmSensitive" | "confirmDelete" | "confirmSubmit";
 
 const VISIBILITY_ORDER: Visibility[] = ["public", "unlisted", "draft"];
 
@@ -53,6 +59,9 @@ export function SongCard({
   onRenamed,
   onTemplateToggled,
   onVisibilityChanged,
+  folderId,
+  folders,
+  onFolderChanged,
 }: Props) {
   const [mode, setMode] = useState<Mode>("view");
   const [draft, setDraft] = useState(title);
@@ -68,6 +77,9 @@ export function SongCard({
   const [openNote, setOpenNote] = useState<string | null>(null);
   const expanded = description !== null && openNote === description;
   const [clamped, setClamped] = useState(false);
+  // The folder a draft is about to be submitted to, while the card asks first.
+  const [pendingFolder, setPendingFolder] = useState<SongFolder | null>(null);
+  const [folderError, setFolderError] = useState<string | null>(null);
   const menuRef = useRef<HTMLDivElement>(null);
   const descRef = useRef<HTMLParagraphElement>(null);
 
@@ -183,6 +195,48 @@ export function SongCard({
     if (!error) onVisibilityChanged(id, next);
   };
 
+  const currentFolder = folders.find((f) => f.id === folderId) ?? null;
+  const folderChoices = folders.filter((f) => !f.archived);
+
+  // Submit to a folder, or take back out (folder = null). Visibility rides
+  // along because submitting a draft publishes it.
+  const writeFolder = async (folder: SongFolder | null, nextVisibility: Visibility) => {
+    setMenuOpen(false);
+    setBusy(true);
+    setFolderError(null);
+    const { error } = await supabase
+      .from("songs")
+      .update({ folder_id: folder?.id ?? null, visibility: nextVisibility })
+      .eq("id", id);
+    setBusy(false);
+    if (error) {
+      // Most likely the folder guard: closed since the menu was opened.
+      console.error("[BeatBubble] folder change failed:", error);
+      setFolderError(folder ? t.cardFolderError : t.saveErrorFailed);
+      return;
+    }
+    onFolderChanged(id, folder?.id ?? null, nextVisibility);
+  };
+
+  // A draft in a folder is seen by nobody — not the class, not the teacher,
+  // whose page leaves drafts out — so submitting one has to publish it. Ask
+  // first rather than flip it silently. Public and unlisted go straight in;
+  // unlisted stays unlisted, which makes it a submission for the teacher only.
+  const requestSubmit = (folder: SongFolder) => {
+    if (visibility === "draft") {
+      setMenuOpen(false);
+      setPendingFolder(folder);
+      setMode("confirmSubmit");
+      return;
+    }
+    writeFolder(folder, visibility);
+  };
+
+  const closeSubmitConfirm = () => {
+    setPendingFolder(null);
+    setMode("view");
+  };
+
   const visLabel = (v: Visibility) =>
     v === "public" ? t.visPublic : v === "unlisted" ? t.visUnlisted : t.visDraft;
 
@@ -226,6 +280,34 @@ export function SongCard({
                         {visLabel(v)}
                       </button>
                     ))}
+                    <div className="song-card-menu-divider" />
+                  </>
+                )}
+                {(folderId || folderChoices.length > 0) && (
+                  <>
+                    <span className="song-card-menu-label">
+                      {folderId ? t.cardSubmittedTo(currentFolder?.name ?? null) : t.saveFolderLegend}
+                    </span>
+                    {folderId ? (
+                      <button
+                        role="menuitem"
+                        onClick={() => writeFolder(null, visibility)}
+                        disabled={busy}
+                      >
+                        {t.cardTakeBack}
+                      </button>
+                    ) : (
+                      folderChoices.map((f) => (
+                        <button
+                          key={f.id}
+                          role="menuitem"
+                          onClick={() => requestSubmit(f)}
+                          disabled={busy}
+                        >
+                          📁 {f.name}
+                        </button>
+                      ))
+                    )}
                     <div className="song-card-menu-divider" />
                   </>
                 )}
@@ -338,6 +420,12 @@ export function SongCard({
           {author} ・ {time}
         </p>
 
+        {/* Only to the owner: which of their tries they handed in. */}
+        {isOwner && folderId && (
+          <p className="song-card-folder">{t.cardSubmittedTo(currentFolder?.name ?? null)}</p>
+        )}
+        {folderError && <p className="song-card-edit-error">{folderError}</p>}
+
         {/* What the child says they were going for. Clamped rather than
             truncated in JS so the full text stays selectable and readable to a
             screen reader — and openable in place, because a note nobody can
@@ -364,7 +452,26 @@ export function SongCard({
           </>
         )}
 
-        {mode === "confirmDelete" ? (
+        {mode === "confirmSubmit" && pendingFolder ? (
+          <div className="song-card-confirm">
+            <span className="song-card-confirm-label">{t.saveFolderHint}</span>
+            <div className="song-card-rename-actions">
+              <button
+                className="song-card-mini save"
+                onClick={async () => {
+                  await writeFolder(pendingFolder, "public");
+                  closeSubmitConfirm();
+                }}
+                disabled={busy}
+              >
+                {t.saveSubmitBtn}
+              </button>
+              <button className="song-card-mini" onClick={closeSubmitConfirm} disabled={busy}>
+                {t.cancel}
+              </button>
+            </div>
+          </div>
+        ) : mode === "confirmDelete" ? (
           <div className="song-card-confirm">
             <span className="song-card-confirm-label">{t.confirmDeleteSong}</span>
             <div className="song-card-rename-actions">

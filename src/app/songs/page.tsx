@@ -184,6 +184,7 @@ export default function SongsPage() {
           }
           user={user}
           isTeacher={isTeacher}
+          folders={folders}
           locale={locale}
           t={t}
         />
