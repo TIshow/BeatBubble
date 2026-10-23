@@ -834,3 +834,25 @@
   font-weight: 700;
   color: #11998e;
 }
+
+/* Sections inside a folder page: the teacher's templates, then the answers. */
+.folder-section {
+  margin-bottom: 28px;
+}
+
+.folder-section-title {
+  margin: 0 0 4px;
+  font-size: 17px;
+  font-weight: 800;
+}
+
+.folder-section-hint {
+  margin: 0 0 12px;
+  font-size: 13px;
+  opacity: 0.65;
+}
+
+/* The answers' heading follows the template grid directly. */
+.folder-section + .folder-section-title {
+  margin-bottom: 12px;
+}

@@ -160,6 +160,9 @@ export type Translations = {
   folderShowSongs: (n: number) => string;
   teacherFolderFilterLabel: string;
   teacherFolderFilterAll: string;
+  folderStartHere: string;
+  folderStartHereHint: string;
+  folderAnswers: string;
   templateOn: string;
   templateOff: string;
   visPublic: string;
@@ -397,6 +400,9 @@ export const translations: Record<Locale, Translations> = {
     folderShowSongs: (n) => (n === 0 ? 'No songs yet' : `View ${n} song${n === 1 ? '' : 's'}`),
     teacherFolderFilterLabel: 'Filter by folder',
     teacherFolderFilterAll: 'All folders',
+    folderStartHere: '★ Start here',
+    folderStartHereHint: "Open your teacher's template and make it your own.",
+    folderAnswers: "Everyone's songs",
     templateOn: 'Make template',
     templateOff: 'Unset template',
     visPublic: 'Public',
@@ -749,6 +755,9 @@ export const translations: Record<Locale, Translations> = {
     folderShowSongs: (n) => (n === 0 ? 'まだ0曲' : `${n}曲を見る`),
     teacherFolderFilterLabel: 'フォルダで絞り込む',
     teacherFolderFilterAll: 'すべてのフォルダ',
+    folderStartHere: '★ ここから はじめる',
+    folderStartHereHint: '先生の テンプレを ひらいて、じぶんの 音楽に してみよう。',
+    folderAnswers: 'みんなの ていしゅつ',
     templateOn: 'テンプレにする',
     templateOff: 'テンプレ解除',
     visPublic: '公開',

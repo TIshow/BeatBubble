@@ -115,14 +115,19 @@ it right, and it happens with the teacher present.*
   discovery/companion persistence, playback feedback, and
   `useLocale` (a `useSyncExternalStore` over localStorage, so every caller shares one value)
 - `src/lib/` : Supabase client and repositories, `browserStorage.ts` (storage access that
-  can't throw in private mode), i18n translations (`i18n.ts`, exports `Translations`)
+  can't throw in private mode), i18n translations (`i18n.ts`, exports `Translations`),
+  `folders.ts` (lesson-folder type and order), `classes.ts` (the grade/class pickers —
+  one list for the profile form and the folder form; see Lesson folders)
 - `src/app/` : Next.js pages/components and styles
   - `components/` : shared editor components (`Header`, `SettingsPanel`, `Grid`,
-    `NotePanel`, `SaveModal`); discovery and companion UI live in
-    `components/discovery/` and `components/companion/`
+    `NotePanel`, `SaveModal`); `SongGrid` (the song-card grid, shared by the feed and
+    a folder page so a card behaves the same in both); `TeacherFolders`; discovery and
+    companion UI live in `components/discovery/` and `components/companion/`
   - `styles/` : per-concern global CSS (`base/header/settings/grid/note-panel/modal/discoveries/companion/songs`), assembled by `globals.css` via `@import`
   - `page.tsx` : editor — wires state/handlers and composes the components
   - `songs/` : community songs feed page (`/songs`)
+  - `songs/folders/[id]/` : one lesson folder — the teacher's prompt, its templates,
+    then the songs handed in (`/songs/folders/<id>`)
   - `discoveries/` : 「おとのずかん」— the album of creatures met so far (`/discoveries`)
   - `teacher/` : moderation view for teachers only (`/teacher`) — see 見守れる練習場
   - `components/AccountProvider.tsx` : who is signed in, and everything hanging off it.
@@ -192,13 +197,43 @@ Playful, rounded, kid-friendly. Keep new UI consistent with these:
 - Both `/` and `/songs` pages share the account menu (locale switch works signed out too)
 
 ## Save / Feed
-- Songs are saved to Supabase table `songs` (columns: id, title, author, song_data jsonb, created_at, updated_at, grade, class_name)
-  - `updated_at` is server-controlled (trigger): bumped only when title/author/song_data change (overwrite-save, rename) — not by hidden/is_template flips
+- Songs are saved to Supabase table `songs` (columns: id, title, author, description, song_data jsonb, user_id, visibility, is_template, hidden, folder_id, created_at, updated_at, grade, class_name)
+  - `updated_at` is server-controlled (trigger): bumped only when title/author/song_data/description change (overwrite-save, rename) — not by hidden/is_template/visibility/folder flips, so none of those reorder the feed
   - `grade`/`class_name` are a **snapshot of the author's profile at save time** (trigger `songs_class_snapshot`): populated on insert from `profiles`, frozen on update, null for anonymous saves. The client never sends them.
 - Public read + insert RLS policies (no auth required)
 - `/songs` page: server-side text search (`ilike` title/author, debounced) + grade/class filters (`song_class_options()` RPC feeds the dropdowns; hidden when no class data); all fold into `useSongFeed`, paginated 24/page via `.range()` (infinite scroll + "もっと見る" fallback); each card links to `/?load=<id>`
 - Editor loads a song via `?load=<id>` on mount **through `migrateSong()`**, then cleans the URL with `replaceState`
 - Required env vars: `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+
+## Lesson folders (授業のフォルダ, #143)
+A folder collects one lesson's work. Teachers make and close them on `/teacher`;
+children submit (ていしゅつ) songs into the open ones for their class. Rules that
+are easy to get wrong:
+
+- **Saving is trying; ていしゅつ is "this one is my answer".** A folder holds only
+  what a child chose to hand in. "Don't submit" is the default, and starting from
+  a template filed in a folder does **not** file the new song — children open
+  templates to play at home too. Submitting later from a card's ⋯ is the main
+  path: make several tries, then pick one.
+- **A draft can't be handed in as a draft.** Drafts are seen by nobody — not the
+  class, not `/teacher` — so submitting one publishes it. The save dialog swaps its
+  buttons for a single 「📁 ていしゅつ する」; the card menu asks first. Unlisted
+  stays unlisted: that is a submission for the teacher only.
+- **Closing a folder (`archived`) is not a lock.** It only leaves the choices;
+  overwrite-saving a submitted song keeps it in the folder.
+- **A folder is a lens, not a permission boundary.** Who can see a song is still
+  `visibility` (class-only visibility is #99). Deleting a folder never deletes
+  songs (`folder_id` is `on delete set null`).
+- **The database is the gate** (`songs_folder_guard`, migration 0016). A child files
+  only into an open folder for their own grade and class (or their grade's
+  whole-grade folders); teachers file anywhere, since templates go in folders too.
+  The guard compares the folder's class with the profile's, which is why
+  `src/lib/classes.ts` is the one picker list for both forms.
+- **No "who hasn't submitted" list, no deadlines, no grading.** A roster diff turns
+  the folder into compliance tracking — the LMS this document rules out.
+- Pages: `/songs/folders/<id>` (works signed out, so it can go on the classroom
+  screen); shortcuts on `/songs` for the viewer's class; `/teacher` filters its
+  song list by folder, unlisted included.
 
 ## Manual Test Checklist (must pass)
 - Place melody note -> Play -> sound starts on correct step
@@ -217,3 +252,10 @@ Playful, rounded, kid-friendly. Keep new UI consistent with these:
 - Save a song while signed in -> the modal says a teacher can see who made it
 - /teacher shows nothing for a child, and the account menu offers 先生ページ
   only to a teacher (RLS is the real gate; the link is convenience)
+- Teacher makes a folder on /teacher -> a child of that class sees it on /songs,
+  and the save dialog offers 「フォルダに ていしゅつ」 with ていしゅつ しない selected
+- Pick a folder in the save dialog -> the buttons become one 「📁 ていしゅつ する」,
+  and the song appears on the folder page
+- Submit a draft from a card's ⋯ -> it asks before publishing; take it back ->
+  it leaves the folder page at once
+- Close the folder -> it leaves the save choices, and its songs still show
