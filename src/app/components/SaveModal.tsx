@@ -1,10 +1,14 @@
 "use client";
 
 import { useRef, useState } from "react";
+import Link from "next/link";
 import type { Song } from "@/core/types";
 import type { Locale, Translations } from "@/lib/i18n";
 import { metaErrorMessage, translations } from "@/lib/i18n";
 import { supabase } from "@/lib/supabase";
+import type { SongFolder } from "@/lib/folders";
+import { useAccount } from "@/app/components/AccountProvider";
+import { useFolderShortcuts } from "@/hooks/useFolders";
 import {
   MAX_TITLE_LENGTH,
   MAX_AUTHOR_LENGTH,
@@ -19,6 +23,7 @@ import {
 // - auth/session (expired JWT, RLS uid mismatch) → tell them to re-login
 // - rate limit (429, shared school IP under load) → tell them to wait
 // - size check slipping past the client guard → the too-large message
+// - folder refused → save without it
 function saveErrorMessage(error: unknown, t: Translations): string {
   const e = (error ?? {}) as { code?: string; message?: string; status?: number };
   const code = e.code ?? "";
@@ -32,6 +37,11 @@ function saveErrorMessage(error: unknown, t: Translations): string {
   }
   if (code === "23514" || msg.includes("song_data")) {
     return t.saveErrorTooLarge;
+  }
+  // The folder guard (migration 0016) refused: closed since the modal opened,
+  // or not this child's class. Saving without the folder still works.
+  if (msg.includes("folder")) {
+    return t.saveErrorFolder;
   }
   return t.saveErrorFailed;
 }
@@ -67,6 +77,19 @@ export function SaveModal({
   // After a successful new save, show a confirmation telling the child what
   // happened and where the song went, instead of silently closing.
   const [savedAs, setSavedAs] = useState<"draft" | "public" | null>(null);
+  // Lesson folders (#143). Offered on a fresh save only: overwriting leaves
+  // where a song is filed alone, and moving it in or out is the song card's job.
+  const offerFolders = !existing && !!userId;
+  const { isTeacher, profile } = useAccount();
+  const folderChoices = useFolderShortcuts({
+    isTeacher: offerFolders && isTeacher,
+    grade: offerFolders ? (profile?.grade ?? null) : null,
+    className: profile?.className ?? null,
+  }).filter((f) => !f.archived);
+  const [folder, setFolder] = useState<SongFolder | null>(null);
+  // Where the song went, for the confirmation — kept apart from `folder` so the
+  // message names the folder that was actually saved to.
+  const [savedTo, setSavedTo] = useState<SongFolder | null>(null);
   // Reflection nudge: when the title/author holds a sensitive (not blocked)
   // word, pause once and ask the child to reconsider before the save runs.
   const [reflecting, setReflecting] = useState(false);
@@ -160,8 +183,12 @@ export function SaveModal({
           song_data: song,
           user_id: userId,
           visibility,
+          folder_id: folder?.id ?? null,
         }),
-      () => setSavedAs(visibility)
+      () => {
+        setSavedTo(folder);
+        setSavedAs(visibility);
+      }
     );
 
   const handleOverwrite = () =>
@@ -213,9 +240,19 @@ export function SaveModal({
       <div className="modal-overlay" onClick={onClose}>
         <div className="modal" onClick={(e) => e.stopPropagation()}>
           <h2 className="modal-title">
-            {savedAs === "draft" ? t.savedDraftMsg : t.savedPublicMsg}
+            {savedTo
+              ? t.savedFolderMsg(savedTo.name)
+              : savedAs === "draft"
+                ? t.savedDraftMsg
+                : t.savedPublicMsg}
           </h2>
           <div className="modal-actions">
+            {savedTo && (
+              // So the child sees their song sitting among the class's answers.
+              <Link href={`/songs/folders/${savedTo.id}`} className="modal-cancel modal-link">
+                {t.saveOpenFolder}
+              </Link>
+            )}
             <button className="modal-save" onClick={onClose} autoFocus>
               {t.close}
             </button>
@@ -269,9 +306,45 @@ export function SaveModal({
             rows={3}
           />
         </div>
+        {/* Only when this child's class has an open folder. "Don't submit" is
+            the default: saving is trying, and a folder holds only what the
+            child chose to hand in (#143). */}
+        {folderChoices.length > 0 && (
+          <fieldset className="modal-folder">
+            <legend className="modal-label">{t.saveFolderLegend}</legend>
+            <label className="modal-folder-option">
+              <input
+                type="radio"
+                name="save-folder"
+                checked={folder === null}
+                onChange={() => setFolder(null)}
+              />
+              {t.saveFolderNone}
+            </label>
+            {folderChoices.map((f) => (
+              <label key={f.id} className="modal-folder-option">
+                <input
+                  type="radio"
+                  name="save-folder"
+                  checked={folder?.id === f.id}
+                  onChange={() => {
+                    setFolder(f);
+                    if (error) setError(null);
+                  }}
+                />
+                📁 {f.name}
+                {isTeacher && (
+                  <span className="modal-folder-target">
+                    {t.folderTarget(f.grade, f.class_name)}
+                  </span>
+                )}
+              </label>
+            ))}
+          </fieldset>
+        )}
         {!existing &&
           (userId ? (
-            <p className="modal-hint">{t.saveChoiceHint}</p>
+            <p className="modal-hint">{folder ? t.saveFolderHint : t.saveChoiceHint}</p>
           ) : (
             // Not signed in: an anonymous save has no owner, so the child can't
             // delete it later. Warn prominently before they publish.
@@ -299,6 +372,19 @@ export function SaveModal({
                 {saving ? t.saving : t.overwrite}
               </button>
             </>
+          ) : userId && folder ? (
+            // Submitting is publishing. The usual primary button here is
+            // "save as draft", and a draft in a folder is seen by nobody —
+            // not the class, not the teacher — so a child who picked a folder
+            // and pressed the green button out of habit would have handed in
+            // nothing. With a folder chosen there is one button, and it says so.
+            <button
+              className="modal-save"
+              onClick={() => handleInsert("public")}
+              disabled={!canSave}
+            >
+              {saving ? t.saving : t.saveSubmitBtn}
+            </button>
           ) : userId ? (
             // Signed in: the child picks the visibility — draft (primary,
             // safe default) or publish right away. Nothing decided silently.

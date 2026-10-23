@@ -147,6 +147,13 @@ export type Translations = {
   folderClosedChip: string;
   folderNoSongs: string;
   folderNotFound: string;
+  saveFolderLegend: string;
+  saveFolderNone: string;
+  saveFolderHint: string;
+  saveSubmitBtn: string;
+  savedFolderMsg: (name: string) => string;
+  saveOpenFolder: string;
+  saveErrorFolder: string;
   templateOn: string;
   templateOff: string;
   visPublic: string;
@@ -371,6 +378,13 @@ export const translations: Record<Locale, Translations> = {
     folderClosedChip: 'Closed',
     folderNoSongs: 'No songs submitted yet.',
     folderNotFound: "This folder doesn't exist.",
+    saveFolderLegend: 'Submit to a folder',
+    saveFolderNone: "Don't submit",
+    saveFolderHint: 'Submitting publishes the song: it appears in the folder and in All songs.',
+    saveSubmitBtn: '📁 Submit',
+    savedFolderMsg: (name) => `Submitted to “${name}”!`,
+    saveOpenFolder: 'Open the folder',
+    saveErrorFolder: "Couldn't submit to this folder. Choose “Don't submit” and save.",
     templateOn: 'Make template',
     templateOff: 'Unset template',
     visPublic: 'Public',
@@ -710,6 +724,13 @@ export const translations: Record<Locale, Translations> = {
     folderClosedChip: 'うけつけ おわり',
     folderNoSongs: 'まだ ていしゅつされた 曲は ないよ',
     folderNotFound: 'この フォルダは みつからないよ',
+    saveFolderLegend: 'フォルダに ていしゅつ',
+    saveFolderNone: 'ていしゅつ しない',
+    saveFolderHint: 'ていしゅつ すると 公開されて、フォルダと「みんなの曲」に のるよ。',
+    saveSubmitBtn: '📁 ていしゅつ する',
+    savedFolderMsg: (name) => `「${name}」に ていしゅつ したよ！`,
+    saveOpenFolder: 'フォルダを みる',
+    saveErrorFolder: 'この フォルダには ていしゅつ できなかったよ。「ていしゅつ しない」に して ほぞん してね。',
     templateOn: 'テンプレにする',
     templateOff: 'テンプレ解除',
     visPublic: '公開',
