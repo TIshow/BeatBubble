@@ -160,3 +160,41 @@ select.modal-input {
   font-family: inherit;
   line-height: 1.5;
 }
+
+/* "Submit to a folder" on a fresh save (#143). Radios rather than a select:
+   with one or two open folders, every choice is visible without opening
+   anything. */
+.modal-folder {
+  margin: 0;
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  border: 1px solid var(--grid-line);
+  border-radius: 12px;
+}
+
+.modal-folder legend {
+  padding: 0 4px;
+}
+
+.modal-folder-option {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.modal-folder-target {
+  font-size: 11px;
+  opacity: 0.6;
+}
+
+/* A link styled as the secondary button (the confirmation's "open the folder"). */
+.modal-link {
+  display: inline-flex;
+  align-items: center;
+  text-decoration: none;
+}
