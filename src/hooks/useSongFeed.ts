@@ -71,10 +71,13 @@ export type FeedFilters = {
   search?: string;
   grade?: number | null;
   className?: string | null;
+  // A lesson folder (#143). Narrows whichever view it's combined with; a
+  // folder is a lens, so it never widens what the view would show.
+  folderId?: string | null;
 };
 
 export function useSongFeed(view: FeedView, user: User | null, filters: FeedFilters = {}) {
-  const { search = "", grade = null, className = null } = filters;
+  const { search = "", grade = null, className = null, folderId = null } = filters;
   const [songs, setSongs] = useState<FeedSong[]>([]);
   const [total, setTotal] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
@@ -104,9 +107,10 @@ export function useSongFeed(view: FeedView, user: User | null, filters: FeedFilt
       if (term) query = query.or(`title.ilike.%${term}%,author.ilike.%${term}%`);
       if (grade != null) query = query.eq("grade", grade);
       if (className) query = query.eq("class_name", className);
+      if (folderId) query = query.eq("folder_id", folderId);
       return query.order("updated_at", { ascending: false }).range(from, from + PAGE_SIZE - 1);
     },
-    [view, user, search, grade, className]
+    [view, user, search, grade, className, folderId]
   );
 
   // Initial load, and reset whenever the view (or sign-in state) changes.
@@ -198,3 +202,5 @@ export function useSongFeed(view: FeedView, user: User | null, filters: FeedFilt
     setSongVisibility,
   };
 }
+
+export type SongFeed = ReturnType<typeof useSongFeed>;

@@ -6,34 +6,18 @@ import { useLocale } from "@/hooks/useLocale";
 import { useAccount } from "@/app/components/AccountProvider";
 import { useSongFeed, type FeedView } from "@/hooks/useSongFeed";
 import { useSongFilters } from "@/hooks/useSongFilters";
+import { useFolderShortcuts } from "@/hooks/useFolders";
 import { AccountMenu } from "@/app/components/AccountMenu";
-import { SongCard } from "@/app/components/SongCard";
-import type { Locale } from "@/lib/i18n";
-import { translations } from "@/lib/i18n";
-
-const CARD_GRADIENTS = [
-  "linear-gradient(135deg, #ff6b6b, #feca57)",
-  "linear-gradient(135deg, #48dbfb, #a29bfe)",
-  "linear-gradient(135deg, #ff9ff3, #54a0ff)",
-  "linear-gradient(135deg, #00d2d3, #ff9f43)",
-  "linear-gradient(135deg, #5f27cd, #ff6b6b)",
-  "linear-gradient(135deg, #feca57, #48dbfb)",
-];
-
-function timeAgo(dateStr: string, locale: Locale): string {
-  const t = translations[locale];
-  const sec = Math.floor((Date.now() - new Date(dateStr).getTime()) / 1000);
-  if (sec < 60) return t.justNow;
-  const min = Math.floor(sec / 60);
-  if (min < 60) return t.minutesAgo(min);
-  const hr = Math.floor(min / 60);
-  if (hr < 24) return t.hoursAgo(hr);
-  return t.daysAgo(Math.floor(hr / 24));
-}
+import { SongGrid } from "@/app/components/SongGrid";
 
 export default function SongsPage() {
   const { locale, t } = useLocale();
-  const { user, isTeacher } = useAccount();
+  const { user, isTeacher, profile } = useAccount();
+  const folders = useFolderShortcuts({
+    isTeacher,
+    grade: profile?.grade ?? null,
+    className: profile?.className ?? null,
+  });
   const [view, setView] = useState<FeedView>("all");
 
   const {
@@ -53,19 +37,8 @@ export default function SongsPage() {
   // "mine" needs sign-in; "all" and "templates" are open to everyone.
   const effectiveView: FeedView = !user && view === "mine" ? "all" : view;
 
-  const {
-    songs,
-    total,
-    loading,
-    loadingMore,
-    hasMore,
-    loadMore,
-    sentinelRef,
-    removeSong,
-    renameSong,
-    setSongTemplate,
-    setSongVisibility,
-  } = useSongFeed(effectiveView, user, filters);
+  const feed = useSongFeed(effectiveView, user, filters);
+  const { songs, total, loading } = feed;
 
   return (
     <div className="songs-page">
@@ -104,6 +77,35 @@ export default function SongsPage() {
             </button>
           )}
         </div>
+
+        {/* Lesson folders for this child's class (#143). Only rendered when
+            there are some, so nothing changes for a class without folders. */}
+        {folders.length > 0 && (
+          <nav className="songs-folders" aria-label={t.folderShortcutsLabel}>
+            <span className="songs-folders-label">{t.folderShortcutsLabel}</span>
+            <div className="songs-folders-row">
+              {folders.map((folder) => (
+                <Link
+                  key={folder.id}
+                  href={`/songs/folders/${folder.id}`}
+                  className={`songs-folder-chip ${folder.archived ? "closed" : ""}`}
+                  prefetch={false}
+                >
+                  📁 {folder.name}
+                  {folder.archived && (
+                    // Said in words, not only by dimming the chip.
+                    <span className="songs-folder-chip-note">{t.folderClosedChip}</span>
+                  )}
+                  {isTeacher && (
+                    <span className="songs-folder-chip-note">
+                      {t.folderTarget(folder.grade, folder.class_name)}
+                    </span>
+                  )}
+                </Link>
+              ))}
+            </div>
+          </nav>
+        )}
 
         <div className="songs-toolbar">
           <div className="songs-tabs">
@@ -169,68 +171,22 @@ export default function SongsPage() {
           )}
         </div>
 
-        {loading ? (
-          <div className="songs-grid" aria-busy="true">
-            {Array.from({ length: 8 }).map((_, i) => (
-              <div key={i} className="song-card-skeleton" aria-hidden="true">
-                <div className="song-card-skeleton-art" />
-                <div className="song-card-skeleton-body">
-                  <div className="song-card-skeleton-line wide" />
-                  <div className="song-card-skeleton-line" />
-                  <div className="song-card-skeleton-btn" />
-                </div>
-              </div>
-            ))}
-          </div>
-        ) : songs.length === 0 ? (
-          <p className="songs-status">
-            {filters.search
+        <SongGrid
+          feed={feed}
+          emptyText={
+            filters.search
               ? t.noResults
               : effectiveView === "mine"
                 ? t.noMySongs
                 : effectiveView === "templates"
                   ? t.noTemplates
-                  : t.noSongs}
-          </p>
-        ) : (
-          <>
-            <div className="songs-grid">
-              {songs.map((song, i) => (
-                <SongCard
-                  key={song.id}
-                  id={song.id}
-                  title={song.title}
-                  author={song.author}
-                  description={song.description}
-                  time={timeAgo(song.updated_at, locale)}
-                  gradient={CARD_GRADIENTS[i % CARD_GRADIENTS.length]}
-                  isOwner={!!user && song.user_id === user.id}
-                  isTemplate={song.is_template}
-                  visibility={song.visibility}
-                  isTeacher={isTeacher}
-                  t={t}
-                  onDeleted={removeSong}
-                  onRenamed={renameSong}
-                  onTemplateToggled={setSongTemplate}
-                  onVisibilityChanged={setSongVisibility}
-                />
-              ))}
-            </div>
-            {hasMore && <div ref={sentinelRef} className="songs-sentinel" aria-hidden="true" />}
-            {hasMore &&
-              (loadingMore ? (
-                <p className="songs-more-status">{t.loadingMore}</p>
-              ) : (
-                // Auto-loads on scroll via the observer; this button is a
-                // reliable fallback for environments where it doesn't fire.
-                <div className="songs-more-wrap">
-                  <button className="songs-more-btn" onClick={loadMore}>
-                    {t.showMore}
-                  </button>
-                </div>
-              ))}
-          </>
-        )}
+                  : t.noSongs
+          }
+          user={user}
+          isTeacher={isTeacher}
+          locale={locale}
+          t={t}
+        />
       </main>
     </div>
   );

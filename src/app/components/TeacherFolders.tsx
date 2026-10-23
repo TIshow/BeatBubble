@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import type { Translations } from "@/lib/i18n";
 import { CLASS_OPTIONS, GRADES } from "@/lib/classes";
 import { useTeacherFolders } from "@/hooks/useTeacherFolders";
+import { byOpenThenNewest } from "@/lib/folders";
 
 // Same limits as the database (migration 0016). The inputs enforce them, so a
 // create can't fail on length.
@@ -27,15 +28,7 @@ export function TeacherFolders({ t }: { t: Translations }) {
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
   const [writeFailed, setWriteFailed] = useState(false);
 
-  // Open folders first — those are the ones a teacher acts on — newest first.
-  const sorted = useMemo(
-    () =>
-      [...folders].sort(
-        (a, b) =>
-          Number(a.archived) - Number(b.archived) || b.created_at.localeCompare(a.created_at)
-      ),
-    [folders]
-  );
+  const sorted = useMemo(() => [...folders].sort(byOpenThenNewest), [folders]);
 
   const closeForm = () => {
     setFormOpen(false);

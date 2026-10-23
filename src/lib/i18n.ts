@@ -142,6 +142,11 @@ export type Translations = {
   folderEmpty: string;
   folderLoadError: string;
   folderWriteError: string;
+  folderShortcutsLabel: string;
+  folderBack: string;
+  folderClosedChip: string;
+  folderNoSongs: string;
+  folderNotFound: string;
   templateOn: string;
   templateOff: string;
   visPublic: string;
@@ -361,6 +366,11 @@ export const translations: Record<Locale, Translations> = {
     folderEmpty: 'No folders yet.',
     folderLoadError: "Couldn't load folders. Please reload the page.",
     folderWriteError: "Couldn't save. Please try again.",
+    folderShortcutsLabel: 'Lesson folders',
+    folderBack: '← All songs',
+    folderClosedChip: 'Closed',
+    folderNoSongs: 'No songs submitted yet.',
+    folderNotFound: "This folder doesn't exist.",
     templateOn: 'Make template',
     templateOff: 'Unset template',
     visPublic: 'Public',
@@ -695,6 +705,11 @@ export const translations: Record<Locale, Translations> = {
     folderEmpty: 'まだフォルダはありません。',
     folderLoadError: 'フォルダを読み込めませんでした。ページを再読み込みしてください。',
     folderWriteError: '保存できませんでした。もう一度お試しください。',
+    folderShortcutsLabel: 'じゅぎょうの フォルダ',
+    folderBack: '← みんなの曲',
+    folderClosedChip: 'うけつけ おわり',
+    folderNoSongs: 'まだ ていしゅつされた 曲は ないよ',
+    folderNotFound: 'この フォルダは みつからないよ',
     templateOn: 'テンプレにする',
     templateOff: 'テンプレ解除',
     visPublic: '公開',
