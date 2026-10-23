@@ -3,15 +3,9 @@
 import { useState } from "react";
 import type { Translations } from "@/lib/i18n";
 import type { Gender, Profile, ProfileEdits } from "@/hooks/useProfile";
+import { CLASS_OPTIONS, GRADES } from "@/lib/classes";
 
 const GENDERS: Gender[] = ["male", "female", "other", "undisclosed"];
-const GRADES = [1, 2, 3, 4, 5, 6];
-// Class is a fixed picker (numbers then letters) so the same class can't be
-// typed in variants (半角/全角/「組」つき) that split it into separate tabs.
-const CLASS_OPTIONS = [
-  ...Array.from({ length: 10 }, (_, i) => String(i + 1)), // 1..10
-  ..."ABCDEFG".split(""), // A..G
-];
 const MAX_NAME = 60;
 const MAX_SCHOOL = 100;
 

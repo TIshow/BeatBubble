@@ -197,3 +197,168 @@
   opacity: 0.75;
   word-break: break-all;
 }
+
+/* Lesson folders (#143). Sits above the song table and stays compact: a teacher
+   comes here to make or close a folder, then gets on with the list below. */
+.teacher-folders {
+  margin-bottom: 24px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid var(--grid-line);
+}
+
+.teacher-folders-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 6px;
+}
+
+.teacher-section-title {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 800;
+}
+
+.teacher-folder-form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 14px;
+  margin-bottom: 14px;
+  border: 1px solid var(--grid-line);
+  border-radius: 12px;
+}
+
+.teacher-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.teacher-field > span {
+  opacity: 0.7;
+}
+
+.teacher-field-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.teacher-field-row .teacher-field {
+  flex: 1 1 140px;
+}
+
+.teacher-input {
+  padding: 8px 12px;
+  border-radius: 10px;
+  border: 1px solid var(--grid-line);
+  background: var(--grid-bg);
+  color: var(--foreground);
+  font-family: inherit;
+  font-size: 14px;
+}
+
+.teacher-input:focus {
+  outline: none;
+  border-color: #667eea;
+}
+
+textarea.teacher-input {
+  resize: vertical;
+  line-height: 1.5;
+}
+
+.teacher-folder-form-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.teacher-btn.primary {
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  border-color: transparent;
+  color: #fff;
+}
+
+.teacher-folder-error {
+  margin: 0 0 10px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #ee5253;
+}
+
+.teacher-folder-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  border: 1px solid var(--grid-line);
+  border-radius: 12px;
+}
+
+.teacher-folder {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px 16px;
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--grid-line);
+}
+
+.teacher-folder:last-child {
+  border-bottom: none;
+}
+
+.teacher-folder-body {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 10px;
+  flex: 1 1 280px;
+  min-width: 0;
+}
+
+/* Dim the description of a closed folder, not its buttons: "reopen" is the one
+   thing a teacher might come back to do. */
+.teacher-folder.archived .teacher-folder-body {
+  opacity: 0.55;
+}
+
+.teacher-folder-name {
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.teacher-folder-target {
+  font-size: 12px;
+  opacity: 0.7;
+}
+
+.teacher-folder-prompt {
+  flex-basis: 100%;
+  font-size: 12px;
+  opacity: 0.75;
+}
+
+.teacher-folder-badge {
+  padding: 1px 8px;
+  border-radius: 10px;
+  background: var(--grid-line);
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.teacher-folder-badge.open {
+  background: rgba(56, 239, 125, 0.18);
+  color: #11998e;
+}
+
+.teacher-folder-confirm {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+}

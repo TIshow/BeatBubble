@@ -121,6 +121,27 @@ export type Translations = {
   teacherShowEmails: string;
   teacherHideEmails: string;
   teacherEmailsHiddenNote: string;
+  folderSectionTitle: string;
+  folderSectionIntro: string;
+  folderNew: string;
+  folderNameLabel: string;
+  folderNamePlaceholder: string;
+  folderPromptLabel: string;
+  folderPromptPlaceholder: string;
+  folderGradeLabel: string;
+  folderClassLabel: string;
+  folderWholeGrade: string;
+  folderCreate: string;
+  folderTarget: (grade: number, className: string | null) => string;
+  folderOpenBadge: string;
+  folderClosedBadge: string;
+  folderArchive: string;
+  folderReopen: string;
+  folderDelete: string;
+  folderDeleteConfirm: (name: string) => string;
+  folderEmpty: string;
+  folderLoadError: string;
+  folderWriteError: string;
   templateOn: string;
   templateOff: string;
   visPublic: string;
@@ -316,6 +337,30 @@ export const translations: Record<Locale, Translations> = {
     teacherShowEmails: 'Show emails',
     teacherHideEmails: 'Hide emails',
     teacherEmailsHiddenNote: 'Emails hidden — safe to show on the classroom screen.',
+    folderSectionTitle: 'Lesson folders',
+    folderSectionIntro:
+      "A folder collects the songs from one lesson. Children can submit a song to their own class's open folders. Closing a folder stops new submissions; the songs inside stay visible.",
+    folderNew: '+ New folder',
+    folderNameLabel: 'Folder name',
+    folderNamePlaceholder: 'e.g. Ghost music',
+    folderPromptLabel: 'Prompt (shown at the top of the folder)',
+    folderPromptPlaceholder: 'e.g. Make music for a ghost creeping closer',
+    folderGradeLabel: 'Grade',
+    folderClassLabel: 'Class',
+    folderWholeGrade: 'Whole grade',
+    folderCreate: 'Create',
+    folderTarget: (grade, className) =>
+      className ? `Grade ${grade} · Class ${className}` : `Grade ${grade} · all classes`,
+    folderOpenBadge: 'Open',
+    folderClosedBadge: 'Closed',
+    folderArchive: 'Close',
+    folderReopen: 'Reopen',
+    folderDelete: 'Delete',
+    folderDeleteConfirm: (name) =>
+      `Delete “${name}”? The songs inside are kept — they just leave the folder.`,
+    folderEmpty: 'No folders yet.',
+    folderLoadError: "Couldn't load folders. Please reload the page.",
+    folderWriteError: "Couldn't save. Please try again.",
     templateOn: 'Make template',
     templateOff: 'Unset template',
     visPublic: 'Public',
@@ -627,6 +672,29 @@ export const translations: Record<Locale, Translations> = {
     teacherShowEmails: 'メールを表示',
     teacherHideEmails: 'メールを隠す',
     teacherEmailsHiddenNote: 'メール非表示中 — 教室の画面に映しても大丈夫です。',
+    folderSectionTitle: '授業のフォルダ',
+    folderSectionIntro:
+      '授業ごとに作品を集めるフォルダです。児童は自分のクラスのフォルダに曲を「ていしゅつ」できます。終了すると新しいていしゅつを受け付けなくなりますが、中の作品はそのまま見られます。',
+    folderNew: '＋ フォルダを作る',
+    folderNameLabel: 'フォルダの名前',
+    folderNamePlaceholder: '例：おばけの音楽',
+    folderPromptLabel: 'おだい（フォルダの先頭に表示）',
+    folderPromptPlaceholder: '例：おばけが ちかづいてくる 音楽を つくろう',
+    folderGradeLabel: '学年',
+    folderClassLabel: 'クラス',
+    folderWholeGrade: '学年ぜんぶ',
+    folderCreate: '作る',
+    folderTarget: (grade, className) => (className ? `${grade}年${className}組` : `${grade}年 ぜんぶ`),
+    folderOpenBadge: '受付中',
+    folderClosedBadge: '終了',
+    folderArchive: '終了する',
+    folderReopen: '再開する',
+    folderDelete: '消す',
+    folderDeleteConfirm: (name) =>
+      `「${name}」を消しますか？ 中の作品は消えず、フォルダから外れるだけです。`,
+    folderEmpty: 'まだフォルダはありません。',
+    folderLoadError: 'フォルダを読み込めませんでした。ページを再読み込みしてください。',
+    folderWriteError: '保存できませんでした。もう一度お試しください。',
     templateOn: 'テンプレにする',
     templateOff: 'テンプレ解除',
     visPublic: '公開',
