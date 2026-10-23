@@ -719,3 +719,110 @@
   color: #ee5253;
   line-height: 1.4;
 }
+
+/* Lesson folder shortcuts on the feed (#143): the folders for this child's
+   class, one tap away. Scrolls sideways rather than wrapping, so a year's worth
+   of folders never pushes the songs off the first screen. */
+.songs-folders {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 16px;
+  min-width: 0;
+}
+
+.songs-folders-label {
+  font-size: 12px;
+  font-weight: 700;
+  opacity: 0.6;
+  white-space: nowrap;
+}
+
+.songs-folders-row {
+  display: flex;
+  gap: 8px;
+  min-width: 0;
+  overflow-x: auto;
+  padding-bottom: 2px;
+}
+
+.songs-folder-chip {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 6px;
+  padding: 7px 14px;
+  border-radius: 20px;
+  border: 1.5px solid var(--grid-line);
+  background: var(--grid-bg);
+  color: var(--foreground);
+  font-size: 13px;
+  font-weight: 700;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.songs-folder-chip:hover {
+  border-color: #667eea;
+}
+
+.songs-folder-chip.closed {
+  opacity: 0.6;
+}
+
+.songs-folder-chip-note {
+  font-size: 11px;
+  font-weight: 600;
+  opacity: 0.75;
+}
+
+/* The top of a folder page: what the lesson asked, before everyone's answers. */
+.folder-intro {
+  padding: 18px 22px;
+  margin-bottom: 20px;
+  border-radius: 20px;
+  background: var(--grid-bg);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+}
+
+.folder-intro-name {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 800;
+  overflow-wrap: anywhere;
+}
+
+.folder-intro-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 12px;
+  margin-top: 6px;
+  font-size: 13px;
+  font-weight: 700;
+  opacity: 0.7;
+}
+
+.folder-intro-closed {
+  padding: 1px 8px;
+  border-radius: 10px;
+  background: var(--grid-line);
+  font-size: 11px;
+}
+
+.folder-intro-prompt {
+  margin: 10px 0 0;
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 1.6;
+  white-space: pre-wrap;
+}
+
+@media (max-width: 600px) {
+  .songs-folders {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .songs-folders-row {
+    max-width: 100%;
+  }
+}
