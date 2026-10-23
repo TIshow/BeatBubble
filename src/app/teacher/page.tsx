@@ -8,6 +8,7 @@ import { useTeacherSongs, type TeacherSong } from "@/hooks/useTeacherSongs";
 import { useProfileDirectory } from "@/hooks/useProfileDirectory";
 import { useUserEmails } from "@/hooks/useUserEmails";
 import { accountLineFor, reviewReasonFor } from "@/lib/songAuthor";
+import { TeacherFolders } from "@/app/components/TeacherFolders";
 
 type Filter = "all" | "review" | "hidden";
 
@@ -127,6 +128,10 @@ export default function TeacherPage() {
       </header>
 
       <main className="teacher-main">
+        {/* Above the song table, which runs to hundreds of rows: below it, making
+            a folder would mean scrolling past every song first. */}
+        <TeacherFolders t={t} />
+
         <p className="teacher-intro">
           {t.teacherIntro}
           {!showEmails && <> {t.teacherEmailsHiddenNote}</>}
