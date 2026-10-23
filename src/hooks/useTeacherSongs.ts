@@ -14,6 +14,8 @@ export type TeacherSong = {
   hidden: boolean;
   grade: number | null;
   class_name: string | null;
+  // The lesson folder it was submitted to (#143), if any.
+  folder_id: string | null;
 };
 
 // Everything the teacher may moderate, newest first. Unlike the child-facing
@@ -40,7 +42,7 @@ export function useTeacherSongs(enabled: boolean) {
       setError(false);
       const { data, error: dbError } = await supabase
         .from("songs")
-        .select("id, title, author, updated_at, user_id, visibility, hidden, grade, class_name")
+        .select("id, title, author, updated_at, user_id, visibility, hidden, grade, class_name, folder_id")
         .order("updated_at", { ascending: false })
         .limit(MAX_ROWS);
       if (!active) return;

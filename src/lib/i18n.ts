@@ -157,6 +157,9 @@ export type Translations = {
   cardSubmittedTo: (name: string | null) => string;
   cardTakeBack: string;
   cardFolderError: string;
+  folderShowSongs: (n: number) => string;
+  teacherFolderFilterLabel: string;
+  teacherFolderFilterAll: string;
   templateOn: string;
   templateOff: string;
   visPublic: string;
@@ -391,6 +394,9 @@ export const translations: Record<Locale, Translations> = {
     cardSubmittedTo: (name) => (name ? `📁 Submitted to ${name}` : '📁 Submitted'),
     cardTakeBack: '📁 Take back from the folder',
     cardFolderError: "Couldn't submit to the folder.",
+    folderShowSongs: (n) => (n === 0 ? 'No songs yet' : `View ${n} song${n === 1 ? '' : 's'}`),
+    teacherFolderFilterLabel: 'Filter by folder',
+    teacherFolderFilterAll: 'All folders',
     templateOn: 'Make template',
     templateOff: 'Unset template',
     visPublic: 'Public',
@@ -740,6 +746,9 @@ export const translations: Record<Locale, Translations> = {
     cardSubmittedTo: (name) => (name ? `📁 ${name} に ていしゅつ ずみ` : '📁 ていしゅつ ずみ'),
     cardTakeBack: '📁 フォルダから もどす',
     cardFolderError: 'フォルダに ていしゅつ できなかったよ。',
+    folderShowSongs: (n) => (n === 0 ? 'まだ0曲' : `${n}曲を見る`),
+    teacherFolderFilterLabel: 'フォルダで絞り込む',
+    teacherFolderFilterAll: 'すべてのフォルダ',
     templateOn: 'テンプレにする',
     templateOff: 'テンプレ解除',
     visPublic: '公開',

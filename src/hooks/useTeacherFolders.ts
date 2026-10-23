@@ -11,14 +11,15 @@ export type NewFolder = {
   className: string | null;
 };
 
-// Who may write is decided by RLS (migration 0016: teachers only); this hook is
-// only mounted on the teacher page, so it doesn't re-check.
-export function useTeacherFolders() {
+// Who may write is decided by RLS (migration 0016: teachers only). `enabled`
+// lets the teacher page call this unconditionally and fetch only for a teacher.
+export function useTeacherFolders(enabled: boolean) {
   const [folders, setFolders] = useState<SongFolder[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
 
   useEffect(() => {
+    if (!enabled) return;
     // Query inside the effect so the first setState lands in the async body,
     // not synchronously during the effect (same as useTeacherSongs).
     let active = true;
@@ -40,7 +41,7 @@ export function useTeacherFolders() {
     return () => {
       active = false;
     };
-  }, []);
+  }, [enabled]);
 
   // Each write returns the row the database kept (names are trimmed and class
   // names normalized there), so the list shows what was actually stored.
@@ -98,3 +99,5 @@ export function useTeacherFolders() {
 
   return { folders, loading, error, create, setArchived, remove };
 }
+
+export type TeacherFoldersState = ReturnType<typeof useTeacherFolders>;

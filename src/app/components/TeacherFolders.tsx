@@ -3,7 +3,7 @@
 import { useMemo, useState } from "react";
 import type { Translations } from "@/lib/i18n";
 import { CLASS_OPTIONS, GRADES } from "@/lib/classes";
-import { useTeacherFolders } from "@/hooks/useTeacherFolders";
+import type { TeacherFoldersState } from "@/hooks/useTeacherFolders";
 import { byOpenThenNewest } from "@/lib/folders";
 
 // Same limits as the database (migration 0016). The inputs enforce them, so a
@@ -11,11 +11,20 @@ import { byOpenThenNewest } from "@/lib/folders";
 const MAX_NAME = 40;
 const MAX_PROMPT = 200;
 
+interface Props {
+  t: Translations;
+  // Loaded by the page, which also needs the folders for its song filter.
+  state: TeacherFoldersState;
+  // Songs submitted to each folder, counted from the page's song list.
+  counts: Map<string, number>;
+  onShowSongs: (folderId: string) => void;
+}
+
 // The teacher's half of lesson folders (#143): make one per lesson, close it
-// when the lesson is over, remove one made by mistake. What children see of a
-// folder comes in later steps; nothing here changes their screens.
-export function TeacherFolders({ t }: { t: Translations }) {
-  const { folders, loading, error, create, setArchived, remove } = useTeacherFolders();
+// when the lesson is over, remove one made by mistake, and jump to what was
+// handed in.
+export function TeacherFolders({ t, state, counts, onShowSongs }: Props) {
+  const { folders, loading, error, create, setArchived, remove } = state;
 
   const [formOpen, setFormOpen] = useState(false);
   const [name, setName] = useState("");
@@ -171,6 +180,14 @@ export function TeacherFolders({ t }: { t: Translations }) {
                 </span>
                 {folder.prompt && <span className="teacher-folder-prompt">{folder.prompt}</span>}
               </div>
+
+              <button
+                className="teacher-folder-count"
+                onClick={() => onShowSongs(folder.id)}
+                disabled={!counts.get(folder.id)}
+              >
+                {t.folderShowSongs(counts.get(folder.id) ?? 0)}
+              </button>
 
               {confirmDeleteId === folder.id ? (
                 // Two steps, because the children's work drops out of the folder.
