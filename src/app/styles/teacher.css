@@ -362,3 +362,51 @@ textarea.teacher-input {
   gap: 8px;
   font-size: 12px;
 }
+
+/* "N songs" on a folder row: jumps to the table filtered to that folder. */
+.teacher-folder-count {
+  padding: 5px 12px;
+  border-radius: 14px;
+  border: 1px solid var(--grid-line);
+  background: transparent;
+  color: var(--foreground);
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.teacher-folder-count:hover:not(:disabled) {
+  border-color: #667eea;
+}
+
+.teacher-folder-count:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
+.teacher-folder-filter {
+  padding: 7px 12px;
+  border-radius: 20px;
+  border: 1px solid var(--grid-line);
+  background: var(--grid-bg);
+  color: var(--foreground);
+  font-size: 13px;
+  font-weight: 600;
+  max-width: 260px;
+}
+
+/* Tinted while a folder narrows the table, so a short list doesn't read as
+   "these are all the songs". */
+.teacher-folder-filter.active {
+  border-color: #667eea;
+  box-shadow: 0 0 0 1px #667eea;
+}
+
+.teacher-song-folder {
+  display: block;
+  margin-top: 3px;
+  font-size: 11px;
+  font-weight: 600;
+  color: #11998e;
+}
