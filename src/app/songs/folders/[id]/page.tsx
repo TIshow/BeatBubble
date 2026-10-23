@@ -20,6 +20,12 @@ export default function FolderPage() {
   const { user, isTeacher, profile } = useAccount();
   const { folder, loading } = useFolder(id);
   const feed = useSongFeed("all", user, { folderId: id });
+  // The teacher's starting point for this lesson: templates filed into the
+  // folder (a teacher files one from its card menu). Shown above the answers,
+  // so opening the folder, starting from the template and handing the song back
+  // in all happen from one screen.
+  const templates = useSongFeed("templates", user, { folderId: id });
+  const showTemplates = !templates.loading && templates.songs.length > 0;
   // For the cards' menus: taking a song back out of this folder, and naming it.
   const folders = useFolderShortcuts({
     isTeacher,
@@ -58,6 +64,24 @@ export default function FolderPage() {
               {folder.prompt && <p className="folder-intro-prompt">{folder.prompt}</p>}
             </section>
 
+            {showTemplates && (
+              <section className="folder-section">
+                <h3 className="folder-section-title">{t.folderStartHere}</h3>
+                <p className="folder-section-hint">{t.folderStartHereHint}</p>
+                <SongGrid
+                  feed={templates}
+                  emptyText=""
+                  user={user}
+                  isTeacher={isTeacher}
+                  folders={folders}
+                  locale={locale}
+                  t={t}
+                />
+              </section>
+            )}
+
+            {/* Only needs a heading to tell it apart from the templates above. */}
+            {showTemplates && <h3 className="folder-section-title">{t.folderAnswers}</h3>}
             <SongGrid
               feed={feed}
               emptyText={t.folderNoSongs}
