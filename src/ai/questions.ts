@@ -16,6 +16,8 @@ export const QUESTION_COUNT = 3;
 export const ASK_QUESTION_LENGTH = 40;
 export const MAX_QUESTION_LENGTH = ASK_QUESTION_LENGTH * 2;
 
+// `place` names beats and is for checking only — the editor shows no beat
+// numbers, so the question itself says where in words a child can find.
 export type Question = { place: string; question: string };
 
 export const QUESTION_SYSTEM_PROMPT = `あなたは、小学生が自分のつくった曲について、どこを工夫したか・どんな思いでつくったかを、自分の言葉で書けるように手伝う役です。曲は楽譜のテキストで渡されます。
@@ -28,23 +30,28 @@ export const QUESTION_SYSTEM_PROMPT = `あなたは、小学生が自分のつ�
 - 気持ちや情景を決めつけないでください。「かなしい場面にしたかったの？」のように答えを含む聞き方はしないでください。思ったことを言葉にするのは子どもです。
 - 曲を評価しないでください。上手・下手、良い・悪い、まちがい、と言わないでください。ほめることもしないでください。
 - どの音を変えればよいか、どう直せばよいかを言わないでください。
+- 質問の文では、拍の番号（「13拍目」など）を使わないでください。子どもの画面には拍の番号が出ていません。かわりに「さいしょ」「まんなかあたり」「さいごの ほう」「いちばん 高い 音の ところ」のように、楽譜を見て見つけられることばで場所を言ってください。
 - 小学4年生が読めることばで、${ASK_QUESTION_LENGTH}文字くらいの短い1文にし、最後は「？」で終えてください。
-- place には、その場所を「5拍目」や「13〜16拍目」のように書いてください。`;
+- place には、その場所を「5拍目」や「13〜16拍目」のように書いてください。これは確認用で、子どもには見せません。`;
 
 export function questionUserMessage(score: string): string {
   return `次の曲について、子どもへの質問を作ってください。\n\n<score>\n${score}\n</score>`;
 }
 
-const PLACE = /^(\d+)拍目$|^(\d+)〜(\d+)拍目$/;
+// The beat or range a place starts with. Read leniently — the model writes
+// "1拍目〜2拍目", "9〜10拍目（まんなかより あと）" or "8拍目 3マス目" as often as
+// "13〜16拍目" — because what matters is the numbers, and a strict reading
+// dropped seven sound questions in one run.
+const PLACE = /^\s*(\d+)\s*(?:拍目)?\s*(?:[〜~～-]\s*(\d+)\s*拍目)?/;
 
 // Whether a place names beats that exist in the song. A question about beat 20
 // of a 16-beat song stands on nothing, and it's the one part of a question's
 // premise that can be checked mechanically.
 function placeInSong(place: string, beats: number): boolean {
-  const match = place.trim().match(PLACE);
+  const match = place.match(PLACE);
   if (!match) return false;
-  const from = Number(match[1] ?? match[2]);
-  const to = Number(match[1] ?? match[3]);
+  const from = Number(match[1]);
+  const to = Number(match[2] ?? match[1]);
   return from >= 1 && from <= to && to <= beats;
 }
 

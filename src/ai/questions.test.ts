@@ -21,6 +21,13 @@ describe("sortQuestions", () => {
     expect(sortQuestions([{ ...ok, place: "5拍目" }], BEATS).kept).toHaveLength(1);
   });
 
+  it("reads the beats a place starts with, however the rest is written", () => {
+    // Forms the model actually wrote, which a strict reading dropped.
+    for (const place of ["1拍目〜2拍目", "9〜10拍目（まんなかより 少し あとの ところ）", "8拍目 3マス目"]) {
+      expect(sortQuestions([{ ...ok, place }], BEATS).kept).toHaveLength(1);
+    }
+  });
+
   it("drops a place outside the song, or one it can't read — the premise stands on nothing", () => {
     for (const place of ["17拍目", "13〜20拍目", "0拍目", "9〜5拍目", "さいご", ""]) {
       expect(sortQuestions([{ ...ok, place }], BEATS).dropped[0]?.reason).toBe("off-the-score");
