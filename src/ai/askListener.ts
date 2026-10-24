@@ -2,7 +2,13 @@ import type Anthropic from "@anthropic-ai/sdk";
 import { zodOutputFormat } from "@anthropic-ai/sdk/helpers/zod";
 import { z } from "zod";
 import type { Song } from "@/core/types";
-import { keepSafeImpressions, LISTEN_SYSTEM_PROMPT, listenUserMessage, type Impression } from "./listen";
+import {
+  LISTEN_SYSTEM_PROMPT,
+  listenUserMessage,
+  sortImpressions,
+  type DropReason,
+  type Impression,
+} from "./listen";
 import { scoreToText } from "./scoreText";
 
 // The cheapest current model, chosen for this (#151): the job is three short
@@ -21,6 +27,8 @@ export type ListenResult = {
   // Empty when the model declined or everything was filtered out; the caller
   // then shows a neutral message rather than an explanation of why.
   impressions: Impression[];
+  // What the filter took out, and why — for the validation run's summary.
+  dropped: { impression: Impression; reason: DropReason }[];
   refused: boolean;
   usage: { inputTokens: number; outputTokens: number };
 };
@@ -45,11 +53,8 @@ export async function askListener(client: ListenerClient, song: Song): Promise<L
   };
   // Checked before reading the content: a declined request carries none.
   if (response.stop_reason === "refusal") {
-    return { impressions: [], refused: true, usage };
+    return { impressions: [], dropped: [], refused: true, usage };
   }
-  return {
-    impressions: keepSafeImpressions(response.parsed_output?.impressions ?? []),
-    refused: false,
-    usage,
-  };
+  const { kept, dropped } = sortImpressions(response.parsed_output?.impressions ?? []);
+  return { impressions: kept, dropped, refused: false, usage };
 }

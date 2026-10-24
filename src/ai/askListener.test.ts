@@ -49,6 +49,12 @@ describe("askListener", () => {
     });
     expect(await askListener(client, song)).toEqual({
       impressions: [scene],
+      dropped: [
+        {
+          impression: { scene: "とても上手な曲", because: "ドが あるから" },
+          reason: "verdict-or-instruction",
+        },
+      ],
       refused: false,
       usage: { inputTokens: 1200, outputTokens: 300 },
     });

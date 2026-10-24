@@ -204,6 +204,16 @@ ${sheet}
   const summary = [
     `${dryRun ? "DRY RUN — no API key, stand-in listener, nothing spent" : `model: ${LISTEN_MODEL}`} / songs: ${rows.length} / requests: ${all.length}`,
     `requests with no usable impression: ${all.filter((r) => r.impressions.length === 0).length} (refused: ${all.filter((r) => r.refused).length})`,
+    `impressions dropped by the filter: ${all.reduce((n, r) => n + r.dropped.length, 0)}${
+      Object.entries(
+        all.flatMap((r) => r.dropped).reduce<Record<string, number>>((acc, d) => {
+          acc[d.reason] = (acc[d.reason] ?? 0) + 1;
+          return acc;
+        }, {})
+      )
+        .map(([reason, n]) => ` / ${reason} ${n}`)
+        .join("")
+    }`,
     `tokens: input ${input} / output ${output} / ≈ $${dollars.toFixed(4)} (≈ ¥${(dollars * YEN_PER_DOLLAR).toFixed(1)})`,
     "",
     "similarity of impressions (character bigrams, 0–1):",

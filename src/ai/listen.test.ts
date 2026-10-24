@@ -1,11 +1,14 @@
 import { describe, expect, it } from "vitest";
 import {
   keepSafeImpressions,
+  LISTEN_ASK_BECAUSE,
+  LISTEN_ASK_SCENE,
   LISTEN_IMPRESSIONS,
   LISTEN_MAX_BECAUSE,
   LISTEN_MAX_SCENE,
   LISTEN_SYSTEM_PROMPT,
   listenUserMessage,
+  sortImpressions,
 } from "./listen";
 
 const ok = { scene: "よるの まちに しずかに ふる あめ", because: "ひくい ドが ゆっくり つづくから" };
@@ -62,13 +65,42 @@ describe("keepSafeImpressions", () => {
 });
 
 describe("prompt", () => {
-  it("states the limits the filter enforces, so the two can't drift", () => {
+  it("asks for the lengths it states, and caps well above them", () => {
     expect(LISTEN_SYSTEM_PROMPT).toContain(`${LISTEN_IMPRESSIONS}つ`);
-    expect(LISTEN_SYSTEM_PROMPT).toContain(`${LISTEN_MAX_SCENE}文字以内`);
-    expect(LISTEN_SYSTEM_PROMPT).toContain(`${LISTEN_MAX_BECAUSE}文字以内`);
+    expect(LISTEN_SYSTEM_PROMPT).toContain(`${LISTEN_ASK_SCENE}文字くらい`);
+    expect(LISTEN_SYSTEM_PROMPT).toContain(`${LISTEN_ASK_BECAUSE}文字くらい`);
+    // The cap is a guard, not the target: an answer a little over the asked
+    // length must survive.
+    expect(LISTEN_MAX_SCENE).toBeGreaterThan(LISTEN_ASK_SCENE);
+    expect(LISTEN_MAX_BECAUSE).toBeGreaterThan(LISTEN_ASK_BECAUSE);
   });
 
   it("hands the score over inside its own tags", () => {
     expect(listenUserMessage("テンポ: 100")).toContain("<score>\nテンポ: 100\n</score>");
+  });
+});
+
+describe("sortImpressions", () => {
+  it("says why each impression was dropped", () => {
+    const { kept, dropped } = sortImpressions([
+      ok,
+      { scene: "", because: ok.because },
+      { scene: ok.scene, because: "あ".repeat(LISTEN_MAX_BECAUSE + 1) },
+      { scene: "しね", because: ok.because },
+      { scene: "とても上手", because: ok.because },
+    ]);
+    expect(kept).toEqual([ok]);
+    expect(dropped.map((d) => d.reason)).toEqual([
+      "missing",
+      "too-long",
+      "word-list",
+      "verdict-or-instruction",
+    ]);
+  });
+
+  it("keeps a reason a little over the asked length — the case that emptied half the first run", () => {
+    // 84 characters: the longest reason Haiku gave when asked for 50.
+    const because = "あ".repeat(84);
+    expect(sortImpressions([{ scene: ok.scene, because }]).kept).toHaveLength(1);
   });
 });
