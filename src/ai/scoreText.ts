@@ -85,7 +85,11 @@ export function scoreToText(song: Song): string {
   const shapes = groundedShapes(song);
   lines.push(`見つかった形: ${shapes.length > 0 ? shapes.join(" / ") : "なし"}`);
 
-  lines.push("", `楽譜（[3]ソ4×2 ＝ その拍の 3マス目から ソ4 を 2マスぶん）`);
+  lines.push(
+    "",
+    "楽譜（[3]ソ4×2 ＝ その拍の 3マス目から ソ4 を 2マスぶん。" +
+      "「+」で つないだ音は いっしょに、「→」で つないだ音は じゅんばんに 鳴る）"
+  );
 
   // One row per beat first, then runs of identical quiet rows fold into one line.
   //
@@ -105,9 +109,24 @@ export function scoreToText(song: Song): string {
       continue;
     }
 
-    const parts = starting.map(
-      (n) => `[${n.startStep - from + 1}]${label(n.note)}×${n.durationSteps}`
-    );
+    // Notes starting together are joined with "+", moments in order with "→".
+    // Listing them side by side ("[1]ミ5×1 [4]ソ5×1") read as a chord: the model
+    // called notes three cells apart "sounding together", and a legend saying
+    // otherwise didn't stop it. The notation now says it.
+    const moments = new Map<number, string[]>();
+    for (const n of starting) {
+      const at = n.startStep - from + 1;
+      moments.set(at, [...(moments.get(at) ?? []), `${label(n.note)}×${n.durationSteps}`]);
+    }
+    const melody = [...moments].map(([at, group]) => `[${at}]${group.join("+")}`).join(" → ");
+    const parts = melody ? [melody] : [];
+    // A beat with new notes can still have older ones sounding under them. Left
+    // out, the line reads as if only the new notes play: the model once said a
+    // beat had "only the low ド" while a long ソ4 was still ringing over it.
+    const held = notes.filter((n) => n.startStep < from && n.startStep + n.durationSteps > from);
+    if (held.length > 0) {
+      parts.push(`（${held.map((n) => label(n.note)).join("・")} が つづく）`);
+    }
     if (drums.length > 0) {
       const drumText = drums.map((h) => `[${h.step - from + 1}]${DRUM_NAMES[h.drumId]}`).join(" ");
       parts.push(`${parts.length > 0 ? "／ " : ""}ドラム ${drumText}`);

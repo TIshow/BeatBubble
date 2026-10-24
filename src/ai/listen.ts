@@ -1,4 +1,4 @@
-import { containsBlockedWord, containsSensitiveWord, normalizeForMatch } from "@/lib/validation";
+import { textProblem, type DropReason } from "./guard";
 
 // The listener (#151, idea ①): a model that "hears" a child's song from its
 // score and says what scene it called up. A listener's turn is the only one it
@@ -39,61 +39,8 @@ export function listenUserMessage(score: string): string {
   return `次の曲を聴いた印象を教えてください。\n\n<score>\n${score}\n</score>`;
 }
 
-// Words that turn an impression into a verdict or an instruction. Matched on
-// the same normalized form as the title word lists (width, kana and spacing
-// folded), so カタカナ and ひらがな spellings are both caught.
-//
-// Bare kana verbs are deliberately absent: かえると is also カエルと ("frog and"),
-// かえて sits inside むかえて, and よくなる inside なかよくなる — all ordinary
-// scenes. Instructions almost always name the sound, so they are caught as
-// 音を+verb, or by the unambiguous kanji forms.
-const VERDICT_OR_INSTRUCTION = [
-  // verdicts
-  "じょうず",
-  "上手",
-  "へた",
-  "下手",
-  "まちがい",
-  "間違",
-  "だめ",
-  "失敗",
-  "しっぱい",
-  "正解",
-  "せいかい",
-  "点数",
-  "てんすう",
-  // instructions
-  "音をかえ",
-  "音を変え",
-  "音をなお",
-  "音を直",
-  "おとをかえ",
-  "おとをなお",
-  "変えて",
-  "変えると",
-  "直して",
-  "直すと",
-  "ほうがいい",
-  "方がいい",
-  "するといい",
-  "といいよ",
-].map(normalizeForMatch);
-
-function soundsLikeVerdictOrInstruction(text: string): boolean {
-  const normalized = normalizeForMatch(text);
-  return VERDICT_OR_INSTRUCTION.some((word) => normalized.includes(word));
-}
-
-export type DropReason = "missing" | "too-long" | "word-list" | "verdict-or-instruction";
-
 function dropReason({ scene, because }: Impression): DropReason | null {
-  if (!scene || !because) return "missing";
-  if (scene.length > LISTEN_MAX_SCENE || because.length > LISTEN_MAX_BECAUSE) return "too-long";
-  for (const text of [scene, because]) {
-    if (containsBlockedWord(text) || containsSensitiveWord(text)) return "word-list";
-    if (soundsLikeVerdictOrInstruction(text)) return "verdict-or-instruction";
-  }
-  return null;
+  return textProblem(scene, LISTEN_MAX_SCENE) ?? textProblem(because, LISTEN_MAX_BECAUSE);
 }
 
 // The prompt asks for the right thing; this is what makes it true. An
