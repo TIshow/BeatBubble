@@ -7,8 +7,16 @@ import { containsBlockedWord, containsSensitiveWord, normalizeForMatch } from "@
 // is dropped before a child sees it.
 
 export const LISTEN_IMPRESSIONS = 3;
-export const LISTEN_MAX_SCENE = 40;
-export const LISTEN_MAX_BECAUSE = 50;
+
+// Two kinds of length. The prompt asks for roughly these...
+export const LISTEN_ASK_SCENE = 30;
+export const LISTEN_ASK_BECAUSE = 60;
+// ...and the filter drops only past twice that. A model can't count Japanese
+// characters reliably: asked for 50, Haiku wrote reasons of 51–84, and a cap at
+// the asked length dropped every impression for half the songs. The cap is a
+// guard against a wall of text, not a style rule.
+export const LISTEN_MAX_SCENE = LISTEN_ASK_SCENE * 2;
+export const LISTEN_MAX_BECAUSE = LISTEN_ASK_BECAUSE * 2;
 
 export type Impression = { scene: string; because: string };
 
@@ -23,7 +31,7 @@ export const LISTEN_SYSTEM_PROMPT = `あなたは、小学生がつくった短�
 - 「そう聞こえたわけ」は、必ず楽譜に書かれていることから述べてください（テンポ、音の高さ・低さ、長い音・短い音、くり返し、休み、ドラムなど）。楽譜にないことは書かないでください。音の名前はドレミで書いてください。
 - 小学4年生が読めることばで書いてください。難しい漢字や、音楽の専門用語は使わないでください。
 - こわい、さみしい、かなしい、といった気持ちも、聞こえたままに書いてかまいません。
-- 「ようす」は${LISTEN_MAX_SCENE}文字以内、「わけ」は${LISTEN_MAX_BECAUSE}文字以内にしてください。`;
+- 「ようす」は${LISTEN_ASK_SCENE}文字くらい、「わけ」は${LISTEN_ASK_BECAUSE}文字くらいの、短い1文にしてください。`;
 
 // The score goes in its own tags so it reads as material to listen to, never as
 // instructions — it is generated from note data, but the boundary costs nothing.
@@ -76,23 +84,39 @@ function soundsLikeVerdictOrInstruction(text: string): boolean {
   return VERDICT_OR_INSTRUCTION.some((word) => normalized.includes(word));
 }
 
-function isSafe({ scene, because }: Impression): boolean {
-  if (!scene || !because) return false;
-  if (scene.length > LISTEN_MAX_SCENE || because.length > LISTEN_MAX_BECAUSE) return false;
+export type DropReason = "missing" | "too-long" | "word-list" | "verdict-or-instruction";
+
+function dropReason({ scene, because }: Impression): DropReason | null {
+  if (!scene || !because) return "missing";
+  if (scene.length > LISTEN_MAX_SCENE || because.length > LISTEN_MAX_BECAUSE) return "too-long";
   for (const text of [scene, because]) {
-    if (containsBlockedWord(text) || containsSensitiveWord(text)) return false;
-    if (soundsLikeVerdictOrInstruction(text)) return false;
+    if (containsBlockedWord(text) || containsSensitiveWord(text)) return "word-list";
+    if (soundsLikeVerdictOrInstruction(text)) return "verdict-or-instruction";
   }
-  return true;
+  return null;
 }
 
 // The prompt asks for the right thing; this is what makes it true. An
 // impression that breaks a rule is dropped whole rather than trimmed — half a
 // sentence reads worse than one fewer impression. The caller shows a neutral
-// message if nothing survives.
+// message if nothing survives. What was dropped, and why, comes back too: a
+// check that only reports survivors can't tell a strict filter from a model
+// that ignored the rules (#151).
+export function sortImpressions(items: Impression[]): {
+  kept: Impression[];
+  dropped: { impression: Impression; reason: DropReason }[];
+} {
+  const kept: Impression[] = [];
+  const dropped: { impression: Impression; reason: DropReason }[] = [];
+  for (const item of items) {
+    const impression = { scene: item.scene.trim(), because: item.because.trim() };
+    const reason = dropReason(impression);
+    if (reason) dropped.push({ impression, reason });
+    else kept.push(impression);
+  }
+  return { kept: kept.slice(0, LISTEN_IMPRESSIONS), dropped };
+}
+
 export function keepSafeImpressions(items: Impression[]): Impression[] {
-  return items
-    .map((item) => ({ scene: item.scene.trim(), because: item.because.trim() }))
-    .filter(isSafe)
-    .slice(0, LISTEN_IMPRESSIONS);
+  return sortImpressions(items).kept;
 }

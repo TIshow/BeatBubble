@@ -51,3 +51,7 @@ CLAUDE.local.md
 # save times, and /songs shows the author beside those same titles — so anyone
 # could join the two back to a named child. Internal drafts live here too.
 docs/ict-yume-2026/
+
+# Output of `pnpm listen-check` (#151): AI impressions and a judging sheet,
+# plus any exported template data. Local working files, not for a public repo.
+.listen-check/
