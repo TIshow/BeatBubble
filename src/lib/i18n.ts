@@ -142,6 +142,11 @@ export type Translations = {
   folderEmpty: string;
   folderLoadError: string;
   folderWriteError: string;
+  folderAiLabel: string;
+  folderAiHint: string;
+  folderAiBadge: string;
+  folderAiTurnOn: string;
+  folderAiTurnOff: string;
   folderShortcutsLabel: string;
   folderBack: string;
   folderClosedChip: string;
@@ -382,6 +387,12 @@ export const translations: Record<Locale, Translations> = {
     folderEmpty: 'No folders yet.',
     folderLoadError: "Couldn't load folders. Please reload the page.",
     folderWriteError: "Couldn't save. Please try again.",
+    folderAiLabel: 'Use AI questions',
+    folderAiHint:
+      'When children write about a song, AI asks them about places in it. The children write the answers themselves.',
+    folderAiBadge: 'AI',
+    folderAiTurnOn: 'Turn AI on',
+    folderAiTurnOff: 'Turn AI off',
     folderShortcutsLabel: 'Lesson folders',
     folderBack: '← All songs',
     folderClosedChip: 'Closed',
@@ -737,6 +748,11 @@ export const translations: Record<Locale, Translations> = {
     folderEmpty: 'まだフォルダはありません。',
     folderLoadError: 'フォルダを読み込めませんでした。ページを再読み込みしてください。',
     folderWriteError: '保存できませんでした。もう一度お試しください。',
+    folderAiLabel: 'AI の質問を使う',
+    folderAiHint: '児童が曲の説明を書くとき、AI が曲の中の場所について質問します。答えを書くのは児童です。',
+    folderAiBadge: 'AI',
+    folderAiTurnOn: 'AI をオンにする',
+    folderAiTurnOff: 'AI をオフにする',
     folderShortcutsLabel: 'じゅぎょうの フォルダ',
     folderBack: '← みんなの曲',
     folderClosedChip: 'うけつけ おわり',

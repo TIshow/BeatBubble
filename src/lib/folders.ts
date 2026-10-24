@@ -9,10 +9,12 @@ export type SongFolder = {
   // Null means every class in the grade.
   class_name: string | null;
   archived: boolean;
+  // Whether the class may ask AI for help while this folder is open (#151).
+  ai_enabled: boolean;
   created_at: string;
 };
 
-export const FOLDER_COLUMNS = "id, name, prompt, grade, class_name, archived, created_at";
+export const FOLDER_COLUMNS = "id, name, prompt, grade, class_name, archived, ai_enabled, created_at";
 
 // Open folders first — the ones anyone acts on — newest first within each.
 export function byOpenThenNewest(a: SongFolder, b: SongFolder): number {
