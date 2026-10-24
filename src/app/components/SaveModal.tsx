@@ -9,6 +9,7 @@ import { supabase } from "@/lib/supabase";
 import type { SongFolder } from "@/lib/folders";
 import { useAccount } from "@/app/components/AccountProvider";
 import { useFolderShortcuts } from "@/hooks/useFolders";
+import { AiQuestions } from "@/app/components/AiQuestions";
 import {
   MAX_TITLE_LENGTH,
   MAX_AUTHOR_LENGTH,
@@ -77,15 +78,23 @@ export function SaveModal({
   // After a successful new save, show a confirmation telling the child what
   // happened and where the song went, instead of silently closing.
   const [savedAs, setSavedAs] = useState<"draft" | "public" | null>(null);
-  // Lesson folders (#143). Offered on a fresh save only: overwriting leaves
-  // where a song is filed alone, and moving it in or out is the song card's job.
-  const offerFolders = !existing && !!userId;
+  // The signed-in viewer's lesson folders. They decide two things: where a
+  // fresh save can be submitted (#143), and whether this class's lesson has AI
+  // turned on (#151).
   const { isTeacher, profile } = useAccount();
-  const folderChoices = useFolderShortcuts({
-    isTeacher: offerFolders && isTeacher,
-    grade: offerFolders ? (profile?.grade ?? null) : null,
+  const openFolders = useFolderShortcuts({
+    isTeacher: !!userId && isTeacher,
+    grade: userId ? (profile?.grade ?? null) : null,
     className: profile?.className ?? null,
   }).filter((f) => !f.archived);
+  // Submitting is offered on a fresh save only: overwriting leaves where a song
+  // is filed alone, and moving it in or out is the song card's job.
+  const offerFolders = !existing && !!userId;
+  const folderChoices = offerFolders ? openFolders : [];
+  // Questions about the song, on a fresh save or an overwrite alike — either
+  // way the child is writing about it. This only decides whether to show the
+  // button; the server checks again before asking.
+  const offerAiQuestions = openFolders.some((f) => f.ai_enabled);
   const [folder, setFolder] = useState<SongFolder | null>(null);
   // Where the song went, for the confirmation — kept apart from `folder` so the
   // message names the folder that was actually saved to.
@@ -305,6 +314,7 @@ export function SaveModal({
             maxLength={MAX_DESCRIPTION_LENGTH}
             rows={3}
           />
+          {offerAiQuestions && <AiQuestions song={song} t={t} />}
         </div>
         {/* Only when this child's class has an open folder. "Don't submit" is
             the default: saving is trying, and a folder holds only what the

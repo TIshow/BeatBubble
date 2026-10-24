@@ -162,6 +162,15 @@ export type Translations = {
   cardSubmittedTo: (name: string | null) => string;
   cardTakeBack: string;
   cardFolderError: string;
+  aiAskButton: string;
+  aiAskAgain: string;
+  aiThinking: string;
+  aiQuestionsTitle: string;
+  aiQuestionsNote: string;
+  aiNoQuestions: string;
+  aiErrorLimit: string;
+  aiErrorSignedOut: string;
+  aiErrorUnavailable: string;
   folderShowSongs: (n: number) => string;
   teacherFolderFilterLabel: string;
   teacherFolderFilterAll: string;
@@ -408,6 +417,15 @@ export const translations: Record<Locale, Translations> = {
     cardSubmittedTo: (name) => (name ? `📁 Submitted to ${name}` : '📁 Submitted'),
     cardTakeBack: '📁 Take back from the folder',
     cardFolderError: "Couldn't submit to the folder.",
+    aiAskButton: '🤔 Get questions',
+    aiAskAgain: '🤔 Get other questions',
+    aiThinking: 'Thinking…',
+    aiQuestionsTitle: '🤖 Questions from AI',
+    aiQuestionsNote: "You write the answers — and you don't have to answer at all.",
+    aiNoQuestions: "Couldn't make questions this time. Try again.",
+    aiErrorLimit: "That's all for today. Try again tomorrow.",
+    aiErrorSignedOut: 'Sign in again to use this.',
+    aiErrorUnavailable: "It isn't working right now. Try again later.",
     folderShowSongs: (n) => (n === 0 ? 'No songs yet' : `View ${n} song${n === 1 ? '' : 's'}`),
     teacherFolderFilterLabel: 'Filter by folder',
     teacherFolderFilterAll: 'All folders',
@@ -768,6 +786,15 @@ export const translations: Record<Locale, Translations> = {
     cardSubmittedTo: (name) => (name ? `📁 ${name} に ていしゅつ ずみ` : '📁 ていしゅつ ずみ'),
     cardTakeBack: '📁 フォルダから もどす',
     cardFolderError: 'フォルダに ていしゅつ できなかったよ。',
+    aiAskButton: '🤔 しつもんを もらう',
+    aiAskAgain: '🤔 ほかの しつもんを もらう',
+    aiThinking: 'かんがえちゅう…',
+    aiQuestionsTitle: '🤖 AI からの しつもん',
+    aiQuestionsNote: 'こたえを かくのは きみ。こたえなくても いいよ。',
+    aiNoQuestions: 'しつもんが つくれなかったよ。もう いちど ためしてね。',
+    aiErrorLimit: 'きょうは もう つかえないよ。あした また ためしてね。',
+    aiErrorSignedOut: 'ログインしなおすと つかえるよ。',
+    aiErrorUnavailable: 'いまは つかえなかったよ。あとで また ためしてね。',
     folderShowSongs: (n) => (n === 0 ? 'まだ0曲' : `${n}曲を見る`),
     teacherFolderFilterLabel: 'フォルダで絞り込む',
     teacherFolderFilterAll: 'すべてのフォルダ',
