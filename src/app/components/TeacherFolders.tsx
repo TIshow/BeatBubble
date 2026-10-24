@@ -24,7 +24,7 @@ interface Props {
 // when the lesson is over, remove one made by mistake, and jump to what was
 // handed in.
 export function TeacherFolders({ t, state, counts, onShowSongs }: Props) {
-  const { folders, loading, error, create, setArchived, remove } = state;
+  const { folders, loading, error, create, update, remove } = state;
 
   const [formOpen, setFormOpen] = useState(false);
   const [name, setName] = useState("");
@@ -32,6 +32,8 @@ export function TeacherFolders({ t, state, counts, onShowSongs }: Props) {
   const [grade, setGrade] = useState<number | null>(null);
   // "" is the whole grade, which the database stores as a null class.
   const [className, setClassName] = useState("");
+  // Off unless the teacher chooses it: AI help is a lesson-level decision.
+  const [aiEnabled, setAiEnabled] = useState(false);
   // Which folder (or "new") has a write in flight, so only its buttons disable.
   const [busyId, setBusyId] = useState<string | null>(null);
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
@@ -45,6 +47,7 @@ export function TeacherFolders({ t, state, counts, onShowSongs }: Props) {
     setPrompt("");
     setGrade(null);
     setClassName("");
+    setAiEnabled(false);
   };
 
   // Every write here is the same shape: disable its buttons while in flight,
@@ -68,6 +71,7 @@ export function TeacherFolders({ t, state, counts, onShowSongs }: Props) {
         prompt: prompt.trim() || null,
         grade,
         className: className || null,
+        aiEnabled,
       })
     );
     if (ok) closeForm();
@@ -143,6 +147,17 @@ export function TeacherFolders({ t, state, counts, onShowSongs }: Props) {
               </select>
             </label>
           </div>
+          <label className="teacher-check">
+            <input
+              type="checkbox"
+              checked={aiEnabled}
+              onChange={(e) => setAiEnabled(e.target.checked)}
+            />
+            <span>
+              {t.folderAiLabel}
+              <small>{t.folderAiHint}</small>
+            </span>
+          </label>
           <div className="teacher-folder-form-actions">
             <button className="teacher-btn primary" onClick={submit} disabled={!canCreate}>
               {t.folderCreate}
@@ -175,6 +190,7 @@ export function TeacherFolders({ t, state, counts, onShowSongs }: Props) {
                 <span className={`teacher-folder-badge ${folder.archived ? "" : "open"}`}>
                   {folder.archived ? t.folderClosedBadge : t.folderOpenBadge}
                 </span>
+                {folder.ai_enabled && <span className="teacher-folder-badge ai">{t.folderAiBadge}</span>}
                 <span className="teacher-folder-target">
                   {t.folderTarget(folder.grade, folder.class_name)}
                 </span>
@@ -216,7 +232,18 @@ export function TeacherFolders({ t, state, counts, onShowSongs }: Props) {
                 <div className="teacher-actions">
                   <button
                     className="teacher-btn"
-                    onClick={() => run(folder.id, () => setArchived(folder.id, !folder.archived))}
+                    onClick={() =>
+                      run(folder.id, () => update(folder.id, { ai_enabled: !folder.ai_enabled }))
+                    }
+                    disabled={busyId === folder.id}
+                  >
+                    {folder.ai_enabled ? t.folderAiTurnOff : t.folderAiTurnOn}
+                  </button>
+                  <button
+                    className="teacher-btn"
+                    onClick={() =>
+                      run(folder.id, () => update(folder.id, { archived: !folder.archived }))
+                    }
                     disabled={busyId === folder.id}
                   >
                     {folder.archived ? t.folderReopen : t.folderArchive}
