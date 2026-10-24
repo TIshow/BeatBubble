@@ -33,14 +33,14 @@ describe("scoreToText", () => {
     expect(text).toContain("長さ: 4拍（1拍 = 4マス）");
   });
 
-  it("writes notes in ドレミ with their place in the beat and length in cells", () => {
+  it("writes notes in ドレミ, in order with →, with their place in the beat and length in cells", () => {
     const text = scoreToText(song([note("C4", 0), note("E4", 1), note("G4", 2, 2)], [], { blocks: 1 }));
-    expect(lineFor(text, "1拍目")).toBe("1拍目: [1]ド4×1 [2]ミ4×1 [3]ソ4×2");
+    expect(lineFor(text, "1拍目")).toBe("1拍目: [1]ド4×1 → [2]ミ4×1 → [3]ソ4×2");
   });
 
-  it("lists a chord's notes at the same place, low to high", () => {
+  it("joins a chord's notes with +, low to high", () => {
     const text = scoreToText(song([note("G4", 4), note("C4", 4)], [], { blocks: 2 }));
-    expect(lineFor(text, "2拍目")).toBe("2拍目: [1]ド4×1 [1]ソ4×1");
+    expect(lineFor(text, "2拍目")).toBe("2拍目: [1]ド4×1+ソ4×1");
   });
 
   it("keeps a rest apart from a long note still sounding", () => {
@@ -48,6 +48,19 @@ describe("scoreToText", () => {
     const text = scoreToText(song([note("C4", 0, 8)], [], { blocks: 4 }));
     expect(text).toContain("2拍目: （前の音が つづく）");
     expect(text).toContain("3〜4拍目: （休み）");
+  });
+
+  it("says when an older note is still sounding under new ones", () => {
+    // ド4 from beat 1 lasts 8 cells, so it is still ringing when ミ4 starts in beat 2.
+    const text = scoreToText(song([note("C4", 0, 8), note("E4", 4)], [], { blocks: 2 }));
+    expect(lineFor(text, "2拍目")).toBe("2拍目: [1]ミ4×1 （ド4 が つづく）");
+  });
+
+  it("keeps notes in the same beat apart when they don't start together", () => {
+    // ミ5 and ソ5 three cells apart: once read as "sounding together".
+    const text = scoreToText(song([note("E5", 0), note("G5", 3)], [], { blocks: 1 }));
+    expect(lineFor(text, "1拍目")).toBe("1拍目: [1]ミ5×1 → [4]ソ5×1");
+    expect(text).toContain("「+」で つないだ音は いっしょに、「→」で つないだ音は じゅんばんに 鳴る");
   });
 
   it("folds a run of silent beats into one line", () => {

@@ -11,7 +11,8 @@
     "test:watch": "vitest",
     "format": "prettier . --write",
     "format:check": "prettier . --check",
-    "listen-check": "vitest run --config vitest.scripts.config.ts listen-check"
+    "listen-check": "vitest run --config vitest.scripts.config.ts listen-check",
+    "questions-check": "vitest run --config vitest.scripts.config.ts questions-check"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^1.1.0",

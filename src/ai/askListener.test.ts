@@ -1,7 +1,8 @@
 import { describe, expect, it } from "vitest";
 import { DEFAULT_SONG } from "@/core/defaults";
 import type { Song } from "@/core/types";
-import { askListener, LISTEN_MODEL, type ListenerClient } from "./askListener";
+import { askListener } from "./askListener";
+import { AI_MODEL, type ModelClient } from "./model";
 import { LISTEN_SYSTEM_PROMPT } from "./listen";
 
 const song: Song = {
@@ -20,7 +21,7 @@ function fakeClient(reply: { stop_reason: string; parsed_output: unknown }) {
         return { ...reply, usage: { input_tokens: 1200, output_tokens: 300 } };
       },
     },
-  } as unknown as ListenerClient;
+  } as unknown as ModelClient;
   return { client, calls };
 }
 
@@ -36,7 +37,7 @@ describe("askListener", () => {
       messages: { content: string }[];
       output_config: { effort: string };
     };
-    expect(params.model).toBe(LISTEN_MODEL);
+    expect(params.model).toBe(AI_MODEL);
     expect(params.system).toBe(LISTEN_SYSTEM_PROMPT);
     expect(params.messages[0].content).toContain("1拍目: [1]ド4×4");
     expect(params.output_config.effort).toBe("low");
