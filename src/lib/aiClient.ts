@@ -10,19 +10,24 @@ export type FriendOutcome = { lines: string[] } | { error: FriendError };
 
 const KNOWN: FriendError[] = ["signed-out", "not-enabled", "limit"];
 
-export async function requestFriendLines(song: Song): Promise<FriendOutcome> {
-  // The session token lets the server ask the database as this user — which
-  // is how it knows whether they may use AI without the browser saying.
-  const { data } = await supabase.auth.getSession();
-  const token = data.session?.access_token;
-  if (!token) return { error: "signed-out" };
+// Past this the companion gives up rather than "thinking" indefinitely.
+const TIMEOUT_MS = 20_000;
 
+// Never throws: every failure comes back as a reason.
+export async function requestFriendLines(song: Song): Promise<FriendOutcome> {
   try {
+    // The session token lets the server ask the database as this user — which
+    // is how it knows whether they may use AI without the browser saying.
+    const { data } = await supabase.auth.getSession();
+    const token = data.session?.access_token;
+    if (!token) return { error: "signed-out" };
+
     const response = await fetch("/api/ai/friend", {
       method: "POST",
       headers: { "content-type": "application/json", authorization: `Bearer ${token}` },
       // Only the notes: a Song carries no title, author or note.
       body: JSON.stringify({ song }),
+      signal: AbortSignal.timeout(TIMEOUT_MS),
     });
     const body = (await response.json()) as { lines?: unknown; error?: string };
     if (response.ok && Array.isArray(body.lines)) {

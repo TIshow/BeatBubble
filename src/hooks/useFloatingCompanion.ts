@@ -19,6 +19,8 @@ import {
 const VIEWPORT_GUTTER = 12;
 const HEADER_GAP = 8;
 const KEYBOARD_STEP = 12;
+// How soon after a press its click arrives, at most.
+const CLICK_AFTER_PRESS_MS = 500;
 const KEYBOARD_DIRECTIONS: Partial<Record<string, FloatingPoint>> = {
   ArrowLeft: { left: -1, top: 0 },
   ArrowRight: { left: 1, top: 0 },
@@ -97,9 +99,10 @@ export function useFloatingCompanion({
 }: FloatingCompanionOptions = {}): FloatingCompanionDrag {
   const rootRef = useRef<HTMLDivElement | null>(null);
   const dragRef = useRef<DragState | null>(null);
-  // Whether the last press was a drag: the browser still sends a click after
-  // one, and that click isn't a tap.
-  const draggedRef = useRef(false);
+  // When the last press ended. A press decides for itself whether it was a tap
+  // (on pointerup), because whether a click follows it differs by browser and
+  // device; a click right after a press is that press's, and is ignored.
+  const pressEndedAtRef = useRef(-Infinity);
   const [position, setPosition] = useState<FloatingPoint | null>(null);
   const [isDragging, setIsDragging] = useState(false);
 
@@ -152,7 +155,6 @@ export function useFloatingCompanion({
       moved: false,
       bounds,
     };
-    draggedRef.current = false;
     setPosition(keepInsideBounds({ left: rect.left, top: rect.top }, bounds));
     try {
       event.currentTarget.setPointerCapture(event.pointerId);
@@ -185,13 +187,14 @@ export function useFloatingCompanion({
     const drag = dragRef.current;
     if (!drag || drag.pointerId !== event.pointerId) return;
     dragRef.current = null;
-    draggedRef.current = drag.moved;
+    pressEndedAtRef.current = event.timeStamp;
     setIsDragging(false);
     try {
       event.currentTarget.releasePointerCapture(event.pointerId);
     } catch {
       // Pointer capture may already have been released by the browser.
     }
+    if (event.type === 'pointerup' && !drag.moved) onTap?.();
   };
 
   const onKeyDown: KeyboardEventHandler<HTMLButtonElement> = (event) => {
@@ -211,9 +214,9 @@ export function useFloatingCompanion({
     );
   };
 
+  // A click with no press behind it: Enter or Space, or assistive technology.
   const onClick: MouseEventHandler<HTMLButtonElement> = (event) => {
-    // detail is 0 for a click from the keyboard, which is always a tap.
-    if (event.detail !== 0 && draggedRef.current) return;
+    if (event.timeStamp - pressEndedAtRef.current < CLICK_AFTER_PRESS_MS) return;
     onTap?.();
   };
 
