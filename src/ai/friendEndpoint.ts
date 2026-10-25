@@ -1,24 +1,24 @@
 import { migrateSong } from "@/core/legacy";
 import type { Song } from "@/core/types";
 import { songWithinSizeLimit } from "@/lib/validation";
-import type { QuestionResult } from "./askQuestioner";
-import type { Question } from "./questions";
+import type { FriendResult } from "./askFriend";
 
-// What POST /api/ai/questions does, apart from the network (#151, idea ④).
-// The route wires in the real quota check and model; tests wire in stand-ins.
+// What POST /api/ai/friend does, apart from the network (#151): the
+// companion's lines. The route wires in the real quota check and model; tests
+// wire in stand-ins.
 
-// What ai_take_quota() (migration 0017) answers, plus "unavailable" for when
+// What ai_take_quota() (migration 0018) answers, plus "unavailable" for when
 // it couldn't be asked.
 export type QuotaStatus = "ok" | "signed-out" | "not-enabled" | "limit" | "unavailable";
 
 export type EndpointDeps = {
   // Asked as the signed-in user whose token this is.
   takeQuota: (token: string) => Promise<QuotaStatus>;
-  ask: (song: Song) => Promise<QuestionResult>;
+  ask: (song: Song) => Promise<FriendResult>;
 };
 
 export type EndpointReply =
-  | { status: 200; body: { questions: Question[] } }
+  | { status: 200; body: { lines: string[] } }
   | {
       status: 400 | 401 | 403 | 429 | 502 | 503;
       body: { error: Exclude<QuotaStatus, "ok"> | "bad-request" };
@@ -34,7 +34,7 @@ function readSong(body: unknown): Song | null {
   }
 }
 
-export async function answerQuestions(
+export async function answerFriend(
   authorization: string | null,
   body: unknown,
   deps: EndpointDeps
@@ -42,8 +42,8 @@ export async function answerQuestions(
   const token = authorization?.match(/^Bearer (.+)$/)?.[1];
   if (!token) return { status: 401, body: { error: "signed-out" } };
 
-  // Checked before the quota, so a malformed request doesn't spend a class's
-  // allowance.
+  // Checked before the quota, so a malformed request doesn't spend the
+  // school's allowance.
   const song = readSong(body);
   if (!song) return { status: 400, body: { error: "bad-request" } };
 
@@ -63,12 +63,12 @@ export async function answerQuestions(
 
   try {
     const result = await deps.ask(song);
-    // Only what passed the checks goes to the browser — not what was dropped,
-    // not token counts.
-    return { status: 200, body: { questions: result.questions } };
+    // Only the words of the lines that passed go to the browser — not the
+    // beats they were checked against, not what was dropped, not token counts.
+    return { status: 200, body: { lines: result.lines.map((l) => l.line) } };
   } catch (error) {
-    // The error class only: the song and the questions stay out of the logs.
-    console.error("[BeatBubble] questioner failed:", (error as Error)?.name);
+    // The error class only: the song and the lines stay out of the logs.
+    console.error("[BeatBubble] companion line failed:", (error as Error)?.name);
     return { status: 502, body: { error: "unavailable" } };
   }
 }

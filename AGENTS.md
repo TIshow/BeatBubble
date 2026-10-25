@@ -99,6 +99,10 @@ it right, and it happens with the teacher present.*
 - `src/core/` : data model + pure ops + migration (types/defaults/utils/ops/id/legacy)
   - `legacy.ts` : `migrateSong()` (version upgrades) + old-format import
 - `src/analysis/` : research/analytics — pure `Song`→feature extraction (`metrics.ts`); consumes `src/core`, not used at app runtime
+- `src/ai/` : the AI friend (#151) — `scoreText.ts` (a song as text for the model: notes
+  only), the companion's prompt and checks (`friend.ts`, `guard.ts`), the model call
+  (`askFriend.ts`, `model.ts`) and `friendEndpoint.ts` behind `POST /api/ai/friend`.
+  `listen.ts` / `questions.ts` are earlier ideas kept for their check scripts, not used by the app
 - `src/audio/` : Web Audio scheduling + synthesis (`engine.ts`)
 - `src/discovery/` : **pure detection** of musical relationships a child can stumble on
   (`detector`/`timeline`/`eligibility`), plus the reveal queue and progress storage.
@@ -203,7 +207,8 @@ Playful, rounded, kid-friendly. Keep new UI consistent with these:
 - Public read + insert RLS policies (no auth required)
 - `/songs` page: server-side text search (`ilike` title/author, debounced) + grade/class filters (`song_class_options()` RPC feeds the dropdowns; hidden when no class data); all fold into `useSongFeed`, paginated 24/page via `.range()` (infinite scroll + "もっと見る" fallback); each card links to `/?load=<id>`
 - Editor loads a song via `?load=<id>` on mount **through `migrateSong()`**, then cleans the URL with `replaceState`
-- Required env vars: `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+- Required env vars: `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, and
+  `ANTHROPIC_API_KEY` (server only — read by `/api/ai/friend`, never sent to the browser)
 
 ## Lesson folders (授業のフォルダ, #143)
 A folder collects one lesson's work. Teachers make and close them on `/teacher`;
@@ -235,6 +240,35 @@ are easy to get wrong:
   screen); shortcuts on `/songs` for the viewer's class; `/teacher` filters its
   song list by folder, unlisted included.
 
+## AI のともだち (#151)
+Tapping the companion gets one short line from it about the song, the way a
+friend beside the child would talk. Rules that are easy to get wrong:
+
+- **It notices; it never judges or directs.** A line says something true about
+  the notes and may ask lightly (「どんな つもり？」). Praise, verdicts and "change
+  this note" are dropped by `src/ai/guard.ts` whatever the prompt said — the
+  prompt asks, the checks make it true. Lines are dropped whole, never trimmed.
+- **Only the notes leave the browser.** `scoreToText` reads a `Song`, which has
+  no title, author or description; a title can name a classmate.
+- **One switch for the school** (`ai_settings.friend_enabled`, migration 0018),
+  on `/teacher`. Not per class: a class here is only what a child picked on their
+  profile. Teachers can try it while it is off. The server checks the switch and
+  a school-wide daily cap (`ai_take_quota()`) before every request; the editor's
+  check only decides whether a tap asks.
+- **Counts, not records.** `ai_usage_daily` counts requests per day for the
+  school and for teachers; nothing names a child, and the lines are not stored.
+- **A tap asks, and the same notes are never asked twice.** The editor keeps the
+  (up to three) lines for the current score and says the next one per tap; it
+  asks again only once the score text changes. Nothing is sent while a child works.
+- **Only AI-written words carry the AI mark.** The companion's fixed lines (empty
+  song, nothing to say, failure, daily limit) are its own and are not marked.
+- **It can be wrong.** In checks about 1 line in 6 misstated the song (a note
+  name; 「いっしょに」 for notes that play in turn). Low stakes — it is the child's
+  own song — but never treat a line as fact or build on it.
+- **Prompt changes need a check run**: `pnpm friend-check` (written songs and
+  teacher templates, never children's work; a few yen). Telling the model not to
+  say a word made it say it more — `ここ` is caught by the check instead.
+
 ## Manual Test Checklist (must pass)
 - Place melody note -> Play -> sound starts on correct step
 - Extend note duration -> Play -> sustain length matches
@@ -259,3 +293,7 @@ are easy to get wrong:
 - Submit a draft from a card's ⋯ -> it asks before publishing; take it back ->
   it leaves the folder page at once
 - Close the folder -> it leaves the save choices, and its songs still show
+- AI switch on (or as a teacher), tap the companion: an empty song -> its own line,
+  no AI mark, no request; with notes -> 「どれどれ…」 then a line marked AI; tap
+  again -> another line with no new request; drag it -> no line
+- AI switch off -> a child's companion only moves, and its label has no tap hint

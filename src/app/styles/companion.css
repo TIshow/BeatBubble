@@ -191,6 +191,91 @@
   animation: companion-listen 1.25s ease-in-out infinite alternate;
 }
 
+/* The companion's voice (#151). Placed on each tap so it stays onscreen; the
+   companion is fixed, so the bubble only has to clear its own edges. */
+.editor-companion-voice {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.editor-companion-bubble {
+  position: absolute;
+  width: max-content;
+  max-width: min(240px, calc(100vw - 24px));
+  margin: 0;
+  padding: 10px 14px;
+  border: 1px solid var(--grid-line);
+  border-radius: 16px;
+  background: var(--header-bg);
+  color: var(--foreground);
+  font-size: 15px;
+  line-height: 1.5;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.18);
+  animation: companion-bubble-in 180ms ease-out both;
+}
+
+/* The tail: a square turned corner-down, bordered on its two outer sides. */
+.editor-companion-bubble::after {
+  position: absolute;
+  width: 12px;
+  height: 12px;
+  border: inherit;
+  border-radius: 0;
+  background: inherit;
+  content: '';
+  transform: rotate(45deg);
+}
+
+.editor-companion-bubble--above {
+  bottom: calc(100% + 10px);
+}
+
+.editor-companion-bubble--above::after {
+  bottom: -7px;
+  border-top: 0;
+  border-left: 0;
+}
+
+.editor-companion-bubble--below {
+  top: calc(100% + 10px);
+}
+
+.editor-companion-bubble--below::after {
+  top: -7px;
+  border-right: 0;
+  border-bottom: 0;
+}
+
+.editor-companion-bubble--end {
+  right: 0;
+}
+
+.editor-companion-bubble--end::after {
+  right: 44px;
+}
+
+.editor-companion-bubble--start {
+  left: 0;
+}
+
+.editor-companion-bubble--start::after {
+  left: 44px;
+}
+
+.editor-companion-ai-mark {
+  display: inline-block;
+  margin-right: 6px;
+  padding: 0 7px;
+  border-radius: 20px;
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 18px;
+  vertical-align: 1px;
+}
+
 @keyframes companion-notice {
   0% {
     transform: translateY(4px) scale(0.92);
@@ -200,6 +285,17 @@
   }
   100% {
     transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes companion-bubble-in {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
 }
 
@@ -259,7 +355,8 @@
   .editor-companion,
   .editor-companion-drag-handle,
   .editor-companion-stage,
-  .editor-companion-portrait {
+  .editor-companion-portrait,
+  .editor-companion-bubble {
     animation: none !important;
     transition: none !important;
   }
