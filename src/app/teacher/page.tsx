@@ -9,6 +9,7 @@ import { useProfileDirectory } from "@/hooks/useProfileDirectory";
 import { useUserEmails } from "@/hooks/useUserEmails";
 import { accountLineFor, reviewReasonFor } from "@/lib/songAuthor";
 import { TeacherFolders } from "@/app/components/TeacherFolders";
+import { TeacherAiSwitch } from "@/app/components/TeacherAiSwitch";
 import { useTeacherFolders } from "@/hooks/useTeacherFolders";
 import { byOpenThenNewest } from "@/lib/folders";
 
@@ -167,6 +168,8 @@ export default function TeacherPage() {
       <main className="teacher-main">
         {/* Above the song table, which runs to hundreds of rows: below it, making
             a folder would mean scrolling past every song first. */}
+        <TeacherAiSwitch t={t} />
+
         <TeacherFolders
           t={t}
           state={folderState}
