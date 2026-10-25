@@ -43,15 +43,10 @@ const VERDICT_OR_INSTRUCTION = [
   "最高",
   "天才",
   "うまい",
-  // instructions
-  "音をかえ",
-  "音を変え",
+  // instructions that say the song is wrong or would be better another way
   "音をなお",
   "音を直",
-  "おとをかえ",
   "おとをなお",
-  "変えて",
-  "変えると",
   "直して",
   "直すと",
   "ほうがいい",
@@ -60,9 +55,15 @@ const VERDICT_OR_INSTRUCTION = [
   "といいよ",
 ].map(normalizeForMatch);
 
-export function soundsLikeVerdictOrInstruction(text: string): boolean {
+// Telling a child to change something. Out of verdicts, descriptions and
+// questions; in the companion's "try this" line it is the point, so that line
+// may (#161) — the line above still keeps "better" and "fix" out of it.
+const CHANGE = ["音をかえ", "音を変え", "おとをかえ", "変えて", "変えると"].map(normalizeForMatch);
+
+export function soundsLikeVerdictOrInstruction(text: string, { allowChange = false } = {}): boolean {
   const normalized = normalizeForMatch(text);
-  return VERDICT_OR_INSTRUCTION.some((word) => normalized.includes(word));
+  const found = (word: string) => normalized.includes(word);
+  return VERDICT_OR_INSTRUCTION.some(found) || (!allowChange && CHANGE.some(found));
 }
 
 export type DropReason =
@@ -72,15 +73,22 @@ export type DropReason =
   | "verdict-or-instruction"
   | "not-a-question"
   | "off-the-score"
-  | "unclear-place";
+  | "unclear-place"
+  | "notation"
+  | "names-the-answer";
 
 // One piece of text a child will read: present, not a wall of text, clear of
-// the title word lists, and neither a verdict nor an instruction.
-export function textProblem(text: string, max: number): DropReason | null {
+// the title word lists, and neither a verdict nor an instruction (unless it is
+// a suggestion to try a change — see CHANGE).
+export function textProblem(
+  text: string,
+  max: number,
+  { allowChange = false } = {}
+): DropReason | null {
   if (!text) return "missing";
   if (text.length > max) return "too-long";
   if (containsBlockedWord(text) || containsSensitiveWord(text)) return "word-list";
-  if (soundsLikeVerdictOrInstruction(text)) return "verdict-or-instruction";
+  if (soundsLikeVerdictOrInstruction(text, { allowChange })) return "verdict-or-instruction";
   return null;
 }
 

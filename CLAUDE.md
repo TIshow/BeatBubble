@@ -244,10 +244,17 @@ are easy to get wrong:
 Tapping the companion gets one short line from it about the song, the way a
 friend beside the child would talk. Rules that are easy to get wrong:
 
-- **It notices; it never judges or directs.** A line says something true about
-  the notes and may ask lightly (「どんな つもり？」). Praise, verdicts and "change
-  this note" are dropped by `src/ai/guard.ts` whatever the prompt said — the
-  prompt asks, the checks make it true. Lines are dropped whole, never trimmed.
+- **Three kinds, one per tap (#161): noticed → impression → something to try.**
+  A notice says something true about the notes and may ask lightly (「どんな
+  つもり？」). An impression is the companion's own reaction to a fact
+  (「高い ドに いきなり とんで、びっくりした」) — never the song's mood or scene,
+  which the model can't hear (#151). A suggestion proposes one change to try and
+  ends by asking what happens — never which note, and never that it would be
+  better: choosing is the child's part ("AI may scaffold; it must not answer").
+- **The prompt asks; the checks make it true.** Praise and verdicts in any kind,
+  "change" outside a suggestion, a named target note, score notation, ここ and
+  beat numbers are dropped by `src/ai/guard.ts` / `friend.ts`. Lines are dropped
+  whole, never trimmed.
 - **Only the notes leave the browser.** `scoreToText` reads a `Song`, which has
   no title, author or description; a title can name a classmate.
 - **One switch for the school** (`ai_settings.friend_enabled`, migration 0018),
@@ -260,6 +267,11 @@ friend beside the child would talk. Rules that are easy to get wrong:
 - **A tap asks, and the same notes are never asked twice.** The editor keeps the
   (up to three) lines for the current score and says the next one per tap; it
   asks again only once the score text changes. Nothing is sent while a child works.
+- **The examples in the prompt are shuffled per request** (`REACTION_SEEDS`,
+  `TRY_SEEDS`): the model takes the first example that fits, so in a fixed order
+  most songs got the same reaction and the same suggestion. They stay in the
+  system prompt — moved into the user message, the model thought four times as
+  long (a 7-second wait).
 - **Only AI-written words carry the AI mark.** The companion's fixed lines (empty
   song, nothing to say, failure, daily limit) are its own and are not marked.
 - **It can be wrong.** In checks about 1 line in 6 misstated the song (a note
@@ -294,6 +306,7 @@ friend beside the child would talk. Rules that are easy to get wrong:
   it leaves the folder page at once
 - Close the folder -> it leaves the save choices, and its songs still show
 - AI switch on (or as a teacher), tap the companion: an empty song -> its own line,
-  no AI mark, no request; with notes -> 「どれどれ…」 then a line marked AI; tap
-  again -> another line with no new request; drag it -> no line
+  no AI mark, no request; with notes -> 「どれどれ…」 then a noticed line marked AI;
+  tap again -> an impression, then something to try, with no new request; drag it
+  -> no line
 - AI switch off -> a child's companion only moves, and its label has no tap hint

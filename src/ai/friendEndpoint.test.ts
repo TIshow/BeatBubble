@@ -3,10 +3,10 @@ import { DEFAULT_SONG } from "@/core/defaults";
 import type { FriendResult } from "./askFriend";
 import { answerFriend, type EndpointDeps, type QuotaStatus } from "./friendEndpoint";
 
-const line = { place: "1拍目", line: "さいしょの ドが ながく のびてるね。" };
+const line = { kind: "notice" as const, place: "1拍目", line: "さいしょの ドが ながく のびてるね。" };
 const answered: FriendResult = {
   lines: [line],
-  dropped: [{ line: { place: "99拍目", line: "すごい！" }, reason: "off-the-score" }],
+  dropped: [{ line: { kind: "impression", place: "99拍目", line: "すごい！" }, reason: "off-the-score" }],
   refused: false,
   usage: { inputTokens: 900, outputTokens: 200 },
 };
