@@ -90,9 +90,7 @@ export type Translations = {
   showMore: string;
   templateBadge: string;
   // Teacher-only: the account behind a song (the printed author is free text).
-  authorAccountLabel: string;
   authorAccountNone: string;
-  authorAccountDiffers: string;
   saveVisibleToTeacher: string;
   // Teacher dashboard (/teacher)
   teacherLink: string;
@@ -102,7 +100,6 @@ export type Translations = {
   teacherFilterAll: string;
   teacherFilterReview: string;
   teacherFilterHidden: string;
-  teacherReviewCount: (n: number) => string;
   teacherReasonNameMismatch: string;
   teacherReasonAnonymous: string;
   teacherColTitle: string;
@@ -212,7 +209,6 @@ export type Translations = {
   genderFemale: string;
   genderOther: string;
   genderUndisclosed: string;
-  profileSaved: string;
   profileSaveFailed: string;
   profileSchoolPlaceholder: string;
   profileNamePlaceholder: string;
@@ -343,9 +339,7 @@ export const translations: Record<Locale, Translations> = {
     loadingMore: 'Loading more...',
     showMore: 'Show more',
     templateBadge: 'Template',
-    authorAccountLabel: 'Account',
     authorAccountNone: 'No account (not identifiable)',
-    authorAccountDiffers: 'differs from the typed name',
     saveVisibleToTeacher: 'Your teacher can see who made each song.',
     teacherLink: 'Teacher view',
     teacherTitle: 'Teacher view',
@@ -354,7 +348,6 @@ export const translations: Record<Locale, Translations> = {
     teacherFilterAll: 'All',
     teacherFilterReview: 'Needs a look',
     teacherFilterHidden: 'Hidden',
-    teacherReviewCount: (n) => `${n} to look at`,
     teacherReasonNameMismatch: "Name doesn't match the account",
     teacherReasonAnonymous: 'No account',
     teacherColTitle: 'Song',
@@ -467,7 +460,6 @@ export const translations: Record<Locale, Translations> = {
     genderFemale: 'Girl',
     genderOther: 'Other',
     genderUndisclosed: 'Prefer not to say',
-    profileSaved: 'Saved!',
     profileSaveFailed: "Couldn't save. Please try again.",
     profileSchoolPlaceholder: 'School name',
     profileNamePlaceholder: 'Your name or nickname',
@@ -713,9 +705,7 @@ export const translations: Record<Locale, Translations> = {
     loadingMore: 'よみこみちゅう...',
     showMore: 'もっと見る',
     templateBadge: 'テンプレ',
-    authorAccountLabel: 'アカウント',
     authorAccountNone: 'アカウントなし（だれか わかりません）',
-    authorAccountDiffers: '入力された なまえと ちがいます',
     saveVisibleToTeacher: '先生には、だれが つくったか 見えるよ。',
     teacherLink: '先生ページ',
     teacherTitle: '先生ページ',
@@ -724,7 +714,6 @@ export const translations: Record<Locale, Translations> = {
     teacherFilterAll: 'すべて',
     teacherFilterReview: '要確認',
     teacherFilterHidden: '非表示にした曲',
-    teacherReviewCount: (n) => `要確認 ${n}件`,
     teacherReasonNameMismatch: '入力名がアカウントと一致しません',
     teacherReasonAnonymous: 'アカウントなし（特定できません）',
     teacherColTitle: '曲',
@@ -837,7 +826,6 @@ export const translations: Record<Locale, Translations> = {
     genderFemale: '女の子',
     genderOther: 'その他',
     genderUndisclosed: 'こたえない',
-    profileSaved: 'ほぞんしました！',
     profileSaveFailed: 'ほぞんに しっぱいしました。もういちど ためしてね。',
     profileSchoolPlaceholder: 'がっこうのなまえ',
     profileNamePlaceholder: 'なまえ か ニックネーム',
