@@ -9,7 +9,6 @@ export type NewFolder = {
   prompt: string | null;
   grade: number;
   className: string | null;
-  aiEnabled: boolean;
 };
 
 // Who may write is decided by RLS (migration 0016: teachers only). `enabled`
@@ -54,7 +53,6 @@ export function useTeacherFolders(enabled: boolean) {
         prompt: folder.prompt,
         grade: folder.grade,
         class_name: folder.className,
-        ai_enabled: folder.aiEnabled,
       })
       .select(FOLDER_COLUMNS)
       .single();
@@ -66,14 +64,13 @@ export function useTeacherFolders(enabled: boolean) {
     return true;
   }, []);
 
-  // Closing or reopening, and turning AI on or off: the switches a teacher
-  // flips on an existing folder.
+  // Closing or reopening an existing folder.
   //
   // A write RLS refuses isn't an error to Supabase — it just touches 0 rows —
   // so ask for the rows back and treat none as a failure, rather than showing
   // a change that never happened.
   const update = useCallback(
-    async (id: string, patch: Partial<Pick<SongFolder, "archived" | "ai_enabled">>): Promise<boolean> => {
+    async (id: string, patch: Pick<SongFolder, "archived">): Promise<boolean> => {
       const { data, error: dbError } = await supabase
         .from("song_folders")
         .update(patch)

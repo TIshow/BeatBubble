@@ -142,11 +142,12 @@ export type Translations = {
   folderEmpty: string;
   folderLoadError: string;
   folderWriteError: string;
-  folderAiLabel: string;
-  folderAiHint: string;
-  folderAiBadge: string;
-  folderAiTurnOn: string;
-  folderAiTurnOff: string;
+  aiFriendTitle: string;
+  aiFriendOnBadge: string;
+  aiFriendOffBadge: string;
+  aiFriendHint: string;
+  aiFriendTurnOn: string;
+  aiFriendTurnOff: string;
   folderShortcutsLabel: string;
   folderBack: string;
   folderClosedChip: string;
@@ -387,12 +388,13 @@ export const translations: Record<Locale, Translations> = {
     folderEmpty: 'No folders yet.',
     folderLoadError: "Couldn't load folders. Please reload the page.",
     folderWriteError: "Couldn't save. Please try again.",
-    folderAiLabel: 'Use AI questions',
-    folderAiHint:
-      'When children write about a song, AI asks them about places in it. The children write the answers themselves.',
-    folderAiBadge: 'AI',
-    folderAiTurnOn: 'Turn AI on',
-    folderAiTurnOff: 'Turn AI off',
+    aiFriendTitle: 'AI friend',
+    aiFriendOnBadge: 'On',
+    aiFriendOffBadge: 'Off',
+    aiFriendHint:
+      "When on, a signed-in child who taps the companion creature in the editor gets one short line from AI about their song. It never praises, grades or says what to change. Teachers can try it while it's off.",
+    aiFriendTurnOn: 'Turn on',
+    aiFriendTurnOff: 'Turn off',
     folderShortcutsLabel: 'Lesson folders',
     folderBack: '← All songs',
     folderClosedChip: 'Closed',
@@ -748,11 +750,13 @@ export const translations: Record<Locale, Translations> = {
     folderEmpty: 'まだフォルダはありません。',
     folderLoadError: 'フォルダを読み込めませんでした。ページを再読み込みしてください。',
     folderWriteError: '保存できませんでした。もう一度お試しください。',
-    folderAiLabel: 'AI の質問を使う',
-    folderAiHint: '児童が曲の説明を書くとき、AI が曲の中の場所について質問します。答えを書くのは児童です。',
-    folderAiBadge: 'AI',
-    folderAiTurnOn: 'AI をオンにする',
-    folderAiTurnOff: 'AI をオフにする',
+    aiFriendTitle: 'AI のともだち',
+    aiFriendOnBadge: 'オン',
+    aiFriendOffBadge: 'オフ',
+    aiFriendHint:
+      'オンにすると、ログインしている児童がエディタの相棒のいきものをタップしたとき、AI が曲について1行だけ話しかけます。ほめたり、評価したり、直し方を言ったりはしません。オフのあいだも、先生は試せます。',
+    aiFriendTurnOn: 'オンにする',
+    aiFriendTurnOff: 'オフにする',
     folderShortcutsLabel: 'じゅぎょうの フォルダ',
     folderBack: '← みんなの曲',
     folderClosedChip: 'うけつけ おわり',
