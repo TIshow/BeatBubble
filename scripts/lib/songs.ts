@@ -1,9 +1,10 @@
 import { DEFAULT_SONG } from "@/core/defaults";
 import type { DrumId, InstrumentId, Song } from "@/core/types";
 
-// Songs written for the listener check (#151), each to a scene decided before
-// it was written. The model is never told the scene; a person compares its
-// impressions of the song and of a shuffled copy against it.
+// Songs written for the AI checks (#151), each to a scene decided before it
+// was written. The model is never told the scene: the listener check compares
+// its impressions of the song and of a shuffled copy against it, and the
+// friend check uses them as songs no child made.
 //
 // No children's work is here. Pairs that share tempo and register on purpose
 // (あめ / ゆき) make sure tempo and instrument alone can't tell them apart.

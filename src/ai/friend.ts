@@ -124,7 +124,7 @@ function dropReason({ kind, place, line }: FriendLine, beats: number): DropReaso
 }
 
 // The first candidate of each kind that passes, in FRIEND_KINDS order; a kind
-// with none is left out. Same contract as sortQuestions: a line is dropped
+// with none is left out. Same contract as sortImpressions: a line is dropped
 // whole, never trimmed, with its reason.
 export function pickFriendLines(
   items: FriendLine[],
