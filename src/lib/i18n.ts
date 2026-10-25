@@ -401,7 +401,7 @@ export const translations: Record<Locale, Translations> = {
     aiFriendOnBadge: 'On',
     aiFriendOffBadge: 'Off',
     aiFriendHint:
-      "When on, a signed-in child who taps the companion creature in the editor gets one short line from AI about their song. It never praises, grades or says what to change. Teachers can try it while it's off.",
+      "When on, a signed-in child who taps the companion creature in the editor gets one short line from AI about their song: something it noticed, then its reaction, then something to try. It never praises, grades, or gives the answer (which note, or that one way is better). Teachers can try it while it's off.",
     aiFriendTurnOn: 'Turn on',
     aiFriendTurnOff: 'Turn off',
     folderShortcutsLabel: 'Lesson folders',
@@ -770,7 +770,7 @@ export const translations: Record<Locale, Translations> = {
     aiFriendOnBadge: 'オン',
     aiFriendOffBadge: 'オフ',
     aiFriendHint:
-      'オンにすると、ログインしている児童がエディタの相棒のいきものをタップしたとき、AI が曲について1行だけ話しかけます。ほめたり、評価したり、直し方を言ったりはしません。オフのあいだも、先生は試せます。',
+      'オンにすると、ログインしている児童がエディタの相棒のいきものをタップしたとき、AI が曲について1行ずつ話しかけます（気づいたこと → 感想 → ためしてみること）。ほめたり、評価したり、答え（どの音にするか、どちらが良いか）を言ったりはしません。オフのあいだも、先生は試せます。',
     aiFriendTurnOn: 'オンにする',
     aiFriendTurnOff: 'オフにする',
     folderShortcutsLabel: 'じゅぎょうの フォルダ',
