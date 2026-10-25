@@ -249,6 +249,15 @@ export type Translations = {
   companionSaving: string;
   companionSaveError: string;
   companionMoveHint: string;
+  // The companion's voice when tapped (#151). Only AI-written lines carry the
+  // AI mark; these fixed ones are the companion's own.
+  companionMoveAndTalkHint: string;
+  companionThinking: string;
+  companionSilentSong: string;
+  companionNoWords: string;
+  companionLimit: string;
+  companionUnavailable: string;
+  companionAiMarkTitle: string;
   creatures: Record<DiscoveryId, CreatureTranslation>;
   // Open-ended challenges
   challengeOpen: string;
@@ -496,6 +505,13 @@ export const translations: Record<Locale, Translations> = {
     companionSaving: 'Saving…',
     companionSaveError: "Couldn't change your companion. Please try again.",
     companionMoveHint: 'Drag or use arrow keys to move',
+    companionMoveAndTalkHint: 'Drag or use arrow keys to move. Tap to hear what it noticed',
+    companionThinking: 'Let me listen…',
+    companionSilentSong: 'Put some notes down, then let me hear!',
+    companionNoWords: "Hmm, I'm not sure what to say. Play me some more later!",
+    companionLimit: "I can't talk any more today. See you tomorrow!",
+    companionUnavailable: "I couldn't quite hear just now…",
+    companionAiMarkTitle: 'Written by AI',
     creatures: {
       interval_third: {
         name: 'Mitts',
@@ -859,6 +875,13 @@ export const translations: Record<Locale, Translations> = {
     companionSaving: 'ほぞん中…',
     companionSaveError: 'いっしょにいく生き物を かえられなかったよ。もういちど ためしてね。',
     companionMoveHint: 'ドラッグで うごかせるよ',
+    companionMoveAndTalkHint: 'ドラッグで うごかせるよ。タップすると はなしかけてくるよ',
+    companionThinking: 'どれどれ…',
+    companionSilentSong: '音を おいたら、きかせてね',
+    companionNoWords: 'うーん、なんて いおうかな。また きかせてね',
+    companionLimit: 'きょうは もう おしゃべり できないんだ。また あしたね',
+    companionUnavailable: 'いまは うまく きこえなかった…',
+    companionAiMarkTitle: 'AI が かいた ことば',
     creatures: {
       interval_third: {
         name: 'ミッツ',

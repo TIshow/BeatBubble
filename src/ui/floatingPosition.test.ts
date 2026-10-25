@@ -1,5 +1,11 @@
 import { describe, expect, it } from 'vitest';
-import { clampFloatingPosition } from './floatingPosition';
+import {
+  BUBBLE_ROOM,
+  bubbleSide,
+  clampFloatingPosition,
+  movedBeyondTap,
+  TAP_SLOP,
+} from './floatingPosition';
 
 const viewport = { width: 800, height: 600 };
 const element = { width: 120, height: 140 };
@@ -33,5 +39,30 @@ describe('clampFloatingPosition', () => {
         insets,
       ),
     ).toEqual({ left: 12, top: 80 });
+  });
+});
+
+describe('movedBeyondTap', () => {
+  it('treats a wobble as a tap and a real move as a drag', () => {
+    expect(movedBeyondTap(0, 0)).toBe(false);
+    expect(movedBeyondTap(3, -4)).toBe(false);
+    expect(movedBeyondTap(TAP_SLOP, 0)).toBe(false);
+    expect(movedBeyondTap(TAP_SLOP + 1, 0)).toBe(true);
+    expect(movedBeyondTap(-5, 5)).toBe(true);
+  });
+});
+
+describe('bubbleSide', () => {
+  const width = 112;
+
+  it('puts the bubble above and growing leftwards from where the companion starts, bottom right', () => {
+    expect(bubbleSide({ left: 676, top: 476, width }, 800)).toEqual({ vertical: 'above', horizontal: 'end' });
+  });
+
+  it('flips below near the top and rightwards on the left half, so it stays onscreen', () => {
+    expect(bubbleSide({ left: 12, top: BUBBLE_ROOM - 1, width }, 800)).toEqual({
+      vertical: 'below',
+      horizontal: 'start',
+    });
   });
 });

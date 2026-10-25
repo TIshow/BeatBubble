@@ -29,6 +29,8 @@ import { useSong } from '@/hooks/useSong';
 import { useDiscoveries } from '@/hooks/useDiscoveries';
 import { useDiscoveryFeedback } from '@/hooks/useDiscoveryFeedback';
 import { useChallengeMode } from '@/hooks/useChallengeMode';
+import { useAiSettings } from '@/hooks/useAiSettings';
+import { useCompanionLine } from '@/hooks/useCompanionLine';
 import { supabase } from '@/lib/supabase';
 import { creatureForDiscovery } from '@/creatures/catalog';
 import { SaveModal } from './components/SaveModal';
@@ -44,9 +46,15 @@ import { EditorCompanion } from './components/companion/EditorCompanion';
 
 export default function Home() {
   const { locale, t } = useLocale();
-  const { user, companionDiscoveryId, companionLoading } = useAccount();
+  const { user, isTeacher, companionDiscoveryId, companionLoading } = useAccount();
+  // Whether tapping the companion asks the AI for a line (#151): signed in,
+  // and the school's switch on — teachers can always try it. The server
+  // checks again before every request; this only decides whether a tap asks.
+  const { friendEnabled } = useAiSettings(!!user);
+  const companionCanTalk = !!user && (isTeacher || friendEnabled === true);
   const { progress: discoveryProgress, claimDiscoveries } = useDiscoveries(user);
   const { song, setSong, songRef, canUndo, pushHistory, undo, reset } = useSong();
+  const companionTalk = useCompanionLine(song, companionCanTalk);
   const {
     activeChallengeId,
     reaction: challengeReaction,
@@ -532,6 +540,7 @@ export default function Home() {
             creature={creatureForDiscovery(companionDiscoveryId)}
             isPlaying={isPlaying}
             reactionKey={companionReactionKey}
+            talk={companionCanTalk ? companionTalk : null}
             t={t}
           />
         )}
