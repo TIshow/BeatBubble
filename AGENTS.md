@@ -102,7 +102,8 @@ it right, and it happens with the teacher present.*
 - `src/ai/` : the AI friend (#151) — `scoreText.ts` (a song as text for the model: notes
   only), the companion's prompt and checks (`friend.ts`, `guard.ts`), the model call
   (`askFriend.ts`, `model.ts`) and `friendEndpoint.ts` behind `POST /api/ai/friend`.
-  `listen.ts` / `questions.ts` are earlier ideas kept for their check scripts, not used by the app
+  `listen.ts` / `askListener.ts` are the listener idea #151 rejected, kept with `pnpm listen-check`
+  to re-run its blind test on a newer model; not used by the app
 - `src/audio/` : Web Audio scheduling + synthesis (`engine.ts`)
 - `src/discovery/` : **pure detection** of musical relationships a child can stumble on
   (`detector`/`timeline`/`eligibility`), plus the reveal queue and progress storage.

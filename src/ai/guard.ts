@@ -1,9 +1,9 @@
 import { containsBlockedWord, containsSensitiveWord, normalizeForMatch } from "@/lib/validation";
 
-// Checks for any text an AI writes for a child to read (#151): the listener's
-// impressions, the questioner's questions, the companion's lines. The prompts
-// ask for the right thing; these make it true, because whether a song is good
-// and what to change are the child's to decide, whatever a model was told.
+// Checks for any text an AI writes for a child to read (#151): the companion's
+// lines, and the listener's impressions in its check. The prompts ask for the
+// right thing; these make it true, because whether a song is good and what to
+// change are the child's to decide, whatever a model was told.
 
 // Words that turn a sentence into a verdict (praise included) or an
 // instruction. Matched on the same normalized form as the title word lists

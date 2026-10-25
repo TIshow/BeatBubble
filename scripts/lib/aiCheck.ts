@@ -5,7 +5,7 @@ import { migrateSong } from "@/core/legacy";
 import type { Song } from "@/core/types";
 import type { ModelClient, Usage } from "@/ai/model";
 import { supabase } from "@/lib/supabase";
-import { VALIDATION_SONGS } from "../listen-check/songs";
+import { VALIDATION_SONGS } from "./songs";
 
 const CHECK_DIR = process.env.LISTEN_CHECK_DIR ?? ".listen-check";
 // Where "open and listen" links point: the local dev server unless told

@@ -2,8 +2,9 @@ import type Anthropic from "@anthropic-ai/sdk";
 import { zodOutputFormat } from "@anthropic-ai/sdk/helpers/zod";
 import type { z } from "zod";
 
-// One way of asking the model for every AI feature (#151), so the listener and
-// the questioner can't drift in model, effort or how a refusal is handled.
+// One way of asking the model for every AI feature (#151), so the companion
+// and the listener check can't drift in model, effort or how a refusal is
+// handled.
 
 // The cheapest current model, chosen for this: each task is a few short lines
 // from a page of text, and each feature is checked against real songs before
