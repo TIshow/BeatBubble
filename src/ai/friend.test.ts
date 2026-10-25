@@ -54,7 +54,7 @@ describe("pickFriendLines", () => {
   });
 
   it("drops a line that points with ここ or a number the child can't see", () => {
-    for (const line of ["ここの ド6、ながーく のびてるね。", "ここ、ラ♯の音が ぽんと 出てくるね", "4拍目の ドが のびてるね", "3マス目から はじまるね"]) {
+    for (const line of ["ここの ド6、ながーく のびてるね。", "ここ、ラ♯の音が ぽんと 出てくるね", "4拍目の ドが のびてるね", "４拍目の ドが のびてるね", "3マス目から はじまるね"]) {
       expect(pickFriendLines([{ ...ok, line }], BEATS).dropped[0].reason).toBe("unclear-place");
     }
     // ド6 is a note, and こころ a word.

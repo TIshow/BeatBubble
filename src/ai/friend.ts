@@ -42,7 +42,7 @@ export function friendUserMessage(score: string): string {
 // hunting: it arrives in a bubble, not on the grid, and the grid shows no
 // numbers. In the first check a third of the lines said ここ. (こころ and ここち
 // are words, not pointing.)
-const UNCLEAR_PLACE = /ここ(?![ろち])|\d\s*(?:拍|マス)/;
+const UNCLEAR_PLACE = /ここ(?![ろち])|[\d０-９]\s*(?:拍|マス)/;
 
 function dropReason({ place, line }: FriendLine, beats: number): DropReason | null {
   const problem = textProblem(line, MAX_FRIEND_LENGTH);
@@ -52,19 +52,19 @@ function dropReason({ place, line }: FriendLine, beats: number): DropReason | nu
   return null;
 }
 
-// Every candidate that passes, in the model's order. Same contract as the
-// other checks: a line is dropped whole, never trimmed, with its reason.
+// The candidates that pass, in the model's order. Same contract as
+// sortQuestions: a line is dropped whole, never trimmed, with its reason.
 export function pickFriendLines(
   items: FriendLine[],
   beats: number
 ): { lines: FriendLine[]; dropped: { line: FriendLine; reason: DropReason }[] } {
   const lines: FriendLine[] = [];
   const dropped: { line: FriendLine; reason: DropReason }[] = [];
-  for (const item of items.slice(0, FRIEND_CANDIDATES)) {
+  for (const item of items) {
     const candidate = { place: item.place.trim(), line: item.line.trim() };
     const reason = dropReason(candidate, beats);
     if (reason) dropped.push({ line: candidate, reason });
     else lines.push(candidate);
   }
-  return { lines, dropped };
+  return { lines: lines.slice(0, FRIEND_CANDIDATES), dropped };
 }
